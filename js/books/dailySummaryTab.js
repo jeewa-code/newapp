@@ -1,17 +1,105 @@
 // dailySummaryTab.js - UPDATED for A3 Landscape, Fit-to-one-page, Auto-page-break
 // Based on original file; converted editable inputs to readonly DIVs and unified row heights via CSS var --row-height
-(function() {
+(function () {
     "use strict";
 
     let monthlyData = JSON.parse(localStorage.getItem('phi_monthly_activities')) || {};
 
     // add styles to keep table column widths stable and readonly cell height unified
-    (function(){
+    (function () {
         const s = document.createElement('style');
         s.textContent = `
         :root { 
             --row-height: 12px; 
         }
+
+        .summary-container {
+            padding: 20px;
+        }
+
+        .summary-header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+        .summary-controls {
+            display: flex; 
+            gap: 10px; 
+            align-items: center;
+        }
+
+        .summary-footer-btns {
+            margin-top: 20px; 
+            display: flex; 
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .summary-container {
+                padding: 10px;
+            }
+            .summary-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .summary-controls {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            .summary-controls select, .summary-controls button {
+                flex: 1;
+                min-width: 120px;
+            }
+            .signature-section {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .summary-footer-btns {
+                flex-direction: column;
+            }
+            .summary-footer-btns button {
+                width: 100%;
+            }
+
+            /* Adjust sticky column 2 for mobile */
+            #activitiesTable th.sticky-col-2,
+            #activitiesTable td.sticky-col-2 {
+                width: 120px !important;
+                min-width: 120px !important;
+                max-width: 120px !important;
+                font-size: 10px !important;
+                background: white !important;
+            }
+            .sticky-col-2 .readonly-cell {
+                font-size: 9px !important;
+                white-space: normal !important;
+                line-height: 1.1 !important;
+                text-align: left !important;
+                justify-content: flex-start !important;
+                overflow: hidden;
+            }
+            
+            /* Increase row height slightly for mobile if text wraps */
+            :root {
+                --row-height: 24px;
+            }
+
+            .day-col { min-width: 45px !important; }
+            .total-col { min-width: 80px !important; }
+            
+            #activitiesTable {
+                min-width: 1700px !important; /* Increased from 1200px to fit all 31 days */
+            }
+            #activitiesTableTopSpacer {
+                width: 1700px !important;
+            }
+        }
+
+        .day-col { min-width: 75px; }
+        .total-col { min-width: 120px; }
 
         .readonly-cell {
             display: flex;
@@ -50,6 +138,16 @@
             font-size: 11px;
             margin: 0;
             line-height: var(--row-height);
+            background-color: #e8f5e9 !important; /* Very light green */
+            font-weight: bold;
+        }
+
+        .sticky-col-1, .sticky-col-2 {
+            background-color: #ffffff !important;
+        }
+
+        .total-col {
+            background-color: #e3f2fd !important; /* Light blue */
         }
         /* Activities column styling */
         .activities-col {
@@ -73,6 +171,48 @@
         .readonly-cell.muted { color: #666; }
         #activitiesTableContainerTop { margin-bottom: 6px; }
 
+        /* Sticky Columns for Mobile */
+        .sticky-col-1 {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background: white !important;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sticky-col-2 {
+            position: sticky;
+            left: 50px;
+            z-index: 10;
+            background: white !important;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .table-header-row .sticky-col-1,
+        .table-header-row .sticky-col-2 {
+            background: var(--primary) !important;
+            z-index: 11;
+        }
+
+        .main-duty-row .sticky-col-1 {
+            background: #6c757d !important;
+            z-index: 11;
+        }
+
+        /* Scroll hint */
+        .scroll-hint {
+            display: none;
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 8px;
+            text-align: right;
+        }
+
+        @media (max-width: 768px) {
+            .scroll-hint {
+                display: block;
+            }
+        }
+
         /* Basic table layout for on-screen */
         #activitiesTable {
             width: 100%;
@@ -81,6 +221,11 @@
             font-size: 12px;
             min-width: 1800px;
             table-layout: fixed;
+        }
+
+        #activitiesTableTopSpacer {
+            width: 1800px;
+            height: 1px;
         }
 
         /* Make sure table header repeats on each printed page */
@@ -235,16 +380,16 @@
         document.head.appendChild(s);
     })();
 
-    window.renderDailySummaryTab = function(container) {
+    window.renderDailySummaryTab = function (container) {
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
         const currentMonth = currentDate.getMonth() + 1;
-        
+
         container.innerHTML = `
-            <div class="glass" style="padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 style="color: var(--primary);">Summary of Activities</h3>
-                    <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="glass summary-container">
+                <div class="summary-header">
+                    <h3 style="color: var(--primary); margin: 0;">Summary of Activities</h3>
+                    <div class="summary-controls">
                         <select id="monthSelect" style="padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
                             ${generateMonthOptions(currentMonth)}
                         </select>
@@ -255,29 +400,31 @@
                                 style="background: var(--primary); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">
                             Load
                         </button>
-                          <button id="printTableBtn" 
-                            style="background:#0b63d4;color:white;padding:8px 14px;border:none;
-                                border-radius:6px;cursor:pointer;">
-                        Print Table
-                    </button>
-
+                        <button id="printTableBtn" 
+                                style="background:#0b63d4;color:white;padding:8px 14px;border:none;
+                                    border-radius:6px;cursor:pointer;">
+                            Print Table
+                        </button>
                     </div>
                 </div>
 
+                <div class="scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Scroll left to see dates</div>
                 <!-- Activities Table -->
-                <div id="activitiesTableContainerTop" style="overflow-x:auto; overflow-y:hidden;"><div style="width:1800px; height:10px;"></div></div>
-                    <div id="activitiesTableContainer" style="overflow-x: auto;">
+                <div id="activitiesTableContainerTop" style="overflow-x:auto; overflow-y:hidden;">
+                    <div id="activitiesTableTopSpacer"></div>
+                </div>
+                <div id="activitiesTableContainer" style="overflow-x: auto;">
                     ${renderActivitiesTable(currentYear, currentMonth)}
                 </div>
 
                 <!-- Signature Section -->
                 <div class="signature-section" style="margin-top: 30px; display: flex; justify-content: space-between; font-size: 14px;">
-                    <div><Prepared by:<Br>Date> <span class="signature-line"></span></div>
+                    <div>Prepared by: <span class="signature-line"></span></div>
                     <div>Checked by: <span class="signature-line"></span></div>
                     <div>Approved by: <span class="signature-line"></span></div>
                 </div>
 
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <div class="summary-footer-btns">
                     <button onclick="saveMonthlyData()" 
                             style="background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;">
                         Save Data
@@ -293,14 +440,14 @@
         // hook up print button
         const printBtn = document.getElementById('printTableBtn');
         if (printBtn) {
-            printBtn.addEventListener('click', function() {
+            printBtn.addEventListener('click', function () {
                 printTableOnly();   // Use clean-table print method
             });
         }
 
 
-    // initialize top scrollbar sync after initial render
-    setTimeout(initTableScrollSync, 100);
+        // initialize top scrollbar sync after initial render
+        setTimeout(initTableScrollSync, 100);
     };
 
     function generateMonthOptions(selectedMonth) {
@@ -308,7 +455,7 @@
             'January', 'February', 'March', 'April', 'May', 'June',
             'July', 'August', 'September', 'October', 'November', 'December'
         ];
-        return months.map((month, index) => 
+        return months.map((month, index) =>
             `<option value="${index + 1}" ${index + 1 === selectedMonth ? 'selected' : ''}>${month}</option>`
         ).join('');
     }
@@ -324,17 +471,17 @@
     function renderActivitiesTable(year, month) {
         const dutiesData = window.getDutiesData ? window.getDutiesData() : [];
         const monthKey = `${year}-${month.toString().padStart(2, '0')}`;
-        
+
         if (!monthlyData[monthKey]) {
             monthlyData[monthKey] = {};
         }
 
         let tableHTML = `
-            <table id="activitiesTable" class="fixed-layout-table" style="width: 100%; border-collapse: collapse; background: white; font-size: 12px; min-width: 1800px; table-layout: fixed;">
+            <table id="activitiesTable" class="fixed-layout-table" style="width: 100%; border-collapse: collapse; background: white; font-size: 12px; table-layout: fixed;">
                 <thead>
                     <tr class="table-header-row" style="background: var(--primary); color: white;">
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 50px;"></th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 300px;">
+                        <th class="sticky-col-1" style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 50px;"></th>
+                        <th class="sticky-col-2" style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 300px;">
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <span>Activities</span>
                                 <span style="font-size: 16px;">↓</span>
@@ -356,7 +503,7 @@
 
         // Time tracking section
         tableHTML += generateTimeTrackingSection(monthKey);
-        
+
         // Main activities section
         tableHTML += generateMainActivitiesSection(dutiesData, monthKey);
 
@@ -367,51 +514,51 @@
     function generateDayHeaders() {
         let headers = '';
         for (let day = 1; day <= 31; day++) {
-            headers += `<th style="padding: 8px; border: 1px solid #ddd; text-align: center; min-width: 75px;">${day.toString().padStart(2, '0')}</th>`;
+            headers += `<th class="day-col" style="padding: 8px; border: 1px solid #ddd; text-align: center;">${day.toString().padStart(2, '0')}</th>`;
         }
-        headers += `<th style="padding: 8px; border: 1px solid #ddd; text-align: center; min-width: 120px; background: var(--primary-light);">Total</th>`;
+        headers += `<th class="total-col" style="padding: 8px; border: 1px solid #ddd; text-align: center; background: var(--primary-light);">Total</th>`;
         return headers;
     }
 
     function generateTimeTrackingSection(monthKey) {
         const timeFields = [
-            { 
-                label: 'Place of work', 
+            {
+                label: 'Place of work',
                 rows: [
                     { period: 'a.m', type: 'text' }, // Row 01 - text display for letters and numbers
                     { period: 'p.m', type: 'text' }
                 ]
             },
-            { 
-                label: 'Time of departure from office', 
+            {
+                label: 'Time of departure from office',
                 rows: [
                     { period: 'a.m', type: 'time' },
                     { period: 'p.m', type: 'time' }
                 ]
             },
-            { 
-                label: 'Time of arrival in the field', 
+            {
+                label: 'Time of arrival in the field',
                 rows: [
                     { period: 'a.m', type: 'time' },
                     { period: 'p.m', type: 'time' }
                 ]
             },
-            { 
-                label: 'Time of leaving from field', 
+            {
+                label: 'Time of leaving from field',
                 rows: [
                     { period: 'a.m', type: 'time' },
                     { period: 'p.m', type: 'time' }
                 ]
             },
-            { 
-                label: 'Time of returning to the office', 
+            {
+                label: 'Time of returning to the office',
                 rows: [
                     { period: 'a.m', type: 'time' },
                     { period: 'p.m', type: 'time' }
                 ]
             },
-            { 
-                label: 'Distance traveled - By vehicle maintained', 
+            {
+                label: 'Distance traveled - By vehicle maintained',
                 rows: [
                     { period: 'a.m', type: 'distance' },
                     { period: 'p.m', type: 'distance' }
@@ -426,21 +573,21 @@
             field.rows.forEach((row, rowIndex) => {
                 const isFirstRow = rowIndex === 0;
                 const rowspan = field.rows.length;
-                
+
                 sectionHTML += `
                     <tr>
-                        ${isFirstRow ? 
-                            `<td rowspan="${rowspan}" style="padding: 6px; border: 1px solid #ddd; background: #f8f9fa; font-weight: 500; text-align: center; vertical-align: middle;">
+                        ${isFirstRow ?
+                        `<td rowspan="${rowspan}" class="sticky-col-1" style="padding: 6px; border: 1px solid #ddd; background: #f8f9fa; font-weight: 500; text-align: center; vertical-align: middle;">
                                 ${rowCounter.toString().padStart(2, '0')}
                             </td>
                             <td rowspan="${rowspan}" 
-                                    class="activities-col-0107"
+                                    class="activities-col-0107 sticky-col-2"
                                     style="padding: 0; border: 1px solid #ddd; background: #f8f9fa; vertical-align: middle;">
                                     ${field.label}
-                                </td>` 
-                            : 
-                            ''
-                        }
+                                </td>`
+                        :
+                        ''
+                    }
                         <td style="padding: 4px; border: 1px solid #ddd; background: #f8f9fa; text-align: center; width: 80px;">
                             ${row.period}
                         </td>
@@ -454,11 +601,11 @@
         // Row 07 - Distance traveled - By public transport or other (single column)
         sectionHTML += `
             <tr>
-                <td style="padding: 6px; border: 1px solid #ddd; background: #f8f9fa; font-weight: 500; text-align: center; vertical-align: middle;">
+                <td class="sticky-col-1" style="padding: 6px; border: 1px solid #ddd; background: #f8f9fa; font-weight: 500; text-align: center; vertical-align: middle;">
                     07
                 </td>
                 <td colspan="2" 
-                    class="activities-col-0107"
+                    class="activities-col-0107 sticky-col-2"
                     style="padding: 6px; border: 1px solid #ddd; background: #f8f9fa;
                         font-weight: 500; font-size: 11px;">
                     Distance traveled - By public transport or other
@@ -478,11 +625,11 @@
         dutiesData.forEach((duty, dutyIndex) => {
             const totalSubDutyRows = duty.subDuties.length;
             const totalRows = totalSubDutyRows > 0 ? totalSubDutyRows : 1;
-            
+
             // Main duty header row (non-editable, dark gray) - ensure height matches readonly cells
             sectionHTML += `
                 <tr class="main-duty-row">
-                    <td rowspan="${totalRows + 1}" style="padding: 6px; border: 1px solid #ddd; background: #6c757d; color: white; font-weight: bold; text-align: center; vertical-align: middle; height: var(--row-height);">
+                    <td rowspan="${totalRows + 1}" class="sticky-col-1" style="padding: 6px; border: 1px solid #ddd; background: #6c757d; color: white; font-weight: bold; text-align: center; vertical-align: middle; height: var(--row-height);">
                         ${activityCounter.toString().padStart(2, '0')}
                     </td>
                     <td colspan="33" style="padding: 8px; border: 1px solid #ddd; background: #6c757d; color: white; font-weight: bold; vertical-align: middle; height: var(--row-height);">
@@ -496,7 +643,7 @@
                 duty.subDuties.forEach((subDuty, subIndex) => {
                     sectionHTML += `
                         <tr>
-                            <td colspan="2" style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd; font-weight: 500; vertical-align: middle; text-align: left; height: var(--row-height);">
+                            <td colspan="2" class="sticky-col-2" style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd; font-weight: 500; vertical-align: middle; text-align: left; height: var(--row-height);">
                                 <div class="readonly-cell left">${escapeHtml(subDuty)}</div>
                             </td>
                             ${generateActivityDisplayCells(monthKey, `sub_${duty.id}_${subIndex}`, 'activity')}
@@ -507,7 +654,7 @@
                 // If no sub duties, show at least one row for data display
                 sectionHTML += `
                     <tr>
-                        <td colspan="2" style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd; font-weight: 500; vertical-align: middle; text-align: left; height: var(--row-height);">
+                        <td colspan="2" class="sticky-col-2" style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd; font-weight: 500; vertical-align: middle; text-align: left; height: var(--row-height);">
                             <div class="readonly-cell left">Main Activity</div>
                         </td>
                         ${generateActivityDisplayCells(monthKey, `main_${duty.id}`, 'activity')}
@@ -534,7 +681,7 @@
         for (let day = 1; day <= 31; day++) {
             const dayKey = day.toString().padStart(2, '0');
             const fullKey = `${monthKey}-${dayKey}`;
-            
+
             let value = '';
             let displayValue = '';
 
@@ -605,7 +752,7 @@
                 if (duty && Array.isArray(duty.subDuties) && duty.subDuties[subIndex]) {
                     expectedDutyName = String(duty.subDuties[subIndex]).trim();
                 }
-            } catch(e) {
+            } catch (e) {
                 console.error('Error reading duties for summary auto-fill:', e);
             }
         }
@@ -625,8 +772,8 @@
                     for (const line of combined) {
                         const parts = line.split(" - ");
                         if (parts.length >= 2) {
-                            const name = parts.slice(0, parts.length-1).join(" - ").trim();
-                            const qtyStr = parts[parts.length-1].trim();
+                            const name = parts.slice(0, parts.length - 1).join(" - ").trim();
+                            const qtyStr = parts[parts.length - 1].trim();
                             if (name === expectedDutyName && qtyStr.match(/^\d+$/)) {
                                 totalQty += Number(qtyStr);
                             }
@@ -679,8 +826,8 @@
     // Helper function to get specific field value from Pocket Note data (used for time rows 02-05 etc)
     function getPnbFieldValue(pnbData, fieldIndex, rowIndex) {
         const period = rowIndex === 0 ? 'morning' : 'afternoon';
-        
-        switch(fieldIndex) {
+
+        switch (fieldIndex) {
             case 1: // Time of departure from office
                 return pnbData.officeDeparture?.[period] || '';
             case 2: // Time of arrival in the field
@@ -697,19 +844,19 @@
     }
 
     // Keep save/clear helpers (monthlyData still persisted) - no inputs to update in the table anymore
-    window.loadMonthlyData = function() {
+    window.loadMonthlyData = function () {
         const year = parseInt(document.getElementById('yearSelect').value);
         const month = parseInt(document.getElementById('monthSelect').value);
         document.getElementById('activitiesTableContainer').innerHTML = renderActivitiesTable(year, month);
         setTimeout(initTableScrollSync, 50);
     };
 
-    window.saveMonthlyData = function() {
+    window.saveMonthlyData = function () {
         localStorage.setItem('phi_monthly_activities', JSON.stringify(monthlyData));
         alert('Monthly data saved successfully!');
     };
 
-    window.clearMonthlyData = function() {
+    window.clearMonthlyData = function () {
         if (!confirm('Are you sure you want to clear all monthly data?')) return;
         monthlyData = {};
         localStorage.removeItem('phi_monthly_activities');
@@ -743,8 +890,8 @@
         const container = document.getElementById('activitiesTableContainer');
         const top = document.getElementById('activitiesTableContainerTop');
         if (!container || !top) return;
-        top.onscroll = function() { container.scrollLeft = top.scrollLeft; };
-        container.onscroll = function() { top.scrollLeft = container.scrollLeft; };
+        top.onscroll = function () { container.scrollLeft = top.scrollLeft; };
+        container.onscroll = function () { top.scrollLeft = container.scrollLeft; };
     }
 
     // expose some helpers for debugging/testing
@@ -764,19 +911,19 @@
    This block is idempotent — if already present it won't be added twice.
 ==================================================*/
 (function () {
-  if (window.__print_table_only_plugin_installed) return;
-  window.__print_table_only_plugin_installed = true;
+    if (window.__print_table_only_plugin_installed) return;
+    window.__print_table_only_plugin_installed = true;
 
-  // CONFIG: id of your table container (change if your DOM uses another id)
-  var TABLE_CONTAINER_ID = 'activitiesTableContainer';
-  var PRINT_BUTTON_ID = 'printButton';
+    // CONFIG: id of your table container (change if your DOM uses another id)
+    var TABLE_CONTAINER_ID = 'activitiesTableContainer';
+    var PRINT_BUTTON_ID = 'printButton';
 
-  // 1) Inject minimal print CSS to hide other elements in CSS-only mode
-  var css = document.createElement('style');
-  css.type = 'text/css';
-  css.id = 'print-table-only-styles';
-  css.appendChild(document.createTextNode(
-`@media print {
+    // 1) Inject minimal print CSS to hide other elements in CSS-only mode
+    var css = document.createElement('style');
+    css.type = 'text/css';
+    css.id = 'print-table-only-styles';
+    css.appendChild(document.createTextNode(
+        `@media print {
   /* hide everything first */
   body * { visibility: hidden !important; }
 
@@ -815,35 +962,35 @@
   margin: 8mm;
 }
 `));
-  // Only add once
-  if (!document.getElementById(css.id)) document.head.appendChild(css);
+    // Only add once
+    if (!document.getElementById(css.id)) document.head.appendChild(css);
 
-  // 2) New-window print function (recommended)
-  function printTableOnly() {
-    var container = document.getElementById(TABLE_CONTAINER_ID);
-    if (!container) {
-      alert('Print failed: table container with id "' + TABLE_CONTAINER_ID + '" not found.');
-      return;
-    }
+    // 2) New-window print function (recommended)
+    function printTableOnly() {
+        var container = document.getElementById(TABLE_CONTAINER_ID);
+        if (!container) {
+            alert('Print failed: table container with id "' + TABLE_CONTAINER_ID + '" not found.');
+            return;
+        }
 
-    // Clone the element to avoid modifying original
-    var cloned = container.cloneNode(true);
+        // Clone the element to avoid modifying original
+        var cloned = container.cloneNode(true);
 
-    // Remove elements inside cloned container that should not be printed
-    var noPrintEls = cloned.querySelectorAll('.no-print');
-    noPrintEls.forEach(function(el){ el.parentNode.removeChild(el); });
+        // Remove elements inside cloned container that should not be printed
+        var noPrintEls = cloned.querySelectorAll('.no-print');
+        noPrintEls.forEach(function (el) { el.parentNode.removeChild(el); });
 
-    var tableHtml = cloned.innerHTML;
+        var tableHtml = cloned.innerHTML;
 
-    var printWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
-    if (!printWindow) {
-      alert('Could not open print window. Please allow popups for this site or use the browser print dialog.');
-      return;
-    }
+        var printWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
+        if (!printWindow) {
+            alert('Could not open print window. Please allow popups for this site or use the browser print dialog.');
+            return;
+        }
 
-    var doc = printWindow.document;
-    doc.open();
-    doc.write(`<!doctype html>
+        var doc = printWindow.document;
+        doc.open();
+        doc.write(`<!doctype html>
 <html>
 <head>
   <meta charset="utf-8"/>
@@ -879,52 +1026,52 @@
   </script>
 </body>
 </html>`);
-    doc.close();
-    printWindow.focus();
-  }
-
-  // 3) Attach to existing print button if available, else create one
-  function attachPrintButton() {
-    var existing = document.getElementById(PRINT_BUTTON_ID);
-    if (existing) {
-      existing.addEventListener('click', printTableOnly);
-      return;
+        doc.close();
+        printWindow.focus();
     }
 
-    // Create a small floating button in bottom-right corner (non-intrusive)
-    var btn = document.createElement('button');
-    btn.id = PRINT_BUTTON_ID;
-    btn.type = 'button';
-    btn.title = 'Print table (opens print preview)';
-    btn.innerText = 'Print Table';
-    btn.style.position = 'fixed';
-    btn.style.right = '12px';
-    btn.style.bottom = '12px';
-    btn.style.zIndex = '2147483647';
-    btn.style.padding = '8px 12px';
-    btn.style.borderRadius = '6px';
-    btn.style.border = 'none';
-    btn.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
-    btn.style.cursor = 'pointer';
-    btn.className = 'no-print';
+    // 3) Attach to existing print button if available, else create one
+    function attachPrintButton() {
+        var existing = document.getElementById(PRINT_BUTTON_ID);
+        if (existing) {
+            existing.addEventListener('click', printTableOnly);
+            return;
+        }
 
-    // Minimal styling hook for dark mode
-    btn.style.background = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#ffffff' : '#0b63d4';
-    btn.style.color = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#000' : '#fff';
+        // Create a small floating button in bottom-right corner (non-intrusive)
+        var btn = document.createElement('button');
+        btn.id = PRINT_BUTTON_ID;
+        btn.type = 'button';
+        btn.title = 'Print table (opens print preview)';
+        btn.innerText = 'Print Table';
+        btn.style.position = 'fixed';
+        btn.style.right = '12px';
+        btn.style.bottom = '12px';
+        btn.style.zIndex = '2147483647';
+        btn.style.padding = '8px 12px';
+        btn.style.borderRadius = '6px';
+        btn.style.border = 'none';
+        btn.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+        btn.style.cursor = 'pointer';
+        btn.className = 'no-print';
 
-    btn.addEventListener('click', printTableOnly);
+        // Minimal styling hook for dark mode
+        btn.style.background = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#ffffff' : '#0b63d4';
+        btn.style.color = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#000' : '#fff';
 
-    
-  }
+        btn.addEventListener('click', printTableOnly);
 
-  // Try to attach after DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', attachPrintButton);
-  } else {
-    attachPrintButton();
-  }
 
-  // Expose function for manual calls
-  window.printTableOnly = printTableOnly;
+    }
+
+    // Try to attach after DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', attachPrintButton);
+    } else {
+        attachPrintButton();
+    }
+
+    // Expose function for manual calls
+    window.printTableOnly = printTableOnly;
 
 })();

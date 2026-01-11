@@ -610,16 +610,7 @@ body {
       margin-left: 0 !important;
       font-size: 9px !important;
     }
-  }
 
-  /* Tabs and table text color fix removed or set to white */
-  .tab,
-  .tabs,
-  .tab-content,
-  table,
-  table th,
-  table td {
-    color: #ffffff !important;
   }
 
   /* Optional: Table headers contrast */
@@ -837,4 +828,20 @@ body {
       right: -8px;
     }
   }
+}
+
+/* Table and tab text color adjusted for visibility */
+.tab-content,
+table,
+table th,
+table td {
+  color: #000000 !important;
+}
+
+/* Ensure headers are still readable and distinctive */
+table thead th {
+  background-color: #f1f5f9;
+  /* Light gray background */
+  color: #000000 !important;
+  border: 1px solid #e2e8f0;
 }
