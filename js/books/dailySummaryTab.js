@@ -95,6 +95,10 @@
             }
             #activitiesTableTopSpacer {
                 width: 1700px !important;
+                height: 1px;
+            }
+            #activitiesTableContainerTop {
+                height: 20px !important;
             }
         }
 
@@ -226,6 +230,12 @@
         #activitiesTableTopSpacer {
             width: 1800px;
             height: 1px;
+        }
+
+        #activitiesTableContainerTop {
+            height: 12px;
+            overflow-x: auto;
+            overflow-y: hidden;
         }
 
         /* Make sure table header repeats on each printed page */
