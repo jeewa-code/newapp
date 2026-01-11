@@ -1,0 +1,54 @@
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 18px;
+}
+
+.card {
+    background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('../assets/3242971.jpg') no-repeat center center;
+    background-size: cover;
+    color: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        0 10px 20px rgba(0, 0, 0, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.card i {
+    color: #fff !important;
+}
+
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow:
+        0 15px 30px rgba(0, 0, 0, 0.3),
+        0 10px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card h3 {
+    margin: 6px 0 0;
+    font-size: 22px;
+    color: #fff;
+}
+
+.card p {
+    opacity: 0.92;
+    margin-top: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #fff;
+}
+
+.cards .book-card {
+    background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('../assets/3242971.jpg') no-repeat center center;
+    background-size: cover;
+    color: #fff;
+    cursor: pointer;
+}

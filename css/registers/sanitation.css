@@ -1,0 +1,76 @@
+/* ===== Fixed widths to match screenshot (for the red highlighted fields) ===== */
+
+/* Container of form to be reference for % widths */
+#sanitationForm { max-width: 980px; }
+
+/* The selects that were outlined in red in your screenshot */
+#sanitationForm #gender,
+#sanitationForm #waterSource,
+#sanitationForm #latrineType,
+#sanitationForm #wasteDisposal {
+  width: 58%;            /* match the red-box width in screenshot */
+  max-width: 560px;     /* avoid growing too large on huge screens */
+  min-width: 260px;     /* keep usable on narrow but not tiny screens */
+  display: block;       /* ensures width respected */
+  box-sizing: border-box;
+}
+
+/* Remarks textarea (red box wide but not full-width) */
+#sanitationForm #remarks {
+  width: 62%;
+  max-width: 640px;
+  min-width: 300px;
+  min-height: 90px;
+  display: block;
+  box-sizing: border-box;
+}
+
+/* Termination date small box (red box in screenshot) */
+#terminationDateContainer input[type="date"],
+#sanitationForm #terminationDate {
+  width: 230px;         /* fixed small width like screenshot */
+  min-width: 180px;
+  box-sizing: border-box;
+}
+
+/* Keep labels on left while inputs use the widths above */
+#terminationDateContainer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* For consistent look, keep standard controls full-width when not targeted */
+#sanitationForm input[type="text"],
+#sanitationForm input[type="number"],
+#sanitationForm input[type="date"]:not(#terminationDate),
+#sanitationForm select:not(#gender):not(#waterSource):not(#latrineType):not(#wasteDisposal),
+#sanitationForm textarea:not(#remarks) {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Validation (red outline) remains effective */
+#sanitationForm .invalid {
+  border: 2px solid #d32f2f !important;
+  box-shadow: 0 6px 14px rgba(211,47,47,0.08) !important;
+}
+
+/* Responsive behaviour: on small screens make targeted fields full width */
+@media (max-width: 860px) {
+  #sanitationForm #gender,
+  #sanitationForm #waterSource,
+  #sanitationForm #latrineType,
+  #sanitationForm #wasteDisposal,
+  #sanitationForm #remarks,
+  #terminationDateContainer input[type="date"],
+  #sanitationForm #terminationDate {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  #terminationDateContainer { flex-direction: column; align-items: stretch; }
+
+
+
+}

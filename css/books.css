@@ -1,0 +1,562 @@
+/* books.css - Modernized Version */
+
+/* Books area cards */
+.book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    padding: 16px;
+}
+
+.book-card {
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.1),
+        0 12px 25px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.book-card:hover {
+    transform: translateY(-12px) scale(1.03);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.book-card i {
+    font-size: 28px;
+    margin-bottom: 12px;
+    color: #ffffff !important;
+    background: none;
+    -webkit-text-fill-color: initial;
+}
+
+.book-card p {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* Modern Pocket Note Book Carousel */
+.pnb-carousel-wrap {
+    padding: 32px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 24px;
+    margin: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.pnb-carousel-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+}
+
+.pnb-carousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    max-width: 1000px;
+    width: 100%;
+    padding: 0 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.pnb-track {
+    flex: 1;
+    position: relative;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1200px;
+}
+
+/* Modern Card Design */
+.pnb-card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 320px;
+    height: 380px;
+    transform-origin: center center;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Center Card - Enhanced */
+.pnb-card.center {
+    width: 360px;
+    height: 420px;
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.2),
+        0 0 50px rgba(255, 255, 255, 0.1);
+    z-index: 30;
+}
+
+/* Preview Cards */
+.pnb-card.preview {
+    filter: blur(2px) brightness(0.95);
+    opacity: 0.85;
+}
+
+/* Hidden Cards */
+.pnb-card.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.8);
+    filter: blur(8px) brightness(0.8);
+}
+
+/* Image Section */
+.pnb-card .pnb-img {
+    height: 200px;
+    width: 100%;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    overflow: hidden;
+    position: relative;
+}
+
+.pnb-card.center .pnb-img {
+    height: 220px;
+}
+
+.pnb-card .pnb-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.pnb-card:hover .pnb-img img {
+    transform: scale(1.05);
+}
+
+/* No Image Placeholder */
+.pnb-card .pnb-img:not(:has(img)) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Card Body */
+.pnb-card .pnb-body {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: white;
+}
+
+.pnb-card .pnb-date {
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.pnb-card .pnb-places {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.pnb-card .pnb-places strong {
+    color: #333;
+    font-weight: 600;
+}
+
+/* Modern Arrow Buttons */
+.pnb-arrow {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    color: white;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pnb-arrow:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .pnb-carousel-wrap {
+        margin: 10px;
+        border-radius: 16px;
+        padding: 24px 0;
+    }
+
+    .pnb-carousel {
+        gap: 12px;
+        padding: 0 12px;
+    }
+
+    .pnb-track {
+        height: 350px;
+    }
+
+    .pnb-card {
+        width: 280px;
+        height: 340px;
+    }
+
+    .pnb-card.center {
+        width: 300px;
+        height: 360px;
+    }
+
+    .pnb-arrow {
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+    }
+
+    .book-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        padding: 12px;
+    }
+}
+
+/* Loading Animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pnb-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Enhanced Form Styles (for the entry form) */
+.glass {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Modern Input Fields */
+input,
+textarea,
+select {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    transition: all 0.3s ease !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1) !important;
+    outline: none !important;
+}
+
+/* Modern Buttons */
+button {
+    border-radius: 12px !important;
+    padding: 12px 24px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* -------------------- Flipbook Styles -------------------- */
+
+.flipbook-container {
+    width: 90%;
+    max-width: 680px;
+    height: 430px;
+    margin: 0 auto;
+    position: relative;
+    perspective: 2000px;
+}
+
+.flipbook {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.pnb-page {
+    width: 100%;
+    height: 100%;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    transform-origin: left center;
+    transition: transform 0.7s ease, box-shadow 0.5s ease;
+    backface-visibility: hidden;
+}
+
+.pnb-page.flipped {
+    transform: rotateY(-180deg);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Page inner */
+.pnb-page-content {
+    padding: 20px;
+    font-size: 14px;
+}
+
+.pnb-page img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+/* Flip arrows */
+.flip-arrow {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(6px);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 26px;
+    color: var(--primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 50;
+    transition: 0.2s;
+}
+
+.flip-arrow:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.flip-arrow.left {
+    left: -70px;
+}
+
+.flip-arrow.right {
+    right: -70px;
+}
+
+/* Responsive Design for Pocket Note Book Entry */
+@media (max-width: 980px) {
+
+    /* Stack day type selector */
+    .day-type-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .day-type-combo {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Responsive Table Transformation */
+    .pnb-responsive-table {
+        display: block;
+    }
+
+    .pnb-responsive-table thead {
+        display: none;
+    }
+
+    .pnb-responsive-table tbody {
+        display: block;
+    }
+
+    .pnb-responsive-table tr {
+        display: block;
+        margin-bottom: 15px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .pnb-responsive-table td {
+        display: block;
+        width: 100% !important;
+        border: none !important;
+        border-bottom: 1px solid #eee !important;
+        padding: 12px !important;
+        box-sizing: border-box;
+    }
+
+    .pnb-responsive-table td:last-child {
+        border-bottom: none !important;
+    }
+
+    /* Label Cell Styling */
+    .pnb-label-cell {
+        background: #f8f9fa;
+        color: var(--primary);
+        font-size: 14px;
+        border-bottom: 2px solid #e9ecef !important;
+    }
+
+    /* Data Cell Styling with Label */
+    .pnb-data-cell {
+        position: relative;
+        padding-top: 25px !important;
+    }
+
+    .pnb-data-cell::before {
+        content: attr(data-label);
+        position: absolute;
+        top: 5px;
+        left: 12px;
+        font-size: 11px;
+        font-weight: bold;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Time Input Container */
+    .time-input-wrapper {
+        margin-bottom: 5px;
+    }
+
+    /* Quick Buttons */
+    .quick-buttons-row {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .quick-time-btn {
+        flex: 1 1 auto;
+        min-width: 50px;
+        text-align: center;
+        padding: 8px 4px;
+        font-size: 12px;
+    }
+
+    /* Duty Selectors */
+    .pnb-duty-wrapper .duty-select-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pnb-duty-wrapper .duty-main-select,
+    .pnb-duty-wrapper .duty-sub-select,
+    .pnb-duty-wrapper #morningDutyCount,
+    .pnb-duty-wrapper #afternoonDutyCount {
+        width: 100% !important;
+    }
+
+    .pnb-duty-wrapper .add-duty-btn {
+        width: 100%;
+        margin-top: 5px;
+    }
+
+    /* Date Navigation */
+    .date-navigation {
+        flex-wrap: wrap;
+    }
+
+    .current-date-display {
+        order: -1;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .date-nav-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+/* Add to the existing CSS */
+.calendar-toggle-btn {
+    background: #1b5e20;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+}
+
+.calendar-toggle-btn:hover {
+    background: #155724;
+}

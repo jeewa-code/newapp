@@ -1,0 +1,840 @@
+:root {
+  --primary: #1b5e20;
+  --primary-light: #2e7d32;
+  --accent: #4caf50;
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  --text-light: #ffffff;
+  --text-dark: #0d1f12;
+  --danger: #dc3545;
+  --modern-glass: rgba(255, 255, 255, 0.25);
+  --modern-border: rgba(255, 255, 255, 0.3);
+  --modern-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  --max-width: 1400px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-sm: 8px;
+  --trans-quick: 0.18s;
+}
+
+/* Reset + base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: url('../assets/9019808.jpg') no-repeat center center fixed;
+  background-size: cover;
+  color: var(--text-dark);
+  min-height: 100vh;
+  padding: 28px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Reusable glass card */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Container + layout */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  color: var(--text-light);
+  margin-bottom: 18px;
+}
+
+.header .title {
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.header .sub {
+  font-weight: 500;
+  font-size: 12px;
+  opacity: 0.85;
+  margin-left: 6px;
+}
+
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Header logo (larger, circle photo or letter) */
+.logo {
+  width: 72px;
+  /* increased size */
+  height: 72px;
+  border-radius: 50%;
+  /* circle */
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 28px;
+  /* larger letter font */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* clip circular photo */
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  /* subtle white border */
+}
+
+.logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-text {
+  color: var(--text-light);
+  font-size: 13px;
+}
+
+/* Main layout */
+.main {
+  display: flex;
+  gap: 18px;
+  height: calc(100vh - 140px);
+}
+
+.sidebar {
+  width: 220px;
+  padding: 18px;
+  height: 100%;
+  color: var(--text-light);
+  overflow-y: auto;
+}
+
+.sidebar ul li {
+  position: relative;
+}
+
+.sidebar ul li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  transition: var(--trans-quick);
+  font-weight: 500;
+}
+
+/* Modern Active Highlight */
+.sidebar ul li.active {
+  background: linear-gradient(135deg, rgba(0, 132, 255, 0.25), rgba(0, 180, 255, 0.15));
+  color: #fff;
+  border-radius: 10px;
+
+  box-shadow:
+    0 0 10px rgba(0, 150, 255, 0.35),
+    inset 0 0 6px rgba(0, 180, 255, 0.25);
+
+  transform: translateX(4px);
+  transition: 0.25s ease;
+  backdrop-filter: blur(0px);
+  /* Glass effect completely removed */
+}
+
+/* Hover effect (Optional) */
+.sidebar ul li:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(4px);
+}
+
+.sidebar ul li i {
+  width: 20px;
+  text-align: center;
+}
+
+.sidebar ul li.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  height: 70%;
+  width: 4px;
+  background: linear-gradient(rgba(0, 180, 255, 1), rgba(0, 120, 255, 0.6));
+  border-radius: 6px;
+  box-shadow: 0 0 12px rgba(0, 150, 255, 0.6);
+}
+
+
+
+/* Content area */
+.content {
+  flex: 1;
+  padding: 22px;
+  color: var(--text-light);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  height: 100%;
+  overflow: auto;
+  position: relative;
+}
+
+/* Scrollbars (content) */
+.content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+.content {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) rgba(255, 255, 255, 0.1);
+}
+
+/* Typography helpers */
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5 {
+  color: var(--text-light);
+}
+
+.content p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+
+/* Sidebar PHI Info - Hidden on desktop, visible on mobile */
+.sidebar-phi-info {
+  display: none;
+}
+
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-profile .logo {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.sidebar-profile .profile-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-profile .profile-text strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 2px;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+.sidebar-profile .profile-text small {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: normal;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* OT Report Responsive */
+.ot-report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ot-report-signature>div {
+  display: flex !important;
+  justify-content: space-between;
+}
+
+@media (max-width:980px) {
+
+  /* OT Report */
+  .ot-report-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ot-report-table-wrapper {
+    overflow-x: auto;
+    background: #fff;
+    border: 1px solid #ddd;
+    margin-top: 10px;
+  }
+
+  .ot-report-table-wrapper table {
+    min-width: 600px;
+    /* Ensure table keeps structure and scrolls */
+  }
+
+  .ot-report-signature>div {
+    flex-direction: column;
+    gap: 30px;
+    align-items: flex-start;
+  }
+
+  .ot-report-controls button {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Responsive */
+  @media (max-width:980px) {
+
+    /* Show hamburger */
+    .mobile-toggle {
+      display: block;
+    }
+
+    /* Sidebar starts hidden off-canvas */
+    .sidebar {
+      display: block;
+      position: fixed;
+      z-index: 1000;
+      left: -240px;
+      top: 0;
+      bottom: 0;
+      width: 240px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      transition: left 0.3s ease;
+      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    /* Show PHI info in sidebar on mobile */
+    .sidebar-phi-info {
+      display: block !important;
+    }
+
+    /* Overlay backdrop */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 900;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+      backdrop-filter: blur(2px);
+    }
+
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .main {
+      height: auto;
+      flex-direction: column;
+    }
+
+    body {
+      padding: 14px;
+    }
+
+    .content {
+      height: auto;
+      overflow: visible;
+    }
+
+    /* enable window scroll on mobile instead of inner scroll */
+
+    /* Responsive Tables */
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      white-space: nowrap;
+    }
+
+    /* Optional: Adjust inputs in tables which might be too wide */
+    table input,
+    table select {
+      min-width: 120px;
+    }
+
+    /* PHI Area Data Mobile Responsive */
+    .phi-meta-form {
+      grid-template-columns: 1fr !important;
+      gap: 12px !important;
+    }
+
+    .phi-meta-form label {
+      margin-bottom: 4px;
+    }
+
+    .phi-meta-phm-form {
+      grid-template-columns: 1fr !important;
+    }
+
+    .phi-meta-table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .phi-meta-table-wrapper table {
+      min-width: 600px;
+    }
+
+    .phi-area-tabs {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .phi-area-tabs button {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* PHI Info Tab Mobile Responsive */
+    .phi-info-grid {
+      grid-template-columns: 1fr !important;
+      gap: 16px !important;
+    }
+
+    .phi-info-form-grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    .phi-info-table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .phi-info-table-wrapper table {
+      min-width: 700px;
+    }
+
+    /* PHI Info avatar section - center on mobile */
+    .phi-info-grid>div:first-child {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Map Viewer Mobile Responsive */
+    .phi-map-controls {
+      flex-wrap: wrap !important;
+    }
+
+    .phi-map-controls button,
+    .phi-map-controls input[type="file"] {
+      flex: 1 1 auto;
+      min-width: 100px;
+    }
+
+    .phi-map-zoom-controls {
+      flex-wrap: wrap !important;
+    }
+
+    .phi-map-hint {
+      flex: 1 1 100%;
+      text-align: center;
+      margin: 8px 0 !important;
+    }
+
+    #phi_map_viewport {
+      height: 400px !important;
+    }
+
+    /* Key Map Mobile Responsive */
+    .phi-keymap-input-group {
+      flex-direction: column !important;
+    }
+
+    .phi-keymap-input-group input {
+      width: 100% !important;
+      min-width: 100% !important;
+    }
+
+    .phi-keymap-table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .phi-keymap-table-wrapper table {
+      min-width: 500px;
+    }
+
+    .phi-keymap-select {
+      width: 100%;
+    }
+
+    /* Monthly Schedule Mobile Responsive */
+    .monthly-schedule-header {
+      gap: 10px !important;
+    }
+
+    .monthly-schedule-cards {
+      grid-template-columns: 1fr !important;
+      gap: 15px !important;
+    }
+
+    .monthly-schedule-controls {
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+
+    .monthly-schedule-controls button,
+    .monthly-schedule-controls select {
+      width: 100% !important;
+      margin: 0 !important;
+    }
+
+    .monthly-schedule-meta {
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+
+    .monthly-schedule-meta input[type="month"] {
+      width: 100% !important;
+    }
+
+    .monthly-schedule-template-wrapper {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+
+    .monthlySchedule-template table {
+      min-width: 600px !important;
+    }
+
+    .monthlySchedule-template {
+      font-size: 9px !important;
+    }
+
+    .monthlySchedule-template table th,
+    .monthlySchedule-template table td {
+      padding: 2px !important;
+      font-size: 9px !important;
+    }
+
+    .monthlySchedule-template textarea {
+      font-size: 9px !important;
+      padding: 3px !important;
+    }
+
+    .monthlySchedule-template select {
+      font-size: 9px !important;
+      padding: 3px !important;
+    }
+
+    .monthlySchedule-template .header-large {
+      font-size: 12px !important;
+    }
+
+    .monthlySchedule-template .header-xlarge {
+      font-size: 16px !important;
+    }
+
+    .monthlySchedule-template .footer-notes {
+      width: 95% !important;
+      margin-left: 0 !important;
+      font-size: 9px !important;
+    }
+  }
+
+  /* Tabs and table text color fix removed or set to white */
+  .tab,
+  .tabs,
+  .tab-content,
+  table,
+  table th,
+  table td {
+    color: #ffffff !important;
+  }
+
+  /* Optional: Table headers contrast */
+  table th {
+    font-weight: 600;
+  }
+
+  /* Optional: Tabs active/hover */
+  .tab.active,
+  .tabs li.active {
+    color: #000000 !important;
+  }
+
+  /* General tab/button styling */
+  .tab,
+  .tabs button,
+  .tabs .tab,
+  .tab-button,
+  .tablink,
+  .nav-tab {
+    background-color: #e0e0e0 !important;
+    /* inactive background */
+    color: #000000 !important;
+    /* black text */
+    border: 1px solid #ccc;
+    border-radius: 6px 6px 0 0;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: 0.2s ease-in-out;
+  }
+
+  /* Active tab */
+  .tab.active,
+  .tabs button.active,
+  .tabs .tab.active,
+  .tab-button.active,
+  .tablink.active,
+  .nav-tab.active {
+    background-color: #1b5e20 !important;
+    /* active tab color */
+    color: #ffffff !important;
+    /* white text */
+    font-weight: 600;
+  }
+
+  /* Hover effect */
+  .tab:hover,
+  .tabs button:hover,
+  .tab-button:hover,
+  .tablink:hover,
+  .nav-tab:hover {
+    background-color: #d5d5d5 !important;
+    color: #000000 !important;
+  }
+
+  /* TOP CONTROLS — white floating layer */
+  .top-controls {
+    background: #ffffff;
+    /* white layer */
+    padding: 10px 14px;
+    /* inner spacing */
+    border-radius: 10px;
+    /* rounded corners */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    /* soft elevation */
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    z-index: 9999;
+    /* stay above page content */
+    position: relative;
+    /* relative by default */
+  }
+
+  /* if you want it to stick near top when scrolling */
+  .top-controls.sticky {
+    position: sticky;
+    top: 16px;
+    /* distance from top of viewport */
+    margin: 12px;
+    /* small outside spacing */
+  }
+
+  /* reduce visual coupling with green background: add subtle border */
+  .top-controls {
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  /* responsive tweak: wrap items on narrow screens */
+  .top-controls {
+    flex-wrap: wrap;
+  }
+
+  /* Optional: make the circled "tabs" look integrated */
+  .top-controls .tab {
+    background: transparent;
+    border-radius: 6px;
+    padding: 6px 10px;
+  }
+
+  /* If your green page header forces dark text, ensure controls' text is dark */
+  .top-controls * {
+    color: #0b0b0b !important;
+  }
+
+  /* Custom dropdown + submenu styles for Fixed Dates role selector */
+  .cs-dropdown {
+    position: relative;
+    display: inline-block;
+    font-family: inherit;
+    font-size: 13px;
+    min-width: 180px;
+  }
+
+  .cs-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #cfd8dc;
+    background: #fff;
+    cursor: pointer;
+    user-select: none;
+    min-height: 34px;
+  }
+
+  .cs-trigger .label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cs-arrow {
+    margin-left: 8px;
+    transform: rotate(0deg);
+    transition: transform .18s ease;
+  }
+
+  /* options panel */
+  .cs-panel {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: calc(100% + 8px);
+    width: 320px;
+    max-height: 320px;
+    overflow: auto;
+    z-index: 2200;
+    background: #fff;
+    border: 1px solid #e0e7ec;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+  }
+
+  /* list columns: main roles on left, subroles on right (or hover reveal) */
+  .cs-list {
+    display: flex;
+    gap: 8px;
+  }
+
+  .cs-main {
+    flex: 0 0 48%;
+    max-width: 48%;
+  }
+
+  .cs-main .cs-item {
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .cs-main .cs-item:hover {
+    background: #f0f7ff;
+  }
+
+  /* subrole panel (changes on hover) */
+  .cs-sub {
+    flex: 1;
+    min-width: 48%;
+    max-width: 52%;
+    border-left: 1px dashed #e6eef9;
+    padding-left: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .cs-sub .cs-subitem {
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .cs-sub .cs-subitem:hover {
+    background: #f9fbff;
+  }
+
+  /* when dropdown open */
+  .cs-open .cs-panel {
+    display: block;
+  }
+
+  .cs-open .cs-arrow {
+    transform: rotate(180deg);
+  }
+
+  /* small responsive tweak */
+  @media (max-width:520px) {
+    .cs-panel {
+      width: 100vw;
+      left: -8px;
+      right: -8px;
+    }
+  }
+}

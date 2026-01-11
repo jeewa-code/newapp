@@ -1,0 +1,29 @@
+.boards-container{width:100%;max-width:1300px;margin:0 auto;padding:20px 0;}
+.boards-carousel{position:relative;background:var(--modern-glass);border-radius:24px;padding:30px;box-shadow:var(--modern-shadow);border:1px solid var(--modern-border);backdrop-filter:blur(20px);}
+.carousel-container{overflow:hidden;border-radius:20px;margin-bottom:20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);}
+.carousel-track{display:flex;transition:transform .6s cubic-bezier(.25,.46,.45,.94);will-change:transform;}
+.carousel-slide{min-width:100%;padding:25px;box-sizing:border-box;display:none;}
+.carousel-slide.active{display:block;animation:modernFadeIn .8s cubic-bezier(.25,.46,.45,.94);}
+@keyframes modernFadeIn{from{opacity:0;transform:translateX(30px) scale(.95);}to{opacity:1;transform:none;}}
+
+/* Board item */
+.board-item{background:linear-gradient(135deg, rgba(27,94,32,0.92) 0%, rgba(46,125,50,0.88) 50%, rgba(76,175,80,0.85) 100%);border-radius:20px;padding:35px;color:#fff;box-shadow:0 20px 40px rgba(0,0,0,0.15);display:flex;flex-direction:column;overflow:hidden;min-height:420px;}
+.board-item h3{text-align:center;font-size:26px;margin-bottom:12px;}
+.board-content h4{text-align:center;font-size:18px;margin-bottom:14px;color:#e8f5e9;opacity:0.95;}
+.board-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;}
+.stat-item{background:rgba(255,255,255,0.12);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);text-align:center;position:relative;overflow:hidden;transition:all .3s;}
+.stat-item:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(0,0,0,0.2);}
+.stat-number{display:block;font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;}
+.stat-label{font-size:13px;color:#f1f8ee;opacity:0.95;}
+
+/* Carousel controls (small) */
+.carousel-controls{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px;}
+.prev-btn,.next-btn{padding:8px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.12);color:#fff;cursor:pointer;}
+.indicators{display:flex;gap:6px;}
+.indicator{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.18);cursor:pointer;display:inline-block;}
+.indicator.active{background:#fff;}
+.play-pause{padding:6px 10px;border-radius:8px;border:none;background:rgba(255,255,255,0.18);color:#fff;cursor:pointer;}
+
+/* optional override to give boards subtle colored headers */
+#boardsPNBWrap .pnb-img { background: linear-gradient(90deg, rgba(255,255,255,0.9), rgba(245,245,245,0.9)); color: var(--primary); }
+#boardsPNBWrap .pnb-card .pnb-date { color: var(--primary-light); }

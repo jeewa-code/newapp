@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="si">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PHI Office </title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- External CSS -->
+
+  <link rel="stylesheet" href="css/books.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/boards.css">
+
+  <link rel="stylesheet" href="css/registers/sanitation.css">
+  <link rel="stylesheet" href="css/registers/infectious.css">
+  <link rel="stylesheet" href="css/registers/schoolImmunization.css">
+
+
+
+
+</head>
+
+<body>
+  <div class="container">
+    <header class="header glass">
+      <div class="header-left" style="display:flex;align-items:center;gap:15px;">
+        <button id="mobileToggle" class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+        <div class="title">PHI <span class="sub">Office </span></div>
+      </div>
+      <div class="profile">
+        <div class="logo">P</div>
+        <div class="profile-text">
+          <strong>PHI Name</strong><br>
+          <small>Public Health Inspector — Area </small>
+        </div>
+      </div>
+    </header>
+    <div id="mobileOverlay" class="overlay"></div>
+
+    <main class="main">
+      <aside class="sidebar glass">
+
+        <!-- PHI Info for mobile sidebar -->
+        <div class="sidebar-phi-info">
+          <div class="sidebar-profile">
+            <div class="logo">P</div>
+            <div class="profile-text">
+              <strong>PHI Name</strong><br>
+              <small>Public Health Inspector — Area </small>
+            </div>
+          </div>
+        </div>
+
+        <nav>
+          <ul>
+            <li class="active" onclick="showContent('Dashboard',event)">
+              <i class="fa-solid fa-gauge"></i><span>Dashboard</span>
+            </li>
+            <li onclick="showContent('phiArea', event)">
+              <i class="fa-solid fa-map-location-dot"></i><span>PHI Area Data</span>
+            </li>
+            <li onclick="showContent('Boards',event)">
+              <i class="fa-solid fa-chalkboard"></i><span>Boards</span>
+            </li>
+            <li onclick="showContent('Registers',event)">
+              <i class="fa-solid fa-clipboard-list"></i><span>Registers</span>
+            </li>
+            <li onclick="showContent('Books',event)">
+              <i class="fa-solid fa-book"></i><span>Books</span>
+            </li>
+            <li onclick="showContent('Reports',event)">
+              <i class="fa-solid fa-file-lines"></i><span>Reports</span>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <section class="content glass" id="contentArea">
+
+        <div id="boardsPNBWrap"></div>
+        <!-- Initial Dashboard content will be loaded here by script.js -->
+      </section>
+    </main>
+  </div>
+  <!-- place somewhere inside generateBoardsContent() return HTML, where carousel should appear -->
+
+  <!-- JS Files - CORRECT ORDER IS IMPORTANT -->
+
+
+  <script src="js/phi/phiInfo.js"></script>
+
+  <script src="js/script.js"></script>
+
+  <script src="js/registers/sanitation.js"></script>
+  <script src="js/registers/latrineConstruction.js"></script>
+  <script src="js/registers/infectious.js"></script>
+  <script src="js/registers/nonCommunicable.js"></script>
+  <script src="js/registers/notices.js"></script>
+  <script src="js/registers/foodAnalysis.js"></script>
+  <script src="js/registers/environmentalPollution.js"></script>
+  <script src="js/registers/commonDrinkingWater.js"></script>
+  <script src="js/registers/buildingConstruction.js"></script>
+  <script src="js/registers/healthEducation.js"></script>
+  <script src="js/registers/occupationalSafety.js"></script>
+  <script src="js/registers/schoolImmunization.js"></script>
+  <script src="js/registers/inwardRegister.js"></script>
+  <script src="js/registers/tradeIndustries.js"></script>
+  <script src="js/registers/meatInspection.js"></script>
+  <script src="js/registers/disasterPreparedness.js"></script>
+
+  <script src="js/boardsCarousel.js"></script>
+
+
+  <script src="js/phi/phiMapViewer.js"></script>
+  <script src="js/phi/phiMeta.js"></script>
+  <script src="js/phi/phiKeyMap.js"></script>
+
+  <!-- Add these after your existing script tags -->
+  <script src="js/books/pocketNoteEntry.js"></script>
+  <script src="js/books/pocketNoteCarousel.js"></script>
+
+  <script src="js/books/keysTab.js"></script>
+  <script src="js/books/dailySummaryTab.js"></script>
+
+
+
+
+
+
+
+  <!-- Reports saved-list tab (needs to be loaded) -->
+  <script src="js/reports/monthlyScheduleModule.js"></script>
+
+  <script src="js/reports/otVoucherPrint.js"></script>
+
+  <script src="js/reports/ctReport.js"></script>
+
+
+
+
+
+</body>
+
+</html>

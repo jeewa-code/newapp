@@ -1,0 +1,81 @@
+.keys-management {
+  padding: 20px 0;
+}
+
+.keys-table-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-top: 15px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  background: #f8f9fa;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.data-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.data-table tr:hover {
+  background: #f8f9fa;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-available {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-inuse {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 0 2px;
+  font-size: 12px;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.empty-state i {
+  margin-bottom: 15px;
+  color: #dee2e6;
+}
