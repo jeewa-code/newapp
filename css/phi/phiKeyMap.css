@@ -111,28 +111,6 @@
 div:has(> table) {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: auto;
-  scrollbar-color: #0b74d1 #f0f0f0;
-}
-
-/* Webkit scrollbar styling (Chrome, Safari, Edge) */
-div:has(> table)::-webkit-scrollbar {
-  height: 8px;
-}
-
-div:has(> table)::-webkit-scrollbar-track {
-  background: #f0f0f0;
-  border-radius: 4px;
-}
-
-div:has(> table)::-webkit-scrollbar-thumb {
-  background: #0b74d1;
-  border-radius: 4px;
-  border: 2px solid #f0f0f0;
-}
-
-div:has(> table)::-webkit-scrollbar-thumb:hover {
-  background: #0a5fa0;
 }
 
 /* Sticky table header on mobile */
@@ -191,34 +169,42 @@ button {
 .km_tables_grid > div {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: auto;
-  scrollbar-color: #0b74d1 #f0f0f0;
-}
-
-/* Webkit scrollbar styling for table wrappers */
-.km_tables_grid > div::-webkit-scrollbar {
-  height: 8px;
-}
-
-.km_tables_grid > div::-webkit-scrollbar-track {
-  background: #f0f0f0;
-  border-radius: 4px;
-}
-
-.km_tables_grid > div::-webkit-scrollbar-thumb {
-  background: #0b74d1;
-  border-radius: 4px;
-  border: 2px solid #f0f0f0;
-}
-
-.km_tables_grid > div::-webkit-scrollbar-thumb:hover {
-  background: #0a5fa0;
 }
 
 @media (max-width: 480px) {
   .km_tables_grid > div {
     padding: 0;
   }
+}
+
+/* Scroll wrapper used by keymap tables */
+.km_table_scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  max-height: 300px; /* allows vertical scrolling when content is tall */
+}
+
+/* Webkit scrollbar styling */
+.km_table_scroll::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+.km_table_scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.km_table_scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 6px;
+}
+.km_table_scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0,0,0,0.3);
+}
+
+/* Make sure table itself can expand horizontally inside the scroll wrapper */
+.km_table_scroll table {
+  min-width: 680px; /* ensures horizontal scrollbar appears when screen is narrow */
 }
 
 /* Improve readability on mobile */

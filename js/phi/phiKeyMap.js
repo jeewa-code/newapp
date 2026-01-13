@@ -66,7 +66,7 @@
         <div class="km_tables_grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start;">
           <div>
             <h4 style="margin:0 0 8px 0;">රාජකාරි (Roles)</h4>
-            <div style="background:#fff;padding:10px;border-radius:8px;overflow-x:auto;">
+            <div class="km_table_scroll" style="background:#fff;padding:10px;border-radius:8px;overflow-x:auto;">
               <table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead><tr style="text-align:left"><th style="width:36px">#</th><th>රාජකාරිය</th><th>කෙටි කේතය</th><th style="width:100px">Actions</th></tr></thead>
                 <tbody id="km_roles_body">${roles.length ? roles.map((r, i) => `<tr data-id="${esc(r.id)}"><td style="padding:8px">${i + 1}</td><td style="padding:8px">${esc(r.role)}</td><td style="padding:8px;word-break:break-word;">${esc(r.code)}</td><td style="padding:8px"><button class="km_edit_role km_btn" data-id="${esc(r.id)}" style="margin-right:3px">Edit</button><button class="km_del_role km_btn km_btn_del" data-id="${esc(r.id)}">Del</button></td></tr>`).join("") : `<tr><td colspan="4" style="padding:10px;color:#666;">No roles</td></tr>`}</tbody>
@@ -76,7 +76,7 @@
 
           <div>
             <h4 style="margin:0 0 8px 0;">ස්ථාන (Places)</h4>
-            <div style="background:#fff;padding:10px;border-radius:8px;overflow-x:auto;">
+            <div class="km_table_scroll" style="background:#fff;padding:10px;border-radius:8px;overflow-x:auto;">
               <table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead><tr style="text-align:left"><th style="width:36px">#</th><th>රාජකාරි ස්ථානය</th><th>කෙටි කේතය</th><th style="width:100px">Actions</th></tr></thead>
                 <tbody id="km_places_body">${places.length ? places.map((p, i) => `<tr data-id="${esc(p.id)}"><td style="padding:8px">${i + 1}</td><td style="padding:8px">${esc(p.place)}</td><td style="padding:8px;word-break:break-word;">${esc(p.code)}</td><td style="padding:8px"><button class="km_edit_place km_btn" data-id="${esc(p.id)}" style="margin-right:3px">Edit</button><button class="km_del_place km_btn km_btn_del" data-id="${esc(p.id)}">Del</button></td></tr>`).join("") : `<tr><td colspan="4" style="padding:10px;color:#666;">No places</td></tr>`}</tbody>
@@ -86,7 +86,7 @@
 
           <div>
             <h4 style="margin:0 0 8px 0;">නිවාඩු වර්ග (Holiday Types)</h4>
-            <div style="background:#fff;padding:10px;border-radius:8px;overflow-x:auto;">
+            <div class="km_table_scroll" style="background:#fff;padding:10px;border-radius:8px;overflow-x:auto;">
               <table style="width:100%;border-collapse:collapse;font-size:13px;">
                 <thead><tr style="text-align:left"><th style="width:36px">#</th><th>Holiday Name</th><th style="width:100px">Actions</th></tr></thead>
                 <tbody id="km_holiday_body">${holidays.length ? holidays.map((h, i) => `<tr data-id="${esc(h.id)}"><td style="padding:8px">${i + 1}</td><td style="padding:8px">${esc(h.name)}</td><td style="padding:8px"><button class="km_edit_holiday km_btn" data-id="${esc(h.id)}" style="margin-right:3px">Edit</button><button class="km_del_holiday km_btn km_btn_del" data-id="${esc(h.id)}">Del</button></td></tr>`).join("") : `<tr><td colspan="3" style="padding:10px;color:#666;">No holidays</td></tr>`}</tbody>
@@ -96,9 +96,9 @@
         </div>
 
         <!-- New Fixed Dates Table -->
-        <div style="margin-top: 24px;">
+          <div style="margin-top: 24px;">
           <h4 style="margin:0 0 12px 0; color: #0b5ea8; text-align: center;">රාජකාරි සදහා නියත දිනයන් ලබා දීම</h4>
-          <div style="background:#fff;padding:12px;border-radius:8px;overflow-x:auto;">
+          <div class="km_table_scroll" style="background:#fff;padding:12px;border-radius:8px;overflow-x:auto;">
             <table style="width:100%;border-collapse:collapse;font-size:13px; text-align: left;">
               <thead>
                 <tr style="text-align:left; background: #f0f7ff;">
