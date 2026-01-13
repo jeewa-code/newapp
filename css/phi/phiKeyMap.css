@@ -1,0 +1,189 @@
+/* PHI Key Map Mobile Responsive Styles */
+
+/* Mobile responsive button styles */
+.km_btn {
+  padding: 6px 8px;
+  border: 1px solid #d0d6db;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #f8f9fa;
+  font-size: 12px;
+  min-width: 50px;
+  transition: background 0.2s ease;
+}
+
+.km_btn:hover {
+  background: #e9ecef;
+}
+
+.km_btn_del {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.km_btn_del:hover {
+  background: #c82333;
+}
+
+/* Tables Grid - Mobile responsive */
+.km_tables_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+/* Mobile - Stack on small screens */
+@media (max-width: 768px) {
+  .km_tables_grid {
+    grid-template-columns: 1fr;
+  }
+
+  .km_header {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .km_header h3 {
+    font-size: 18px !important;
+  }
+
+  .km_selector {
+    flex-direction: column !important;
+  }
+
+  .km_selector label {
+    width: 100%;
+  }
+
+  .km_selector select {
+    width: 100%;
+  }
+
+  /* Table responsive behavior */
+  table {
+    font-size: 12px !important;
+  }
+
+  table th,
+  table td {
+    padding: 6px 4px !important;
+  }
+
+  /* Hide certain columns on very small screens */
+  @media (max-width: 480px) {
+    /* Abbreviate headers */
+    .km_btn {
+      padding: 4px 6px;
+      font-size: 11px;
+    }
+
+    table {
+      font-size: 11px !important;
+    }
+
+    /* Make select dropdowns responsive */
+    select {
+      font-size: 12px !important;
+      padding: 4px 2px !important;
+    }
+  }
+}
+
+/* Form responsive layout */
+@media (max-width: 768px) {
+  #km_form_wrap > div {
+    grid-template-columns: 1fr !important;
+  }
+
+  #km_form_wrap div > div {
+    width: 100%;
+  }
+
+  #km_form_wrap button {
+    flex: 1;
+    min-width: 100px;
+  }
+}
+
+/* Overflow handling for tables */
+div:has(> table) {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Sticky table header on mobile */
+@media (max-width: 768px) {
+  table thead {
+    position: sticky;
+    top: 0;
+    background: #f0f7ff;
+    z-index: 10;
+  }
+}
+
+/* Ensure inputs are mobile-friendly */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+select {
+  font-size: 16px; /* Prevents iOS zoom */
+  min-height: 44px; /* Touch-friendly size */
+}
+
+@media (max-width: 480px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  select {
+    min-height: 40px;
+    font-size: 14px;
+  }
+}
+
+/* Ensure buttons are touch-friendly */
+button {
+  min-height: 40px;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  button {
+    min-height: 36px;
+  }
+}
+
+/* Enhanced spacing for mobile forms */
+@media (max-width: 768px) {
+  #km_form_wrap {
+    padding: 12px 8px !important;
+  }
+
+  #km_form_wrap label {
+    font-size: 13px;
+  }
+}
+
+/* Responsive table wrapper */
+.km_tables_grid > div {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 480px) {
+  .km_tables_grid > div {
+    padding: 0;
+  }
+}
+
+/* Improve readability on mobile */
+@media (max-width: 480px) {
+  h4 {
+    font-size: 14px !important;
+  }
+
+  .km_header h3 {
+    font-size: 16px !important;
+  }
+}
