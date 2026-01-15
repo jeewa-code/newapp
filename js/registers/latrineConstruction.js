@@ -403,8 +403,8 @@
     }, 80);
   };
 
-  window.__latrine_delete = function(id){
-    if(!confirm('මෙම ඇතුලත් කිරීම මකා දැමීමට ඔබට විශ්වාසද?')) return;
+  window.__latrine_delete = async function(id){
+    if(!await showConfirm('මෙම ඇතුලත් කිරීම මකා දැමීමට ඔබට විශ්වාසද?')) return;
     const arr = loadEntries().filter(a=>a.id!==id);
     saveEntries(arr);
     // re-render records tab if visible

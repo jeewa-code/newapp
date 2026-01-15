@@ -1,5 +1,5 @@
 /* phiAreaMap.js
-   Improved PHI Area — සාමාන්‍ය තොරතුරු UI
+   Improved PHI Profile UI
    - Uses compact two-column input layout like commonDrinkingWater.js
    - Manages PHI info, Schools, GN divisions, PHM Areas
    - Map upload + symbols retained
@@ -246,7 +246,7 @@
 
     const html = `
       <div style="background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(12,40,60,0.06);">
-        <h4 style="margin:0 0 10px 0;color:#073b6a;">PHI Area — සාමාන්‍ය තොරතුරු (Meta)</h4>
+        <h4 style="margin:0 0 10px 0;color:#073b6a;">PHI Profile (Meta)</h4>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
           <!-- SCHOOLS -->
@@ -577,7 +577,7 @@
     if(!content) return console.warn("contentArea not found");
     content.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h2 style="margin:0;">PHI Area — සාමාන්‍ය තොරතුරු</h2>
+        <h2 style="margin:0;">PHI Profile</h2>
         <button onclick="showContent('Registers', null)" style="background:#0b74d1;color:#fff;padding:8px 12px;border-radius:8px;border:none;">Back</button>
       </div>
       <div id="phi_top_panel"></div>

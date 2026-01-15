@@ -331,7 +331,7 @@
     if (!content) return;
     content.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
-        <h2>PHI Area — සාමාන්‍ය තොරතුරු</h2>
+        <h2>PHI Profile</h2>
         <button onclick="showContent('Dashboard', null)" style="background:var(--primary);color:#fff;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;">
           <i class="fas fa-arrow-left" style="margin-right:8px;"></i>Dashboard වෙත ආපසු
         </button>

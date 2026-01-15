@@ -209,7 +209,7 @@ body {
   flex-direction: column;
   gap: 15px;
   height: 100%;
-  overflow: auto;
+  overflow: visible;
   position: relative;
 }
 

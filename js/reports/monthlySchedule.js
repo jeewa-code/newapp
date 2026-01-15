@@ -23,11 +23,11 @@
   function escapeHtml(s) { if (s === null || s === undefined) return ""; return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
   function ptToPx(pt) { return Math.round(pt * (96 / 72)); }
 
-  // KeyMap localStorage keys
-  const ROLES_KEY = "phi_key_roles_v1";
-  const PLACES_KEY = "phi_key_places_v1";
+  // KeyMap localStorage keys (updated to match new structure)
+  const ROLES_KEY = "phi_roles_tree_final";
+  const PLACES_KEY = "phi_places_tree_final";
   const FIXED_DATES_KEY = "phi_fixed_dates_v1";
-  const HOLIDAY_KEY = "phi_key_holidays_v1";
+  const HOLIDAY_KEY = "phi_holidays_final";
 
   function loadKeyRoles() {
     try { return JSON.parse(localStorage.getItem(ROLES_KEY) || "[]"); } catch (e) { return []; }
@@ -45,13 +45,27 @@
     if (!id) return "";
     const arr = loadKeyRoles();
     const r = arr.find(x => String(x.id) === String(id));
-    return r ? (r.role || "") : "";
+    if (!r) return "";
+    // Check if it's a main item or sub-item (format: mainId:subName)
+    if (id.includes(':')) {
+      const [mainId, subName] = id.split(':');
+      const main = arr.find(x => String(x.id) === String(mainId));
+      return main ? subName : "";
+    }
+    return r.main || "";
   }
   function getPlaceNameById(id) {
     if (!id) return "";
     const arr = loadKeyPlaces();
     const r = arr.find(x => String(x.id) === String(id));
-    return r ? (r.place || "") : "";
+    if (!r) return "";
+    // Check if it's a main item or sub-item (format: mainId:subName)
+    if (id.includes(':')) {
+      const [mainId, subName] = id.split(':');
+      const main = arr.find(x => String(x.id) === String(mainId));
+      return main ? subName : "";
+    }
+    return r.main || "";
   }
   function getHolidayNameById(id) {
     if (!id) return "";
@@ -350,7 +364,7 @@
     ensureGlobalBlackStyle();
 
     const content = document.getElementById("contentArea");
-    if (!content) return alert("contentArea not found");
+    if (!content) return showError("contentArea not found");
     content.innerHTML = "";
 
     // controls - REMOVED the back button
@@ -384,7 +398,7 @@
       style: "display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap"
     });
     const monthInput = el("input", { type: "month", style: "padding:8px;border-radius:6px;border:1px solid #ddd;color:#000" });
-    meta.append(el("div", { html: "<strong style='color:#000'>Month</strong>" }), monthInput);
+    meta.append(el("div", { html: "<strong style='color:#fff;background:#0b5ea8;padding:4px 8px;border-radius:4px;'>Month</strong>" }), monthInput);
     // size mapping: legal content area (for visual sizing)
     const LEGAL_PT = { w: 612, h: 1008 };
     const MARGIN_PT = 12;
@@ -481,110 +495,262 @@
   </thead>`;
     const tbody = el("tbody");
 
+    // Helper function to create cascading menu button
+    function createCascadingMenuButton(namePrefix, type, preservedValue, disabled) {
+      const btnId = `${namePrefix}-${type}-btn`;
+      const menuId = `${namePrefix}-${type}-menu`;
+      
+      const items = type === 'role' ? loadKeyRoles() : loadKeyPlaces();
+      const displayText = preservedValue ? 
+        (type === 'role' ? getRoleNameById(preservedValue) : getPlaceNameById(preservedValue)) : 
+        `-- තෝරන්න --`;
+      
+      const wrapper = el("div", {
+        style: "position:relative;flex:1;min-width:0"
+      });
+      
+      const btn = el("button", {
+        id: btnId,
+        type: "button",
+        class: `${namePrefix}-${type}`,
+        style: `width:100%;padding:8px 14px;border:1px solid #ccc;border-radius:6px;background:#fff;
+                font-size:11px;color:#000;text-align:left;cursor:pointer;
+                display:flex;justify-content:space-between;align-items:center;
+                ${disabled ? 'opacity:0.6;cursor:not-allowed;' : ''}`
+      });
+      btn.disabled = disabled;
+      btn.dataset.value = preservedValue || "";
+      
+      const textSpan = el("span", {
+        style: "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1"
+      });
+      textSpan.textContent = displayText;
+      
+      const arrow = el("span", { style: "margin-left:4px;color:#6b7280;font-size:10px" });
+      arrow.textContent = "▼";
+      
+      btn.appendChild(textSpan);
+      btn.appendChild(arrow);
+      
+      // Create cascading menu
+      const menu = el("div", {
+        id: menuId,
+        style: `position:absolute;top:100%;left:0;min-width:220px;max-width:300px;
+                background:#fff;border:1px solid #e5e7eb;border-radius:8px;
+                box-shadow:0 10px 30px rgba(0,0,0,0.1);z-index:1000;display:none;
+                max-height:400px;margin-top:4px;overflow:visible`
+      });
+      
+      // Add menu items
+      items.forEach(item => {
+        const itemDiv = el("div", {
+          style: `padding:8px 14px;cursor:pointer;display:flex;justify-content:space-between;
+                  align-items:center;border-bottom:1px solid #e5e7eb;transition:background 0.15s ease;position:relative`
+        });
+        itemDiv.dataset.value = item.id;
+        
+        // Check if this is an afternoon place menu
+        const isAfternoonPlace = namePrefix.includes('afternoon') && type === 'place';
+        
+        // Check if has sub items
+        if (item.sub && item.sub.length > 0) {
+          const indicator = el("span", {
+            style: isAfternoonPlace ? "margin-right:8px;color:#666;font-size:14px" : "margin-left:8px;color:#666;font-size:14px"
+          });
+          indicator.textContent = isAfternoonPlace ? "◀" : "▶";
+          
+          if (isAfternoonPlace) {
+            itemDiv.appendChild(indicator);
+          }
+        }
+        
+        const mainText = el("span", {
+          style: "flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+        });
+        mainText.textContent = item.main || item.id;
+        itemDiv.appendChild(mainText);
+        
+        // Check if has sub items
+        if (item.sub && item.sub.length > 0) {
+          if (!isAfternoonPlace) {
+            const indicator = itemDiv.querySelector("span");
+            if (!indicator || indicator === mainText) {
+              const newIndicator = el("span", {
+                style: "margin-left:8px;color:#666;font-size:14px"
+              });
+              newIndicator.textContent = "▶";
+              itemDiv.appendChild(newIndicator);
+            }
+          }
+          
+          // Create submenu
+          const submenu = el("div", {
+            style: `position:absolute;left:100%;top:0;min-width:180px;
+                    background:#fff;border:1px solid #e5e7eb;border-radius:8px;
+                    box-shadow:0 10px 30px rgba(0,0,0,0.1);display:none;
+                    max-height:400px;overflow-y:auto;z-index:10002`
+          });
+
+          const positionSubmenu = () => {
+            submenu.style.display = "block";
+            // Check if this is an afternoon place menu (tpl-afternoon-place)
+            const isAfternoonPlace = namePrefix.includes('afternoon') && type === 'place';
+            
+            if (isAfternoonPlace) {
+              // Always show on left for afternoon place
+              submenu.style.left = "auto";
+              submenu.style.right = "100%";
+            } else {
+              // Default: show on right, flip to left if needed
+              submenu.style.left = "100%";
+              submenu.style.right = "auto";
+              const rect = submenu.getBoundingClientRect();
+              if (rect.right > window.innerWidth && rect.left > 0) {
+                submenu.style.left = "auto";
+                submenu.style.right = "100%";
+              }
+            }
+          };
+          
+          item.sub.forEach(subItem => {
+            const subDiv = el("div", {
+              style: "padding:8px 14px;cursor:pointer;border-bottom:1px solid #e5e7eb;transition:background 0.15s ease"
+            });
+            const subId = `${item.id}:${typeof subItem === 'object' ? subItem.name : subItem}`;
+            subDiv.dataset.value = subId;
+            
+            const subName = typeof subItem === 'object' ? subItem.name : subItem;
+            const subCode = typeof subItem === 'object' && subItem.code ? ` (${subItem.code})` : '';
+            subDiv.textContent = subName + subCode;
+            
+            subDiv.addEventListener("mouseenter", () => {
+              subDiv.style.background = "#f3f4f6";
+            });
+            subDiv.addEventListener("mouseleave", () => {
+              subDiv.style.background = "#fff";
+            });
+            subDiv.addEventListener("click", (e) => {
+              e.stopPropagation();
+              btn.dataset.value = subId;
+              textSpan.textContent = subName;
+              menu.style.display = "none";
+              submenu.style.display = "none";
+              // Trigger change event
+              btn.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            
+            submenu.appendChild(subDiv);
+          });
+          
+          itemDiv.appendChild(submenu);
+          
+          itemDiv.addEventListener("mouseenter", () => {
+            itemDiv.style.background = "#f3f4f6";
+            positionSubmenu();
+          });
+          itemDiv.addEventListener("mouseleave", (e) => {
+            // Delay hiding to allow moving to submenu
+            setTimeout(() => {
+              if (!submenu.matches(':hover')) {
+                itemDiv.style.background = "#fff";
+                submenu.style.display = "none";
+              }
+            }, 100);
+          });
+          
+          // Keep submenu open when hovering over it
+          submenu.addEventListener("mouseenter", () => {
+            submenu.style.display = "block";
+            itemDiv.style.background = "#f3f4f6";
+          });
+          submenu.addEventListener("mouseleave", () => {
+            submenu.style.display = "none";
+            itemDiv.style.background = "#fff";
+          });
+        } else {
+          // No submenu - click to select main item
+          itemDiv.addEventListener("mouseenter", () => {
+            itemDiv.style.background = "#f3f4f6";
+          });
+          itemDiv.addEventListener("mouseleave", () => {
+            itemDiv.style.background = "#fff";
+          });
+        }
+        
+        // Main item click
+        itemDiv.addEventListener("click", (e) => {
+          if (!item.sub || item.sub.length === 0) {
+            btn.dataset.value = item.id;
+            textSpan.textContent = item.main || item.id;
+            menu.style.display = "none";
+            // Trigger change event
+            btn.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        });
+        
+        menu.appendChild(itemDiv);
+      });
+      
+      // Toggle menu on button click
+      btn.addEventListener("click", (e) => {
+        if (disabled) return;
+        e.stopPropagation();
+        const isVisible = menu.style.display === "block";
+        // Close all other menus
+        document.querySelectorAll('[id$="-menu"]').forEach(m => m.style.display = "none");
+        
+        if (!isVisible) {
+          // Check available space
+          const btnRect = btn.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const spaceBelow = viewportHeight - btnRect.bottom;
+          const spaceAbove = btnRect.top;
+          
+          // If not enough space below (estimate 300px for menu), show above
+          if (spaceBelow < 300 && spaceAbove > spaceBelow) {
+            menu.style.top = "auto";
+            menu.style.bottom = "100%";
+            menu.style.marginTop = "0";
+            menu.style.marginBottom = "4px";
+          } else {
+            menu.style.top = "100%";
+            menu.style.bottom = "auto";
+            menu.style.marginTop = "4px";
+            menu.style.marginBottom = "0";
+          }
+          menu.style.display = "block";
+        } else {
+          menu.style.display = "none";
+        }
+      });
+      
+      wrapper.appendChild(btn);
+      wrapper.appendChild(menu);
+      
+      return wrapper;
+    }
+
+    // Close menus when clicking outside
+    document.addEventListener("click", () => {
+      document.querySelectorAll('[id$="-menu"]').forEach(m => m.style.display = "none");
+    });
+
     // helper to create select cell (used to create and recreate cells)
     function createSelectCell(namePrefix, preservedRole, preservedPlace, disabled) {
       const wrap = el("div", { style: "min-height:20px;display:flex;gap:6px;align-items:center;color:#000" });
 
-      // Role select with fixed width and scroll
-      const roleSel = el("select", {
-        class: `${namePrefix}-role`,
-        style: "flex:1;padding:6px;border:1px solid #bbb;border-radius:6px;background:#fff;font-size:11px;color:#000;max-height:80px;overflow-y:auto;min-width:0;width:100%;box-sizing:border-box;"
-      });
-
-      const dash = el("div", { style: "width:12px;text-align:center;color:#000" }, []);
+      // Use cascading menu buttons instead of selects
+      const roleMenu = createCascadingMenuButton(namePrefix, 'role', preservedRole, disabled);
+      
+      const dash = el("div", { style: "width:12px;text-align:center;color:#000" });
       dash.textContent = "-";
 
-      // Place select with fixed width and scroll
-      const placeSel = el("select", {
-        class: `${namePrefix}-place`,
-        style: "flex:1;padding:6px;border:1px solid #bbb;border-radius:6px;background:#fff;font-size:11px;color:#000;max-height:80px;overflow-y:auto;min-width:0;width:100%;box-sizing:border-box;"
-      });
+      const placeMenu = createCascadingMenuButton(namePrefix, 'place', preservedPlace, disabled);
 
-      // Get roles with fixed dates info
-      const roles = loadKeyRoles();
-      const fixedDates = loadFixedDates();
-
-      // Create role options with fixed dates indicator
-      roleSel.innerHTML = `<option value="">-- තෝරන්න (රාජකාරිය) --</option>`;
-      roles.forEach(r => {
-        const o = document.createElement("option");
-        o.value = r.id;
-
-        // Check if this role has fixed dates
-        const roleFixedDates = fixedDates.filter(fd => fd.roleId === r.id);
-        let fixedDatesText = "";
-
-        if (roleFixedDates.length > 0) {
-          const dayMap = {
-            'monday': 'සදු',
-            'tuesday': 'අඟ',
-            'wednesday': 'බදා',
-            'thursday': 'බ්‍රහ',
-            'friday': 'සිකු',
-            'saturday': 'සෙන',
-            'sunday': 'ඉරි'
-          };
-
-          const timeMap = {
-            'morning': 'පෙ',
-            'afternoon': 'පස්',
-            'full_day': 'දවස'
-          };
-
-          // Group by week for concise display
-          const fixedDays = roleFixedDates.map(fd => {
-            const day = dayMap[fd.day] || fd.day;
-            const time = timeMap[fd.time] || fd.time;
-            return `${day} ${time}`;
-          });
-
-          fixedDatesText = ` (${fixedDays.join(', ')})`;
-        }
-
-        o.text = (r.role || r.id) + fixedDatesText;
-        roleSel.appendChild(o);
-      });
-
-      // Create place options
-      const places = loadKeyPlaces();
-      placeSel.innerHTML = `<option value="">-- තෝරන්න (ස්ථානය) --</option>`;
-      places.forEach(p => {
-        const o = document.createElement("option");
-        o.value = p.id;
-        o.text = p.place || p.id;
-        placeSel.appendChild(o);
-      });
-
-      if (typeof preservedRole !== "undefined" && preservedRole !== null && preservedRole !== "") {
-        if (!Array.from(roleSel.options).some(o => o.value === String(preservedRole))) {
-          const opt = document.createElement("option");
-          opt.value = preservedRole;
-          opt.text = (preservedRole + " (free)");
-          roleSel.add(opt, roleSel.options[1] || null);
-        }
-        roleSel.value = preservedRole;
-      }
-
-      if (typeof preservedPlace !== "undefined" && preservedPlace !== null && preservedPlace !== "") {
-        if (!Array.from(placeSel.options).some(o => o.value === String(preservedPlace))) {
-          const opt = document.createElement("option");
-          opt.value = preservedPlace;
-          opt.text = (preservedPlace + " (free)");
-          placeSel.add(opt, placeSel.options[1] || null);
-        }
-        placeSel.value = preservedPlace;
-      }
-
-      if (disabled) {
-        roleSel.disabled = true;
-        placeSel.disabled = true;
-        wrap.classList.add("ms-locked");
-      }
-
-      wrap.appendChild(roleSel);
+      wrap.appendChild(roleMenu);
       wrap.appendChild(dash);
-      wrap.appendChild(placeSel);
-
+      wrap.appendChild(placeMenu);
+      
       return wrap;
     }
 
@@ -650,7 +816,14 @@
         </div>
       </div>
     `;
-    templateWrap.appendChild(table);
+    
+    // Wrap table in container that allows overflow for dropdowns
+    const tableWrapper = el("div", {
+      style: "overflow:visible;position:relative"
+    });
+    tableWrapper.appendChild(table);
+    
+    templateWrap.appendChild(tableWrapper);
     templateWrap.appendChild(footer);
 
     content.appendChild(ctrl);
@@ -700,48 +873,32 @@
       refreshInspectorDisplay();
     }
     monthInput.addEventListener("input", function () {
+      // Remove red highlight when month is selected
+      if (monthInput.value) {
+        monthInput.style.border = "1px solid #ddd";
+        monthInput.style.boxShadow = "none";
+      }
       applyMetaDisplays();
       applyMonthConstraints(monthInput.value);
       // NEW: Auto-fill from fixed dates when month changes
       autoFillScheduleFromFixedDates(monthInput.value);
     });
     monthInput.addEventListener("change", function () {
+      // Remove red highlight when month is selected
+      if (monthInput.value) {
+        monthInput.style.border = "1px solid #ddd";
+        monthInput.style.boxShadow = "none";
+      }
       applyMetaDisplays();
       applyMonthConstraints(monthInput.value);
       // NEW: Auto-fill from fixed dates when month changes
       autoFillScheduleFromFixedDates(monthInput.value);
     });
 
-    // populate select options from KeyMap
+    // populate select options from KeyMap (no longer needed with cascading menus, but keep for compatibility)
     function refreshKeyMapOptions() {
-      const roles = loadKeyRoles();
-      const places = loadKeyPlaces();
-      const roleOptionsHtml = [`<option value="">-- තෝරන්න (රාජකාරිය) --</option>`].concat(roles.map(r => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.role || "")}</option>`)).join("");
-      const placeOptionsHtml = [`<option value="">-- තෝරන්න (ස්ථානය) --</option>`].concat(places.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.place || "")}</option>`)).join("");
-      // update any existing selects
-      const roleSelects = templateWrap.querySelectorAll("select[class$='-role']");
-      roleSelects.forEach(s => {
-        // keep current value if present
-        const cur = s.value;
-        s.innerHTML = roleOptionsHtml;
-        if (cur) {
-          if (Array.from(s.options).some(o => o.value === cur)) s.value = cur;
-          else {
-            const opt = document.createElement("option"); opt.value = cur; opt.text = cur + " (free)"; s.add(opt, s.options[1] || null); s.value = cur;
-          }
-        }
-      });
-      const placeSelects = templateWrap.querySelectorAll("select[class$='-place']");
-      placeSelects.forEach(s => {
-        const cur = s.value;
-        s.innerHTML = placeOptionsHtml;
-        if (cur) {
-          if (Array.from(s.options).some(o => o.value === cur)) s.value = cur;
-          else {
-            const opt = document.createElement("option"); opt.value = cur; opt.text = cur + " (free)"; s.add(opt, s.options[1] || null); s.value = cur;
-          }
-        }
-      });
+      // Buttons auto-populate from storage, no manual refresh needed
+      // This function kept for backward compatibility
     }
 
     // refresh initial
@@ -802,8 +959,9 @@
         const mRoleSel = tr.querySelector(".tpl-morning-role");
         const mPlaceSel = tr.querySelector(".tpl-morning-place");
         if (mRoleSel || mPlaceSel) {
-          const morningRole = (mRoleSel || { value: "" }).value || "";
-          const morningPlace = (mPlaceSel || { value: "" }).value || "";
+          // Get value from button dataset instead of select value
+          const morningRole = (mRoleSel || { dataset: {} }).dataset.value || "";
+          const morningPlace = (mPlaceSel || { dataset: {} }).dataset.value || "";
           morningVal = (morningRole || morningPlace) ? { role: morningRole || "", place: morningPlace || "" } : "";
         } else {
           // maybe locked: preserve stored dataset if any
@@ -817,8 +975,9 @@
         const aRoleSel = tr.querySelector(".tpl-afternoon-role");
         const aPlaceSel = tr.querySelector(".tpl-afternoon-place");
         if (aRoleSel || aPlaceSel) {
-          const afternoonRole = (aRoleSel || { value: "" }).value || "";
-          const afternoonPlace = (aPlaceSel || { value: "" }).value || "";
+          // Get value from button dataset instead of select value
+          const afternoonRole = (aRoleSel || { dataset: {} }).dataset.value || "";
+          const afternoonPlace = (aPlaceSel || { dataset: {} }).dataset.value || "";
           afternoonVal = (afternoonRole || afternoonPlace) ? { role: afternoonRole || "", place: afternoonPlace || "" } : "";
         } else {
           const ar = tr.dataset.afternoonRole || "";
@@ -900,16 +1059,16 @@
       const tdM = row.children[1];
       const tdA = row.children[2];
 
-      // Store current values in dataset
+      // Store current values in dataset (from button dataset values)
       const mRoleSel = tdM.querySelector(".tpl-morning-role");
       const mPlaceSel = tdM.querySelector(".tpl-morning-place");
       const aRoleSel = tdA.querySelector(".tpl-afternoon-role");
       const aPlaceSel = tdA.querySelector(".tpl-afternoon-place");
 
-      if (mRoleSel) row.dataset.morningRole = mRoleSel.value || "";
-      if (mPlaceSel) row.dataset.morningPlace = mPlaceSel.value || "";
-      if (aRoleSel) row.dataset.afternoonRole = aRoleSel.value || "";
-      if (aPlaceSel) row.dataset.afternoonPlace = aPlaceSel.value || "";
+      if (mRoleSel) row.dataset.morningRole = mRoleSel.dataset.value || "";
+      if (mPlaceSel) row.dataset.morningPlace = mPlaceSel.dataset.value || "";
+      if (aRoleSel) row.dataset.afternoonRole = aRoleSel.dataset.value || "";
+      if (aPlaceSel) row.dataset.afternoonPlace = aPlaceSel.dataset.value || "";
 
       // Replace with holiday display
       tdM.innerHTML = "";
@@ -980,18 +1139,21 @@
     };
 
     // Save behaviour
-    saveBtn.onclick = function () {
+    saveBtn.onclick = async function () {
       const payload = collectPayload();
       if (!payload.month) {
-        if (!confirm("Month not selected. Save without month key? (It will be stored under 'unspecified')")) return;
+        if (!await showConfirm("Month not selected. Save without month key? (It will be stored under 'unspecified')")) return;
       }
       const key = storageKeyForMonth(payload.month);
       const exists = !!localStorage.getItem(key);
       if (exists) {
-        if (!confirm(`A saved schedule already exists for ${payload.month}. Overwrite?`)) { alert("Save cancelled."); return; }
+        if (!await showConfirm(`A saved schedule already exists for ${payload.month}. Overwrite?`)) { 
+          showWarning("Save cancelled."); 
+          return; 
+        }
       }
       localStorage.setItem(key, JSON.stringify(payload));
-      alert("Saved successfully.");
+      showSuccess("Saved successfully.");
       window.dispatchEvent(new CustomEvent("monthlyScheduleSaved", { detail: { month: payload.month } }));
     };
 
@@ -1189,9 +1351,9 @@
 
           // Decide initial state: if dataset.sundayLocked === "1" => duty, else locked default
           if (tr.dataset.sundayLocked === "1") {
-            // ensure selects exist (restore if missing)
-            if (!tdM.querySelector("select")) tdM.appendChild(createSelectCell("tpl-morning", tr.dataset.morningRole || "", tr.dataset.morningPlace || "", false));
-            if (!tdA.querySelector("select")) tdA.appendChild(createSelectCell("tpl-afternoon", tr.dataset.afternoonRole || "", tr.dataset.afternoonPlace || "", false));
+            // ensure selects exist (restore if missing) - check for buttons instead of selects
+            if (!tdM.querySelector(".tpl-morning-role")) tdM.appendChild(createSelectCell("tpl-morning", tr.dataset.morningRole || "", tr.dataset.morningPlace || "", false));
+            if (!tdA.querySelector(".tpl-afternoon-role")) tdA.appendChild(createSelectCell("tpl-afternoon", tr.dataset.afternoonRole || "", tr.dataset.afternoonPlace || "", false));
             tr.classList.remove("ms-sunday-row");
           } else {
             makeLockedSunday();
@@ -1257,7 +1419,7 @@
             // Show holiday selection dialog
             const holidays = loadHolidays();
             if (holidays.length === 0) {
-              alert("No holiday types available. Please add holiday types in Key Map first.");
+              showWarning("No holiday types available. Please add holiday types in Key Map first.");
               return;
             }
 
@@ -1323,7 +1485,7 @@
                 markRowAsHoliday(tr, holidayName);
                 cleanup();
               } else {
-                alert("Please select a holiday type or enter a custom holiday name.");
+                showWarning("Please select a holiday type or enter a custom holiday name.");
               }
             };
 
@@ -1336,9 +1498,9 @@
           tr.addEventListener("dblclick", holidayDblHandler);
           tr._ms_holiday_dbl_handler = holidayDblHandler;
 
-          // ensure selects exist and enabled
-          if (!tdM.querySelector("select")) tdM.appendChild(createSelectCell("tpl-morning", tr.dataset.morningRole || "", tr.dataset.morningPlace || "", false));
-          if (!tdA.querySelector("select")) tdA.appendChild(createSelectCell("tpl-afternoon", tr.dataset.afternoonRole || "", tr.dataset.afternoonPlace || "", false));
+          // ensure selects exist and enabled - check for buttons instead of selects
+          if (!tdM.querySelector(".tpl-morning-role")) tdM.appendChild(createSelectCell("tpl-morning", tr.dataset.morningRole || "", tr.dataset.morningPlace || "", false));
+          if (!tdA.querySelector(".tpl-afternoon-role")) tdA.appendChild(createSelectCell("tpl-afternoon", tr.dataset.afternoonRole || "", tr.dataset.afternoonPlace || "", false));
           tr.classList.remove("ms-sunday-row");
         }
       });
@@ -1824,7 +1986,7 @@
         html2pdf().set(opt).from(printableWrapper).save();
       } else {
         // Fallback: open in new window for printing if html2pdf not available
-        alert("PDF download functionality requires html2pdf library. Opening print preview instead.");
+        showWarning("PDF download functionality requires html2pdf library. Opening print preview instead.");
         updatePrintableCloneAndOpen(wrapper, monthValue, origTbody, sizeType);
       }
     }

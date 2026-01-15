@@ -257,7 +257,7 @@
 
     document.querySelectorAll(".he-del").forEach(btn=>{
       btn.addEventListener("click", ()=>{
-        if (!confirm("Delete this record?")) return;
+        if (!await showConfirm("Delete this record?")) return;
         const id = Number(btn.dataset.id);
         let arr = loadJSON(STORAGE_KEY);
         arr = arr.filter(x=>x.id!==id);

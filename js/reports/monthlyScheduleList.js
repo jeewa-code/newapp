@@ -65,9 +65,9 @@
       text: "Remove"
     });
 
-    removeBtn.addEventListener("click", function(ev){
+    removeBtn.addEventListener("click", async function(ev){
       ev.stopPropagation();
-      if(!confirm(`Remove saved schedule ${monthKey}? This will also close any open editor for this month.`)) return;
+      if(!await showConfirm(`Remove saved schedule ${monthKey}? This will also close any open editor for this month.`)) return;
       try {
         // remove from localStorage if present
         const key = `monthlySchedule_exact_template_${monthKey}`;
@@ -109,10 +109,10 @@
             window.monthlySchedule.openWithMonth(monthKey);
             window.dispatchEvent(new CustomEvent("openMonthlyScheduleForMonth", { detail:{ month: monthKey } }));
           } else {
-            alert("Editor not available yet.");
+            showError("Editor not available yet.");
           }
         };
-        s.onerror = ()=> alert("Failed to load editor.");
+        s.onerror = ()=> showError("Failed to load editor.");
         document.head.appendChild(s);
       }
     });

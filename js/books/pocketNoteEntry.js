@@ -1458,7 +1458,7 @@ function savePocketNoteEntry() {
     // save
     updateLastEntryTimes(note);
     window.savePocketNote(note);
-    alert('Pocket note saved.');
+    showSuccess('Pocket note saved.');
 }
 
 // Helper to compute display day type used in calendar color logic
@@ -1588,8 +1588,8 @@ function augmentDutyAdders() {
             const qty = qtyInput && qtyInput.value ? Number(qtyInput.value) : null;
 
             if (!qty || qty < 1) {
-                if (!subDuty && !mainDuty) return alert('කරුණාකර රාජකාරිය තෝරන්න.');
-                if (!qty) return alert('ප්‍රමාණය ඇතුලත් කරන්න (1-99).');
+                if (!subDuty && !mainDuty) return showError('කරුණාකර රාජකාරිය තෝරන්න.');
+                if (!qty) return showError('ප්‍රමාණය ඇතුලත් කරන්න (1-99).');
             }
 
             const dutyText = `${subDuty || mainDuty} - ${qty}`;
@@ -1628,8 +1628,8 @@ function augmentDutyAdders() {
             const qty = qtyInput && qtyInput.value ? Number(qtyInput.value) : null;
 
             if (!qty || qty < 1) {
-                if (!subDuty && !mainDuty) return alert('කරුණාකර රාජකාරිය තෝරන්න.');
-                if (!qty) return alert('ප්‍රමාණය ඇතුලත් කරන්න (1-99).');
+                if (!subDuty && !mainDuty) return showError('කරුණාකර රාජකාරිය තෝරන්න.');
+                if (!qty) return showError('ප්‍රමාණය ඇතුලත් කරන්න (1-99).');
             }
 
             const dutyText = `${subDuty || mainDuty} - ${qty}`;

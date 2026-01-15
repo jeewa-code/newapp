@@ -149,8 +149,8 @@ window.renderPNBCarousel = function (containerId, initialDate = null) {
     });
 
     // Delete handler
-    document.getElementById('deleteNote').addEventListener('click', () => {
-        if (confirm('මෙම සටහන මකා දැමීමට අවශ්‍යද?')) {
+    document.getElementById('deleteNote').addEventListener('click', async () => {
+        if (await showConfirm('මෙම සටහන මකා දැමීමට අවශ්‍යද?')) {
             deleteNote(currentIndex, timeline);
         }
     });

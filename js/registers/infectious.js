@@ -51,6 +51,16 @@
     localStorage.setItem(DISEASE_STORAGE_KEY, JSON.stringify(diseases));
   }
 
+  // Load GN Divisions from PHI Profile
+  const GNS_KEY = "phi_gns_v2";
+  function loadGNDivisions() {
+    try {
+      return JSON.parse(localStorage.getItem(GNS_KEY) || "[]");
+    } catch (e) {
+      return [];
+    }
+  }
+
   // load patients
   let infectiousPatients = JSON.parse(localStorage.getItem(PATIENT_STORAGE_KEY) || "[]");
 
@@ -78,6 +88,24 @@
   // Build UI (same structure as before)
   window.openInfectious = function (title = "Infectious Diseases Register") {
     const content = document.getElementById("contentArea");
+    
+    // Get GN Divisions for dropdown
+    const gnDivisions = loadGNDivisions();
+    const gnOptions = gnDivisions.length 
+      ? gnDivisions.map(g => {
+          const display = g.no && g.name ? `${g.no} - ${g.name}` : (g.no || g.name || g.id);
+          return `<option value="${display}">${display}</option>`;
+        }).join("")
+      : '<option value="">No GN Divisions available</option>';
+
+    // Get unique occupations from existing patients
+    const uniqueOccupations = [...new Set(infectiousPatients
+      .map(p => p.occupation)
+      .filter(o => o && o.trim())
+    )].sort();
+    const occupationOptions = uniqueOccupations.length
+      ? uniqueOccupations.map(occ => `<option value="${occ}">${occ}</option>`).join("")
+      : '';
     content.innerHTML = `
       <style>
         .reserve-hidden { opacity:0; pointer-events:none; min-height:46px; transition:opacity .12s ease; }
@@ -89,6 +117,71 @@
         }
         .house-thumb { width:100px; height:100px; border:1px solid #ccc; display:inline-block; background:#fafafa; object-fit:cover; border-radius:4px; }
         .thumb-wrap { display:flex; gap:8px; align-items:center; }
+        
+        /* Grid form layout with labels on top */
+        #patientForm { display: flex; flex-direction: column; gap: 16px; max-width: 100%; }
+        #patientForm .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        #patientForm .form-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        #patientForm .form-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        #patientForm .form-row.cols-4 { grid-template-columns: repeat(4, 1fr); }
+        #patientForm .form-row.full-width { grid-template-columns: 1fr; }
+        #patientForm .field-group { display: flex; flex-direction: column; gap: 6px; }
+        #patientForm label { font-weight: 500; font-size: 14px; color: #333; white-space: normal; }
+        #patientForm input, #patientForm select, #patientForm textarea { 
+          width: 100%;
+          padding: 8px 10px; 
+          border: 1px solid #d0d6db; 
+          border-radius: 6px; 
+          font-size: 14px;
+          box-sizing: border-box;
+        }
+        #patientForm textarea { min-height: 70px; resize: vertical; }
+        #patientForm button { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        
+        /* Section groups with borders */
+        .form-section-group {
+          border: 1px solid #d0d6db;
+          border-radius: 8px;
+          padding: 16px;
+          background: #fafbfc;
+          margin-bottom: 16px;
+        }
+        
+        /* Section headers */
+        .form-section-header { 
+          background: linear-gradient(135deg, #0b5ea8 0%, #1976d2 100%); 
+          color: white; 
+          padding: 10px 14px; 
+          border-radius: 6px; 
+          font-weight: 600; 
+          font-size: 15px; 
+          margin-bottom: 16px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Disease definition form */
+        #diseaseDefinitionForm { display: flex; flex-direction: column; gap: 16px; max-width: 100%; }
+        #diseaseDefinitionForm .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        #diseaseDefinitionForm .field-group { display: flex; flex-direction: column; gap: 6px; }
+        #diseaseDefinitionForm label { font-weight: 500; font-size: 14px; color: #333; white-space: normal; }
+        #diseaseDefinitionForm input, #diseaseDefinitionForm select { 
+          width: 100%;
+          padding: 8px 10px; 
+          border: 1px solid #d0d6db; 
+          border-radius: 6px; 
+          font-size: 14px;
+          box-sizing: border-box;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+          #patientForm .form-row, #diseaseDefinitionForm .form-row { 
+            grid-template-columns: 1fr !important; 
+          }
+          .thumb-wrap { flex-direction: column; }
+          .house-thumb { width: 100%; height: auto; max-height: 200px; }
+          .form-section-header { font-size: 14px; padding: 8px 12px; }
+        }
       </style>
 
       <h2>${title}</h2>
@@ -101,95 +194,179 @@
       <div class="tab-content active" id="tab1-patients">
         <!-- form (same as earlier) -->
         <form id="patientForm">
-          <label>I.D. Card ලැබුණු දිනය:</label>
-          <input type="date" name="dateOfReceipt" required>
+          <div class="form-section-group">
+            <div class="form-section-header">H544 පිලිබඳ විස්තර</div>
+            
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label><span style="color: red;">*</span> I.D. Card ලැබුණු දිනය:</label>
+                <input type="date" name="dateOfReceipt" required>
+              </div>
+              <div class="field-group">
+                <label>දැනුම් දුන් දිනය (Date of notification):</label>
+                <input type="date" name="dateOfNotification">
+              </div>
+            </div>
 
-          <label>GN Division:</label>
-          <input type="text" name="droDivision" required>
-
-          <label>Address:</label>
-          <input type="text" name="locality" required>
-
-          <label>Name:</label>
-          <input type="text" name="patientName" required>
-
-          <label>Age:</label>
-          <input type="number" name="age" min="0" required>
-
-          <label>Sex:</label>
-          <select name="sex" required>
-            <option value="">-- Select --</option>
-            <option value="පිරිමි">පිරිමි</option>
-            <option value="ගැහැණු">ගැහැණු</option>
-          </select>
-
-          <label>ජාතිය:</label>
-          <input type="text" name="race" list="races" required>
-          <datalist id="races"><option value="සිංහල"></option><option value="දෙමළ"></option><option value="මුස්ලිම්"></option><option value="වෙනත්"></option></datalist>
-
-          <label>රැකියාව:</label>
-          <input type="text" name="occupation" required>
-
-          <label>ආගම:</label>
-          <input type="text" name="religion" list="religions" required>
-          <datalist id="religions"><option value="බුද්ධාගම"></option><option value="හින්දු"></option><option value="ඉස්ලාම්"></option><option value="ක්‍රිස්තියානි"></option><option value="වෙනත්"></option></datalist>
-
-          <label>දැනුම් දුන් දිනය (Date of notification):</label>
-          <input type="date" name="dateOfNotification" required>
-
-          <label>දැනුම් දුන්නේ කව්ද (By whom Notified):</label>
-          <input list="notifiers" name="byWhomNotified" placeholder="Select or type">
-          <datalist id="notifiers">
-            <option value="TH Kalutara"></option>
-            <option value="Nadsys"></option>
-            <option value="Chest Clinic"></option>
-            <option value="STD Clinic"></option>
-          </datalist>
-
-          <label>පරික්ෂා කලේ කව්ද:</label>
-          <select name="examinedBy">
-            <option value="PHI Nehinna" selected>PHI Nehinna</option>
-            <option value="Other area PHI">Other area PHI</option>
-            <option value="SPHI">SPHI</option>
-            <option value="MOH">MOH</option>
-          </select>
-
-          <label>රසායනික පරීක්ෂණයේ ප්‍රතිඵල:</label>
-          <input type="text" name="labResults" placeholder="Enter results">
-
-          <label>Isolation:</label>
-          <select name="isolation">
-            <option value="">-- Select --</option>
-            <option value="Home">Home</option>
-            <option value="Hospital">Hospital</option>
-          </select>
-
-          <label>Termination (Death / Recovery):</label>
-          <select name="terminationStatus" id="terminationStatus">
-            <option value="">-- Select --</option>
-            <option value="Death">Death</option>
-            <option value="Recovery">Recovery</option>
-          </select>
-
-          <div id="terminationDateContainer" class="reserve-hidden">
-            <label>Termination Date:</label>
-            <input type="date" name="terminationDate" id="terminationDate">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>දැනුම් දුන්නේ කව්ද (By whom Notified):</label>
+                <input list="notifiers" name="byWhomNotified" placeholder="Select or type">
+                <datalist id="notifiers">
+                  <option value="TH Kalutara"></option>
+                  <option value="Nadsys"></option>
+                  <option value="Chest Clinic"></option>
+                  <option value="STD Clinic"></option>
+                </datalist>
+              </div>
+              <div class="field-group">
+                <label>පරික්ෂා කලේ කව්ද:</label>
+                <select name="examinedBy">
+                  <option value="PHI Nehinna" selected>PHI Nehinna</option>
+                  <option value="Other area PHI">Other area PHI</option>
+                  <option value="SPHI">SPHI</option>
+                  <option value="MOH">MOH</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <label>Source of Infection:</label>
-          <input type="text" name="sourceOfInfection" placeholder="Enter source (if known)">
-
-          <label>Remarks:</label>
-          <textarea name="remarks" rows="3" placeholder="Any remarks..."></textarea>
-
-          <label>රෝගියාගේ නිවාස පිහිටි ස්ථානය (House location):</label>
-          <div class="thumb-wrap">
-            <div>
-              <button type="button" id="markHouseBtn" style="background:#1b5e20;color:white;padding:8px 10px;border-radius:6px;border:none;cursor:pointer;">Map මත ලකුණු කරන්න</button>
-              <div style="margin-top:6px; font-size:13px; color:#444;" id="houseCoordReadout">(No location)</div>
+          <div class="form-section-group">
+            <div class="form-section-header">රෝගියාගේ විස්තර</div>
+            
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label><span style="color: red;">*</span> Name:</label>
+                <input type="text" name="patientName" required>
+              </div>
+              <div class="field-group">
+                <label>Address:</label>
+                <input type="text" name="locality">
+              </div>
             </div>
-            <div id="houseThumbHolder">
-              <img id="houseThumb" class="house-thumb" alt="House preview" src="" style="display:none;">
+
+            <div class="form-row cols-4">
+              <div class="field-group">
+                <label><span style="color: red;">*</span> GN Division(D.R.O. Division):</label>
+                <select name="droDivision" required>
+                  <option value="">-- Select GN Division --</option>
+                  ${gnOptions}
+                </select>
+              </div>
+              <div class="field-group">
+                <label>Age:</label>
+                <input type="number" name="age" min="0">
+              </div>
+              <div class="field-group">
+                <label>Sex:</label>
+                <select name="sex">
+                  <option value="">-- Select --</option>
+                  <option value="පිරිමි">පිරිමි</option>
+                  <option value="ගැහැණු">ගැහැණු</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label>රැකියාව:</label>
+                <input type="text" name="occupation" list="occupationList">
+                <datalist id="occupationList">
+                  ${occupationOptions}
+                </datalist>
+              </div>
+            </div>
+
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>ජාතිය:</label>
+                <input type="text" name="race" list="races">
+                <datalist id="races"><option value="සිංහල"></option><option value="දෙමළ"></option><option value="මුස්ලිම්"></option><option value="වෙනත්"></option></datalist>
+              </div>
+              <div class="field-group">
+                <label>ආගම:</label>
+                <input type="text" name="religion" list="religions">
+                <datalist id="religions"><option value="බුද්ධාගම"></option><option value="හින්දු"></option><option value="ඉස්ලාම්"></option><option value="ක්‍රිස්තියානි"></option><option value="වෙනත්"></option></datalist>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-group">
+            <div class="form-section-header">රෝගය පිලිබඳ විස්තර</div>
+            
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label><span style="color: red;">*</span> රෝගය:</label>
+                <select name="natureOfDisease" id="diseaseSelect" required>
+                  <option value="">-- තෝරන්න --</option>
+                  ${diseases.map(d => `<option value="${d.name}">${d.name}</option>`).join("")}
+                </select>
+              </div>
+              <div class="field-group" id="patientIdContainer" class="reserve-hidden">
+                <label>ලේඛණ ගත අංකය:</label>
+                <input type="text" name="patientId" id="patientId" readonly>
+              </div>
+            </div>
+
+            <div class="form-row cols-4">
+              <div class="field-group">
+                <label><span style="color: red;">*</span> රෝගය වැළඳුණු දිනය:</label>
+                <input type="date" name="dateOfOnset" required>
+              </div>
+              <div class="field-group">
+                <label>Date of Discharge:</label>
+                <input type="date" name="dateOfDischarge">
+              </div>
+              <div class="field-group">
+                <label>Source of Infection:</label>
+                <input type="text" name="sourceOfInfection" placeholder="Enter source (if known)">
+              </div>
+              <div class="field-group">
+                <label>රසායනික පරීක්ෂණයේ ප්‍රතිඵල:</label>
+                <input type="text" name="labResults" placeholder="Enter results">
+              </div>
+            </div>
+
+            <div class="form-row cols-3">
+              <div class="field-group">
+                <label>Isolation:</label>
+                <select name="isolation">
+                  <option value="">-- Select --</option>
+                  <option value="Home">Home</option>
+                  <option value="Hospital">Hospital</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label>Termination (Death / Recovery):</label>
+                <select name="terminationStatus" id="terminationStatus">
+                  <option value="">-- Select --</option>
+                  <option value="Death">Death</option>
+                  <option value="Recovery">Recovery</option>
+                </select>
+              </div>
+              <div class="field-group" id="terminationDateContainer" class="reserve-hidden">
+                <label>Termination Date:</label>
+                <input type="date" name="terminationDate" id="terminationDate">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row full-width">
+            <div class="field-group">
+              <label>Remarks:</label>
+              <textarea name="remarks" rows="3" placeholder="Any remarks..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-row full-width">
+            <div class="field-group">
+              <label>රෝගියාගේ නිවාස පිහිටි ස්ථානය (House location):</label>
+              <div class="thumb-wrap">
+                <div>
+                  <button type="button" id="markHouseBtn" style="background:#1b5e20;color:white;padding:8px 10px;border-radius:6px;border:none;cursor:pointer;">Map මත ලකුණු කරන්න</button>
+                  <div style="margin-top:6px; font-size:13px; color:#444;" id="houseCoordReadout">(No location)</div>
+                </div>
+                <div id="houseThumbHolder">
+                  <img id="houseThumb" class="house-thumb" alt="House preview" src="" style="display:none;">
+                </div>
+              </div>
             </div>
           </div>
 
@@ -197,23 +374,6 @@
           <input type="hidden" name="houseY" id="houseY">
           <input type="hidden" name="houseImgWidth" id="houseImgWidth">
           <input type="hidden" name="houseImgHeight" id="houseImgHeight">
-
-          <label>රෝගය:</label>
-          <select name="natureOfDisease" id="diseaseSelect" required>
-            <option value="">-- තෝරන්න --</option>
-            ${diseases.map(d => `<option value="${d.name}">${d.name}</option>`).join("")}
-          </select>
-
-          <div id="patientIdContainer" class="reserve-hidden">
-            <label>ලේඛණ ගත අංකය:</label>
-            <input type="text" name="patientId" id="patientId" readonly>
-          </div>
-
-          <label>රෝගය වැළඳුණු දිනය:</label>
-          <input type="date" name="dateOfOnset" required>
-
-          <label>Date of Discharge:</label>
-          <input type="date" name="dateOfDischarge">
 
           <div style="margin-top:10px;">
             <button type="submit" id="addUpdatePatientBtn">ඇතුළත් කරන්න / Update කරන්න</button>
@@ -241,16 +401,22 @@
       <!-- Tab 2 -->
       <div class="tab-content" id="tab2-definitions">
         <form id="diseaseDefinitionForm">
-          <label>රෝගයේ නම:</label>
-          <input type="text" name="name" required>
-          <label>රෝගයේ හදුනාගැනීමේ කේතය:</label>
-          <input type="text" name="code" required>
-          <label>Group:</label>
-          <select name="group" id="groupSelect" required>
-            <option value="">-- තෝරන්න / Type කරන්න --</option>
-            <option value="A">A</option>
-            <option value="B">B</option>
-          </select>
+          <div>
+            <label>රෝගයේ නම:</label>
+            <input type="text" name="name" required>
+          </div>
+          <div>
+            <label>රෝගයේ හදුනාගැනීමේ කේතය:</label>
+            <input type="text" name="code" required>
+          </div>
+          <div>
+            <label>Group:</label>
+            <select name="group" id="groupSelect" required>
+              <option value="">-- තෝරන්න / Type කරන්න --</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+            </select>
+          </div>
           <div style="margin-top:10px;">
             <button type="submit" id="addUpdateDiseaseBtn">Add / Update</button>
             <button type="button" id="deleteDiseaseBtn" style="background:#b71c1c;color:white;">Delete</button>
@@ -266,18 +432,47 @@
       <!-- Tab 3 -->
       <div class="tab-content" id="tab3-log">
         <h3>බෝවන රෝග ලේඛණය</h3>
-        <div class="filters glass" style="padding:15px; margin-bottom:15px; display:flex; flex-wrap:wrap; gap:10px;">
-          <label>වර්ෂය:</label>
-          <select id="filterYear" style="flex:1;"><option value="">සියලු වසර</option>${Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map(y => `<option>${y}</option>`).join("")}</select>
-          <label>රෝගය:</label>
-          <select id="filterDisease" style="flex:1;"><option value="">සියලු රෝග</option>${diseases.map(d => `<option value="${d.name}">${d.name}</option>`).join("")}</select>
-          <label>age (min):</label><input type="number" id="filterAgeMin" min="0" style="flex:0.5;">
-          <label>age (max):</label><input type="number" id="filterAgeMax" min="0" style="flex:0.5;">
-          <label>D.R.O. Division:</label><input type="text" id="filterDroDivision" placeholder="Enter Division" style="flex:1;">
-          <label>Sex:</label>
-          <select id="filterSex" style="flex:1;"><option value="">All</option><option value="පිරිමි">පිරිමි</option><option value="ගැහැණු">ගැහැණු</option></select>
-          <button id="applyFiltersBtn" style="background:var(--accent); color:white; padding:8px 12px; border-radius:8px; border:none; cursor:pointer;">Apply</button>
-          <button id="clearFiltersBtn" style="background:#757575; color:white; padding:8px 12px; border-radius:8px; border:none; cursor:pointer;">Clear</button>
+        <div class="filters glass" style="padding:15px; margin-bottom:15px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-weight: 500; font-size: 14px;">වර්ෂය:</label>
+              <select id="filterYear" style="width: 100%; padding: 8px 10px; border: 1px solid #d0d6db; border-radius: 6px; font-size: 14px;">
+                <option value="">සියලු වසර</option>
+                ${Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map(y => `<option>${y}</option>`).join("")}
+              </select>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-weight: 500; font-size: 14px;">රෝගය:</label>
+              <select id="filterDisease" style="width: 100%; padding: 8px 10px; border: 1px solid #d0d6db; border-radius: 6px; font-size: 14px;">
+                <option value="">සියලු රෝග</option>
+                ${diseases.map(d => `<option value="${d.name}">${d.name}</option>`).join("")}
+              </select>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-weight: 500; font-size: 14px;">Age (min):</label>
+              <input type="number" id="filterAgeMin" min="0" style="width: 100%; padding: 8px 10px; border: 1px solid #d0d6db; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-weight: 500; font-size: 14px;">Age (max):</label>
+              <input type="number" id="filterAgeMax" min="0" style="width: 100%; padding: 8px 10px; border: 1px solid #d0d6db; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-weight: 500; font-size: 14px;">D.R.O. Division:</label>
+              <input type="text" id="filterDroDivision" placeholder="Enter Division" style="width: 100%; padding: 8px 10px; border: 1px solid #d0d6db; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-weight: 500; font-size: 14px;">Sex:</label>
+              <select id="filterSex" style="width: 100%; padding: 8px 10px; border: 1px solid #d0d6db; border-radius: 6px; font-size: 14px;">
+                <option value="">All</option>
+                <option value="පිරිමි">පිරිමි</option>
+                <option value="ගැහැණු">ගැහැණු</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+            <button id="applyFiltersBtn" style="background:var(--accent); color:white; padding:10px 16px; border-radius:6px; border:none; cursor:pointer; font-weight: 600;">Apply</button>
+            <button id="clearFiltersBtn" style="background:#757575; color:white; padding:10px 16px; border-radius:6px; border:none; cursor:pointer; font-weight: 600;">Clear</button>
+          </div>
         </div>
 
         <div class="scroll-top" id="logScrollWrap" style="overflow:auto;">
@@ -426,8 +621,8 @@
       selectedDiseaseIndex = null;
     };
 
-    deleteDiseaseBtn.onclick = () => {
-      if (selectedDiseaseIndex !== null && confirm("Delete this disease definition?")) {
+    deleteDiseaseBtn.onclick = async () => {
+      if (selectedDiseaseIndex !== null && await showConfirm("Delete this disease definition?")) {
         diseases.splice(selectedDiseaseIndex,1);
         localStorage.setItem(DISEASE_STORAGE_KEY, JSON.stringify(diseases));
         updateDiseaseSelectOptions();
@@ -703,9 +898,37 @@
     // ---------- form submit / delete / clear ----------
     patientForm.onsubmit = (e) => {
       e.preventDefault();
+      
+      // Validation for required fields
+      if (!patientForm.dateOfReceipt.value) {
+        showError("I.D. Card ලැබුණු දිනය අවශ්‍යයි / I.D. Card date is required.");
+        patientForm.dateOfReceipt.focus();
+        return;
+      }
+      if (!patientForm.patientName.value.trim()) {
+        showError("Name අවශ්‍යයි / Name is required.");
+        patientForm.patientName.focus();
+        return;
+      }
+      if (!patientForm.droDivision.value) {
+        showError("GN Division(D.R.O. Division) අවශ්‍යයි / GN Division is required.");
+        patientForm.droDivision.focus();
+        return;
+      }
+      if (!patientForm.natureOfDisease.value) {
+        showError("රෝගය තෝරන්න / Please select a disease.");
+        patientForm.natureOfDisease.focus();
+        return;
+      }
+      if (!patientForm.dateOfOnset.value) {
+        showError("රෝගය වැළඳුණු දිනය අවශ්‍යයි / Date of onset is required.");
+        patientForm.dateOfOnset.focus();
+        return;
+      }
+      
       const termStatus = terminationStatusSelect.value;
       if ((termStatus === "Death" || termStatus === "Recovery") && !terminationDateInput.value) {
-        alert("Please pick the termination date when Termination is set to Death or Recovery.");
+        showError("Please pick the termination date when Termination is set to Death or Recovery.");
         return;
       }
       updatePatientIdField();
@@ -738,29 +961,29 @@
         dateOfDischarge: patientForm.dateOfDischarge.value
       };
       const isDup = infectiousPatients.some((p, i) => p.patientId === rec.patientId && i !== selectedPatientIndex);
-      if (isDup) { alert("Patient ID already exists. Choose another."); return; }
+      if (isDup) { showError("Patient ID already exists. Choose another."); return; }
       if (selectedPatientIndex !== null) infectiousPatients[selectedPatientIndex] = rec;
       else infectiousPatients.push(rec);
       localStorage.setItem(PATIENT_STORAGE_KEY, JSON.stringify(infectiousPatients));
       renderPatientEntryTable(); renderPatientLogTable();
       patientForm.reset(); reserveHide(patientIdContainer); patientIdInput.value = ""; houseCoordReadout.textContent = "(No location)"; hideHouseThumb();
       selectedPatientIndex = null; reserveHide(terminationDateContainer); terminationDateInput.required = false; terminationDateInput.value = "";
-      alert("Record saved.");
+      showSuccess("Record saved.");
     };
 
-    deletePatientBtn.onclick = () => {
+    deletePatientBtn.onclick = async () => {
       if (selectedPatientIndex !== null) {
-        if (confirm("Delete this record?")) {
+        if (await showConfirm("Delete this record?")) {
           infectiousPatients.splice(selectedPatientIndex,1);
           localStorage.setItem(PATIENT_STORAGE_KEY, JSON.stringify(infectiousPatients));
           renderPatientEntryTable(); renderPatientLogTable();
           patientForm.reset(); selectedPatientIndex = null; houseCoordReadout.textContent = "(No location)"; hideHouseThumb();
           reserveHide(patientIdContainer); reserveHide(terminationDateContainer);
         }
-      } else alert("Select a record first.");
+      } else showError("Select a record first.");
     };
-    clearPatientBtn.onclick = () => {
-      if (confirm("Clear form?")) {
+    clearPatientBtn.onclick = async () => {
+      if (await showConfirm("Clear form?")) {
         patientForm.reset(); selectedPatientIndex = null; reserveHide(patientIdContainer); patientIdInput.value = ""; houseCoordReadout.textContent = "(No location)"; hideHouseThumb(); reserveHide(terminationDateContainer); terminationDateInput.required = false; terminationDateInput.value = "";
       }
     };

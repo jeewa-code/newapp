@@ -188,8 +188,8 @@
     },50);
   }
 
-  function delRecord(e){
-    const id=e.target.dataset.id; if(!confirm("Delete record?"))return;
+  async function delRecord(e){
+    const id=e.target.dataset.id; if(!await showConfirm("Delete record?"))return;
     const arr=load().filter(x=>x.id!==id); save(arr); renderRecords();
   }
 

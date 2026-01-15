@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- SweetAlert2 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <!-- External CSS -->
 
   <link rel="stylesheet" href="css/books.css">
@@ -66,7 +68,7 @@
               <i class="fa-solid fa-gauge"></i><span>Dashboard</span>
             </li>
             <li onclick="showContent('phiArea', event)">
-              <i class="fa-solid fa-map-location-dot"></i><span>PHI Area Data</span>
+              <i class="fa-solid fa-map-location-dot"></i><span>PHI Profile</span>
             </li>
             <li onclick="showContent('Boards',event)">
               <i class="fa-solid fa-chalkboard"></i><span>Boards</span>
@@ -94,7 +96,112 @@
   <!-- place somewhere inside generateBoardsContent() return HTML, where carousel should appear -->
 
   <!-- JS Files - CORRECT ORDER IS IMPORTANT -->
+  
+  <!-- SweetAlert2 Library -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Alert Utility Wrapper -->
+  <script>
+    // Global alert and confirm wrappers using SweetAlert2
+    window.showAlert = function(message, type = 'info', title = '') {
+      const config = {
+        text: message,
+        icon: type,
+        confirmButtonText: 'හරි / OK',
+        confirmButtonColor: '#0b5ea8',
+        customClass: {
+          popup: 'swal-phi-popup',
+          confirmButton: 'swal-phi-button'
+        }
+      };
+      if (title) config.title = title;
+      return Swal.fire(config);
+    };
 
+    window.showConfirm = function(message, title = 'තහවුරු කරන්න / Confirm') {
+      return Swal.fire({
+        title: title,
+        text: message,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'ඔව් / Yes',
+        cancelButtonText: 'නැත / No',
+        confirmButtonColor: '#0b5ea8',
+        cancelButtonColor: '#d33',
+        customClass: {
+          popup: 'swal-phi-popup',
+          confirmButton: 'swal-phi-button',
+          cancelButton: 'swal-phi-button'
+        }
+      }).then((result) => result.isConfirmed);
+    };
+
+    window.showSuccess = function(message, title = 'සාර්ථකයි / Success') {
+      return Swal.fire({
+        title: title,
+        text: message,
+        icon: 'success',
+        confirmButtonText: 'හරි / OK',
+        confirmButtonColor: '#0b5ea8',
+        timer: 2000,
+        customClass: {
+          popup: 'swal-phi-popup',
+          confirmButton: 'swal-phi-button'
+        }
+      });
+    };
+
+    window.showError = function(message, title = 'දෝෂයකි / Error') {
+      return Swal.fire({
+        title: title,
+        text: message,
+        icon: 'error',
+        confirmButtonText: 'හරි / OK',
+        confirmButtonColor: '#d33',
+        customClass: {
+          popup: 'swal-phi-popup',
+          confirmButton: 'swal-phi-button'
+        }
+      });
+    };
+
+    window.showWarning = function(message, title = 'අවවාදයයි / Warning') {
+      return Swal.fire({
+        title: title,
+        text: message,
+        icon: 'warning',
+        confirmButtonText: 'හරි / OK',
+        confirmButtonColor: '#f39c12',
+        customClass: {
+          popup: 'swal-phi-popup',
+          confirmButton: 'swal-phi-button'
+        }
+      });
+    };
+
+    // Custom styles for SweetAlert
+    const style = document.createElement('style');
+    style.textContent = `
+      .swal-phi-popup {
+        font-family: 'Poppins', 'Noto Sans Sinhala', sans-serif !important;
+        border-radius: 12px !important;
+      }
+      .swal-phi-button {
+        padding: 10px 24px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+      }
+      .swal2-title {
+        font-size: 20px !important;
+        font-weight: 600 !important;
+      }
+      .swal2-html-container {
+        font-size: 15px !important;
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
 
   <script src="js/phi/phiInfo.js"></script>
 

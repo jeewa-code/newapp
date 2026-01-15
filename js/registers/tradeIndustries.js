@@ -248,9 +248,9 @@
     // food master add/remove
     addFoodBtn.addEventListener("click", ()=>{
       const v = newFood.value.trim();
-      if(!v) return alert("Enter new food type");
+      if(!v) return showError("Enter new food type");
       let ft = load(FOOD_TYPES_KEY);
-      if(ft.includes(v)) { alert("Already exists"); newFood.value=""; return; }
+      if(ft.includes(v)) { showWarning("Already exists"); newFood.value=""; return; }
       ft.push(v); ft = sortedAZ(ft); save(FOOD_TYPES_KEY, ft);
       rebuildSelectOptions(foodSelect, ft);
       newFood.value = "";
@@ -258,7 +258,7 @@
     removeFoodBtn.addEventListener("click", ()=>{
       const selected = foodSelect.value;
       if(!selected) return alert("Select an item to remove");
-      if(!confirm("Remove selected food type from master list? This removes it universally.")) return;
+      if(!await showConfirm("Remove selected food type from master list? This removes it universally.")) return;
       let ft = load(FOOD_TYPES_KEY); ft = ft.filter(x=> x !== selected); save(FOOD_TYPES_KEY, ft);
       rebuildSelectOptions(foodSelect, sortedAZ(ft));
     });
@@ -266,17 +266,17 @@
     // other master add/remove
     addOtherBtn.addEventListener("click", ()=>{
       const v = newOther.value.trim();
-      if(!v) return alert("Enter new other type");
+      if(!v) return showError("Enter new other type");
       let ot = load(OTHER_TYPES_KEY);
-      if(ot.includes(v)) { alert("Already exists"); newOther.value=""; return; }
+      if(ot.includes(v)) { showWarning("Already exists"); newOther.value=""; return; }
       ot.push(v); ot = sortedAZ(ot); save(OTHER_TYPES_KEY, ot);
       rebuildSelectOptions(otherSelect, ot);
       newOther.value = "";
     });
-    removeOtherBtn.addEventListener("click", ()=>{
+    removeOtherBtn.addEventListener("click", async ()=>{
       const selected = otherSelect.value;
-      if(!selected) return alert("Select an item to remove");
-      if(!confirm("Remove selected other type from master list?")) return;
+      if(!selected) return showError("Select an item to remove");
+      if(!await showConfirm("Remove selected other type from master list?")) return;
       let ot = load(OTHER_TYPES_KEY); ot = ot.filter(x=> x !== selected); save(OTHER_TYPES_KEY, ot);
       rebuildSelectOptions(otherSelect, sortedAZ(ot));
     });
@@ -317,7 +317,7 @@
       renderInspectionsTable(true, newRow.id);
     });
     document.getElementById("ti_clear_inspections_btn").addEventListener("click", ()=> {
-      if(!confirm("Clear all inspections?")) return;
+      if(!await showConfirm("Clear all inspections?")) return;
       _currentInspections = [];
       renderInspectionsTable();
       tryPersistIfEditing();
@@ -362,7 +362,7 @@
     }));
     document.querySelectorAll(".ti_ins_delete").forEach(b => b.addEventListener("click", (ev)=>{
       const id = ev.currentTarget.dataset.id;
-      if(!confirm("Delete this inspection?")) return;
+      if(!await showConfirm("Delete this inspection?")) return;
       _currentInspections = _currentInspections.filter(x=> String(x.id) !== String(id));
       renderInspectionsTable();
       tryPersistIfEditing();
@@ -446,7 +446,7 @@
   function tiCollectFromForm(){
     const rec = collectFormSilent();
     if(!rec){
-      alert("Validation failed: check required fields and staff totals (Female + Male ≤ Total).");
+      showError("Validation failed: check required fields and staff totals (Female + Male ≤ Total).");
       return null;
     }
     return rec;
@@ -461,7 +461,7 @@
     rec.inspections = sortInspectionsByDateDesc(rec.inspections);
     arr.unshift(rec);
     save(STORAGE_KEY, arr);
-    alert("Record saved.");
+    showSuccess("Record saved.");
     document.getElementById("ti_clear").click();
     if(document.getElementById("ti_tab_records") && document.getElementById("ti_tab_records").classList.contains('active')) renderRecords();
   }
@@ -469,18 +469,18 @@
   function tiOnUpdate(){
     const btn = document.getElementById("ti_update");
     const editId = btn.dataset.editId;
-    if(!editId) return alert("Update සඳහා record එකක් තෝරන්න.");
+    if(!editId) return showError("Update සදහා record එකක් තෝරන්න.");
     const rec = tiCollectFromForm();
     if(!rec) return;
     const arr = load(STORAGE_KEY);
     const idx = arr.findIndex(x=> String(x.id) === String(editId));
-    if(idx < 0) return alert("Original record not found.");
+    if(idx < 0) return showError("Original record not found.");
     rec.id = arr[idx].id;
     rec.createdAt = arr[idx].createdAt || new Date().toISOString();
     rec.inspections = sortInspectionsByDateDesc(rec.inspections);
     arr[idx] = rec;
     save(STORAGE_KEY, arr);
-    alert("Record updated.");
+    showSuccess("Record updated.");
     document.getElementById("ti_save").style.display = "inline-block";
     document.getElementById("ti_update").style.display = "none";
     document.getElementById("ti_update").dataset.editId = "";
@@ -688,7 +688,7 @@
   function tiOnView(e){
     const id = e.currentTarget.dataset.id;
     const rec = load(STORAGE_KEY).find(x=> String(x.id) === String(id));
-    if(!rec) return alert("Record not found.");
+    if(!rec) return showError("Record not found.");
     rec.inspections = sortInspectionsByDateDesc(rec.inspections || []);
     const modal = document.getElementById("ti_view_modal");
     const body = document.getElementById("ti_view_body");
@@ -719,7 +719,7 @@
   function tiOnEdit(e){
     const id = e.currentTarget.dataset.id;
     const rec = load(STORAGE_KEY).find(x=> String(x.id) === String(id));
-    if(!rec) return alert("Record not found.");
+    if(!rec) return showError("Record not found.");
     document.getElementById("ti_tab_entry").click();
     setTimeout(()=> {
       document.getElementById("ti_owner_place_name").value = rec.ownerPlaceName || "";
@@ -755,13 +755,13 @@
     },120);
   }
 
-  function tiOnDelete(e){
+  async function tiOnDelete(e){
     const id = e.currentTarget.dataset.id;
-    if(!confirm("මෙම record එක මකා දමන්නද?")) return;
+    if(!await showConfirm("මෙම record එක මකා දමන්නද?")) return;
     let arr = load(STORAGE_KEY);
     arr = arr.filter(x => String(x.id) !== String(id));
     save(STORAGE_KEY, arr);
-    alert("Record deleted.");
+    showSuccess("Record deleted.");
     if(document.getElementById("ti_tab_records") && document.getElementById("ti_tab_records").classList.contains('active')) renderRecords();
   }
 

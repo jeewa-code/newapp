@@ -364,7 +364,7 @@
         const mainDuty = input.value.trim();
         
         if (!mainDuty) {
-            alert('Please enter a main duty');
+            showError('Please enter a main duty');
             return;
         }
 
@@ -414,7 +414,7 @@
         const newMainDuty = input.value.trim();
         
         if (!newMainDuty) {
-            alert('Main duty cannot be empty');
+            showError('Main duty cannot be empty');
             return;
         }
 
@@ -430,8 +430,8 @@
         document.getElementById('dutiesTableContainer').innerHTML = renderDutiesTable();
     };
 
-    window.deleteMainDuty = function(dutyId) {
-        if (confirm('Are you sure you want to delete this main duty and all its sub duties?')) {
+    window.deleteMainDuty = async function(dutyId) {
+        if (await showConfirm('Are you sure you want to delete this main duty and all its sub duties?')) {
             dutiesData = dutiesData.filter(d => d.id !== dutyId);
             saveData();
             document.getElementById('dutiesTableContainer').innerHTML = renderDutiesTable();
@@ -443,7 +443,7 @@
         const subDuty = input.value.trim();
         
         if (!subDuty) {
-            alert('Please enter a sub duty');
+            showError('Please enter a sub duty');
             return;
         }
 
@@ -488,7 +488,7 @@
         const newSubDuty = input.value.trim();
         
         if (!newSubDuty) {
-            alert('Sub duty cannot be empty');
+            showError('Sub duty cannot be empty');
             return;
         }
 
@@ -504,10 +504,10 @@
         document.getElementById('dutiesTableContainer').innerHTML = renderDutiesTable();
     };
 
-    window.deleteSubDuty = function(dutyId, subIndex) {
+    window.deleteSubDuty = async function(dutyId, subIndex) {
         const duty = dutiesData.find(d => d.id === dutyId);
         if (duty && duty.subDuties[subIndex]) {
-            if (confirm('Are you sure you want to delete this sub duty?')) {
+            if (await showConfirm('Are you sure you want to delete this sub duty?')) {
                 duty.subDuties.splice(subIndex, 1);
                 saveData();
                 document.getElementById('dutiesTableContainer').innerHTML = renderDutiesTable();
@@ -516,16 +516,16 @@
     };
 
     // Reset functions
-    window.resetToDefault = function() {
-        if (confirm('Are you sure you want to reset to default duties? This will replace all current data.')) {
+    window.resetToDefault = async function() {
+        if (await showConfirm('Are you sure you want to reset to default duties? This will replace all current data.')) {
             localStorage.removeItem('phi_duties_data');
             dutiesData = loadDutiesData();
             document.getElementById('dutiesTableContainer').innerHTML = renderDutiesTable();
         }
     };
 
-    window.clearAllData = function() {
-        if (confirm('Are you sure you want to clear all data?')) {
+    window.clearAllData = async function() {
+        if (await showConfirm('Are you sure you want to clear all data?')) {
             dutiesData = [];
             saveData();
             document.getElementById('dutiesTableContainer').innerHTML = renderDutiesTable();

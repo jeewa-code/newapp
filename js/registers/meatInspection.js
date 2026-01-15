@@ -422,9 +422,9 @@
         alert("Record not found.");
       }
     }));
-    qsa(".mi_delete_btn").forEach(btn => btn.addEventListener("click", (ev) => {
+    qsa(".mi_delete_btn").forEach(btn => btn.addEventListener("click", async (ev) => {
       const id = ev.currentTarget.getAttribute("data-id");
-      if (!confirm("ඔබට මෙම ලේඛනය මකා දැමීමට අවශ්‍යද?")) return;
+      if (!await showConfirm("ඔබට මෙම ලේඛනය මකා දැමීමට අවශ්‍යද?")) return;
       let allRecords = loadRecords();
       // remove the record; this will shift subsequent S/Ns (as they are index-based) — that's expected
       allRecords = allRecords.filter(x => x.id !== id);

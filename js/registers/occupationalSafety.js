@@ -174,8 +174,8 @@
     document.getElementById("ohs_add_inspection").addEventListener("click", () => {
       addInspection();
     });
-    document.getElementById("ohs_clear_inspections").addEventListener("click", () => {
-      if (!confirm("Clear all inspections from current editing session? This will not delete saved records.")) return;
+    document.getElementById("os_clear_inspections").addEventListener("click", async () => {
+      if (!await showConfirm("Clear all inspections from current editing session? This will not delete saved records.")) return;
       _currentInspections = [];
       renderInspectionsTable();
     });
@@ -352,7 +352,7 @@
     tbodyEl.querySelectorAll(".ins_del").forEach(btn => {
       btn.addEventListener("click", (e) => {
         const id = e.currentTarget.dataset.id;
-        if (!confirm("Delete this inspection from current session? This will remove it from the record when saved.")) return;
+        if (!await showConfirm("Delete this inspection from current session? This will remove it from the record when saved.")) return;
         _currentInspections = _currentInspections.filter(x => String(x.id) !== String(id));
         renderInspectionsTable();
         // If currently editing an existing saved record, persist deletion immediately
@@ -754,7 +754,7 @@
 
   function onDeleteRecord(e) {
     const id = e.currentTarget.dataset.id;
-    if (!confirm("Delete this record? This will remove it permanently.")) return;
+    if (!await showConfirm("Delete this record? This will remove it permanently.")) return;
     let arr = load() || [];
     arr = arr.filter(x => String(x.id) !== String(id));
     save(arr);

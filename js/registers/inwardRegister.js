@@ -293,7 +293,7 @@
     tbody.querySelectorAll("button.del").forEach(b => {
       b.addEventListener("click", (ev) => {
         const id = ev.currentTarget.dataset.id;
-        if (!confirm("Delete this record?")) return;
+        if (!await showConfirm("Delete this record?")) return;
         const filteredOut = readEntries().filter(x => x.id !== id);
         writeEntries(filteredOut);
         renderTable();

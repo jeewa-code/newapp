@@ -41,27 +41,71 @@
     return "";
   }
 
-  // Safe accessors to PHI area data (phiAreaMap.js exposes phiMapAPI)
+  // Load GN Divisions and PHM Areas from PHI Profile (localStorage)
+  const GNS_KEY = "phi_gns_v2";
+  const PHM_KEY = "phi_phm_v1";
+
   function getPhiGNs() {
     try {
-      if (window.phiMapAPI && typeof window.phiMapAPI.getGNs === "function") {
-        return window.phiMapAPI.getGNs() || [];
-      }
-    } catch (e) { /* ignore */ }
-    return [];
+      return JSON.parse(localStorage.getItem(GNS_KEY) || "[]");
+    } catch (e) {
+      return [];
+    }
   }
   function getPhiPHMs() {
     try {
-      if (window.phiMapAPI && typeof window.phiMapAPI.getPHMs === "function") {
-        return window.phiMapAPI.getPHMs() || [];
-      }
-    } catch (e) { /* ignore */ }
-    return [];
+      return JSON.parse(localStorage.getItem(PHM_KEY) || "[]");
+    } catch (e) {
+      return [];
+    }
   }
 
   function openSanitationRegister(title) {
     const content = document.getElementById("contentArea");
     content.innerHTML = `
+      <style>
+        #entriesWrapper table { min-width: 1800px; }
+        
+        /* Filter styles */
+        .filters-container { 
+          background: #f8f9fa; 
+          padding: 16px; 
+          border-radius: 8px; 
+          margin-bottom: 16px;
+        }
+        .filters-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+        .filter-field {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .filter-field label {
+          font-weight: 500;
+          font-size: 13px;
+          color: #333;
+        }
+        .filter-field input,
+        .filter-field select {
+          width: 100%;
+          padding: 8px 10px;
+          border: 1px solid #d0d6db;
+          border-radius: 6px;
+          font-size: 14px;
+          box-sizing: border-box;
+        }
+        
+        @media (max-width: 768px) {
+          #entriesWrapper { font-size: 13px; }
+          #entriesWrapper th, #entriesWrapper td { padding: 4px !important; white-space: nowrap; }
+          #entriesWrapper button { padding: 4px 8px; font-size: 12px; }
+          .filters-grid { grid-template-columns: 1fr; }
+        }
+      </style>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
         <h2>${title}</h2>
         <button id="backToRegistersBtn" class="book-btn">Back</button>
@@ -174,35 +218,56 @@
         </div>
 
         <div id="listTab" class="tab-content">
-          <!-- FILTERS row -->
-          <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
-            <input type="text" id="searchInput" placeholder="Search Name or Address..." style="flex:1;min-width:200px;padding:8px;border-radius:8px;border:1px solid #ccc;">
+          <!-- FILTERS -->
+          <div class="filters-container">
+            <div class="filters-grid">
+              <div class="filter-field">
+                <label>Search Name or Address</label>
+                <input type="text" id="searchInput" placeholder="Type to search...">
+              </div>
 
-            <select id="filterPhm" style="min-width:170px;padding:8px;border-radius:8px;border:1px solid #ccc;">
-              <option value="">All PHM Areas</option>
-            </select>
+              <div class="filter-field">
+                <label>PHM Area</label>
+                <select id="filterPhm">
+                  <option value="">All PHM Areas</option>
+                </select>
+              </div>
 
-            <select id="filterGn" style="min-width:170px;padding:8px;border-radius:8px;border:1px solid #ccc;">
-              <option value="">All GN Divisions</option>
-            </select>
+              <div class="filter-field">
+                <label>GN Division</label>
+                <select id="filterGn">
+                  <option value="">All GN Divisions</option>
+                </select>
+              </div>
 
-            <select id="filterWater" style="min-width:170px;padding:8px;border-radius:8px;border:1px solid #ccc;">
-              <option value="">All Water Supply</option>
-            </select>
+              <div class="filter-field">
+                <label>Year</label>
+                <select id="filterYear">
+                  <option value="">All Years</option>
+                </select>
+              </div>
 
-            <select id="filterLatrine" style="min-width:170px;padding:8px;border-radius:8px;border:1px solid #ccc;">
-              <option value="">All Latrine Types</option>
-            </select>
+              <div class="filter-field">
+                <label>Water Supply</label>
+                <select id="filterWater">
+                  <option value="">All Water Supply</option>
+                </select>
+              </div>
 
-            <select id="filterSolid" style="min-width:170px;padding:8px;border-radius:8px;border:1px solid #ccc;">
-              <option value="">All Solid Waste Methods</option>
-            </select>
+              <div class="filter-field">
+                <label>Latrine Type</label>
+                <select id="filterLatrine">
+                  <option value="">All Latrine Types</option>
+                </select>
+              </div>
 
-            <select id="filterYear" style="min-width:140px;padding:8px;border-radius:8px;border:1px solid #ccc;">
-              <option value="">All Years</option>
-            </select>
-
-            <button id="exportBtn" class="book-btn" style="margin-left:auto">Export CSV</button>
+              <div class="filter-field">
+                <label>Solid Waste Method</label>
+                <select id="filterSolid">
+                  <option value="">All Solid Waste Methods</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <!-- Totals row -->
@@ -315,21 +380,6 @@
       el.addEventListener("input", () => renderTable());
     });
 
-    document.getElementById("exportBtn").addEventListener("click", () => {
-      const visible = getFilteredEntries();
-      if (!visible.length) return alert("No records to export.");
-      const headers = ["S/N","chiefOccupant","address","phmArea","gnDivision","numInmates","numDisabled","numElderly","waterSupply","latrineType","latrineSanitary","latrineImprovementDate","solidWaste","solidSanitary","solidCorrectionDate","liquidSanitary","surveyDate","remarks"];
-      const rows = visible.map((r, i) => [i+1, r.chiefOccupant||"", r.address||"", r.phmArea||"", r.gnDivision||"", r.numInmates||"", r.numDisabled||"", r.numElderly||"", r.waterSupply||"", r.latrineType||"", r.latrineSanitary||"", r.latrineImprovementDate||"", r.solidWaste||"", r.solidSanitary||"", r.solidCorrectionDate||"", r.liquidSanitary||"", r.surveyDate||"", r.remarks||""]);
-      const csv = [headers.join(",")].concat(rows.map(r => r.map(c => `"${(c||"").toString().replace(/"/g,'""')}"`).join(","))).join("\r\n");
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "sanitation_register_export.csv";
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-
     // populate filters from data (merge with PHI area data)
     function populateFilters() {
       const data = loadEntries();
@@ -429,7 +479,7 @@
         "Liquid Waste Sanitary","Date of Survey","Remarks","Actions"
       ];
 
-      let html = `<div style="min-width:100%;"><table style="width:100%;border-collapse:collapse;"><thead><tr>${headerCols.map(h => `<th style="padding:8px;border:1px solid #eee">${escapeHtml(h)}</th>`).join("")}</tr></thead><tbody>`;
+      let html = `<div style="display:inline-block;min-width:100%;"><table style="width:100%;border-collapse:collapse;"><thead><tr>${headerCols.map(h => `<th style="padding:8px;border:1px solid #eee">${escapeHtml(h)}</th>`).join("")}</tr></thead><tbody>`;
       entries.forEach((e, idx) => {
         const sn = idx + 1;
         html += `<tr data-index="${idx}">
@@ -465,27 +515,43 @@
       setTimeout(() => {
         const topScroll = document.getElementById("topScroll");
         const topInner = document.getElementById("topScrollInner");
-        const tableEl = container.querySelector("table");
-        if (!tableEl || !topScroll || !topInner) return;
-        const scrollWidth = tableEl.scrollWidth;
+        const wrapper = document.getElementById("entriesWrapper");
+        const tableEl = wrapper ? wrapper.querySelector("table") : null;
+
+        if (!topScroll || !topInner || !wrapper) return;
+
+        const scrollWidth = tableEl ? tableEl.scrollWidth : wrapper.scrollWidth;
         topInner.style.width = scrollWidth + "px";
 
+        let syncingFromTop = false;
+        let syncingFromBottom = false;
+
+        // Use onscroll assignments so we don't accumulate listeners across re-renders
         topScroll.onscroll = function () {
-          container.scrollLeft = topScroll.scrollLeft;
+          if (syncingFromBottom) return;
+          syncingFromTop = true;
+          wrapper.scrollLeft = topScroll.scrollLeft;
+          syncingFromTop = false;
         };
-        container.onscroll = function () {
-          topScroll.scrollLeft = container.scrollLeft;
+
+        wrapper.onscroll = function () {
+          if (syncingFromTop) return;
+          syncingFromBottom = true;
+          topScroll.scrollLeft = wrapper.scrollLeft;
+          syncingFromBottom = false;
         };
-        topScroll.scrollLeft = container.scrollLeft;
+
+        // Initial sync
+        topScroll.scrollLeft = wrapper.scrollLeft;
       }, 0);
 
       // delete & edit handlers
       container.querySelectorAll(".delBtn").forEach((b) => {
-        b.addEventListener("click", () => {
+        b.addEventListener("click", async () => {
           const i = Number(b.dataset.i);
           const saved = loadEntries();
           if (i < 0 || i >= saved.length) return;
-          if (!confirm("Delete this record?")) return;
+          if (!await showConfirm("Delete this record?")) return;
           saved.splice(i, 1);
           saveEntries(saved);
           populateFilters();

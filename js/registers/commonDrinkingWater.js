@@ -21,12 +21,36 @@
     const content = document.getElementById("contentArea");
     if (!content) return;
     content.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h2 style="margin:0;font-size:20px;color:#0f172a;">${escapeHtml(title || "Common Sources of Drinking-Water Register")}</h2>
+      <style>
+        .cdw-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+        .cdw-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+
+        .cdw-form-grid{display:grid;grid-template-columns:260px 1fr;gap:10px 18px;align-items:center;}
+        .cdw-form-grid .cdw-label{text-align:right;padding-right:8px;}
+        .cdw-actions{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+        .cdw-actions .cdw-spacer{flex:1;}
+
+        .cdw-filters{display:grid;grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));gap:10px;align-items:end;margin-bottom:12px;}
+        .cdw-filters select,.cdw-filters button{width:100%;}
+
+        .cdw-table-wrap{overflow:auto;}
+        .cdw-table{width:100%;border-collapse:collapse;font-size:14px;}
+        .cdw-table th,.cdw-table td{white-space:nowrap;}
+
+        @media (max-width: 768px){
+          .cdw-form-grid{grid-template-columns:1fr;gap:8px;}
+          .cdw-form-grid .cdw-label{text-align:left;padding-right:0;}
+          .cdw-actions button{flex:1;min-width:140px;}
+          .cdw-table{min-width:760px;}
+        }
+      </style>
+
+      <div class="cdw-header">
+        <h2 style="margin:0;font-size:20px;color:#fff;">${escapeHtml(title || "Common Sources of Drinking-Water Register")}</h2>
         <button onclick="showContent('Registers', null)" style="background:#0b74d1;color:white;padding:8px 12px;border:none;border-radius:8px;cursor:pointer;">පසුගියට</button>
       </div>
 
-      <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <div class="cdw-tabs">
         <button id="tab_source" class="tab active" style="padding:8px 12px;border-radius:8px;border:1px solid #e6eef8;background:#f8fbff;cursor:pointer;">පොදු ජල මුලාශ්‍ර</button>
         <button id="tab_dataentry" class="tab" style="padding:8px 12px;border-radius:8px;border:1px solid #e6eef8;background:#fff;cursor:pointer;">Data Entry</button>
         <button id="tab_records" class="tab" style="padding:8px 12px;border-radius:8px;border:1px solid #e6eef8;background:#fff;cursor:pointer;">පොදු ජල මුලාශ්‍ර ලේඛණය</button>
@@ -64,27 +88,27 @@
       <div style="background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(12,40,60,0.06);">
         <h4 style="margin:0 0 12px 0;color:#073b6a;">පොදු ජල මුලාශ්‍ර — ඇතුල් කිරීම</h4>
 
-        <div style="display:grid;grid-template-columns:260px 1fr;gap:10px 18px;align-items:center;">
-          <label style="${labelStyle};text-align:right;padding-right:8px;">ජල මුලාශ්‍රයේ නම</label>
+        <div class="cdw-form-grid">
+          <label class="cdw-label" style="${labelStyle};">ජල මුලාශ්‍රයේ නම</label>
           <input id="src_name" style="${inputStyle}" placeholder=" " />
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">ආවරණය වන ගෘහ එකක සංඛ්‍යාව</label>
+          <label class="cdw-label" style="${labelStyle};">ආවරණය වන ගෘහ එකක සංඛ්‍යාව</label>
           <input id="src_house_count" type="number" style="${inputStyle}" placeholder="" />
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">පිහිටීම / ලිපිනය</label>
+          <label class="cdw-label" style="${labelStyle};">පිහිටීම / ලිපිනය</label>
           <input id="src_location" style="${inputStyle}" placeholder="" />
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">නඩත්තුව හා කළමනාකරණ සේවාදායකයා</label>
+          <label class="cdw-label" style="${labelStyle};">නඩත්තුව හා කළමනාකරණ සේවාදායකයා</label>
           <input id="src_responsible_unit" style="${inputStyle}" placeholder="" />
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">සේවාදායකයාගේ නම</label>
+          <label class="cdw-label" style="${labelStyle};">සේවාදායකයාගේ නම</label>
           <input id="src_responsible_name" style="${inputStyle}" placeholder="නම" />
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">සේවාදායකයාගේ ලිපිනය</label>
+          <label class="cdw-label" style="${labelStyle};">සේවාදායකයාගේ ලිපිනය</label>
           <input id="src_responsible_addr" style="${inputStyle}" placeholder="ලිපිනය" />
 
           <div></div>
-          <div style="display:flex;gap:8px;margin-top:6px;">
+          <div class="cdw-actions">
             <button id="save_source_btn" style="background:#0b74d1;color:#fff;padding:9px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Add / Save</button>
             <button id="clear_source_btn" style="background:#e2e8f0;color:#111;padding:9px 12px;border:none;border-radius:8px;cursor:pointer;">Clear</button>
           </div>
@@ -92,9 +116,9 @@
 
         <hr style="margin:16px 0;border:none;border-top:1px solid #eef2f7;" />
 
-        <div style="overflow:auto;">
+        <div class="cdw-table-wrap">
           <h4 style="margin:0 0 10px 0;color:#0b3b5b;">අැතුල් වුනු මුලාශ්‍ර</h4>
-          <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <table class="cdw-table">
             <thead>
               <tr style="text-align:left;color:#2b3b4a;">
                 <th style="width:56px;padding:8px 6px 10px 6px;">S/N</th>
@@ -179,47 +203,48 @@
       <div style="background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(12,40,60,0.06);">
         <h4 style="margin:0 0 12px 0;color:#073b6a;">පරිශීලක දත්ත ඇතුල් කිරීම (Data Entry)</h4>
 
-        <div style="display:grid;grid-template-columns:260px 1fr;gap:12px 18px;align-items:center;">
-          <label style="${labelStyle};text-align:right;padding-right:8px;">ග්‍රාම නිලදාරී කොට්ඨාශය</label>
+        <div class="cdw-form-grid" style="gap:12px 18px;">
+          <label class="cdw-label" style="${labelStyle};">ග්‍රාම නිලදාරී කොට්ඨාශය</label>
           <select id="de_gn_select" style="${inputStyle}"><option value="">-- select GN --</option></select>
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">පොදු ජල මුලාශ්‍රය</label>
+          <label class="cdw-label" style="${labelStyle};">පොදු ජල මුලාශ්‍රය</label>
           <select id="de_source_select" style="${inputStyle}"><option value="">-- select source --</option>${sourceOptions}</select>
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">පරීක්ෂා කල දිනය</label>
+          <label class="cdw-label" style="${labelStyle};">පරීක්ෂා කල දිනය</label>
           <input id="de_test_date" type="date" style="${inputStyle}" />
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">ශේෂ ක්ලෝරීන් සදහා පරික්ෂා කල ගණන</label>
+          <label class="cdw-label" style="${labelStyle};">ශේෂ ක්ලෝරීන් සදහා පරික්ෂා කල ගණන</label>
           <input id="de_chlorine_count" type="number" step="any" style="${inputStyle}" placeholder="" />
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">Cl ප්‍රතිඵල</label>
+          <label class="cdw-label" style="${labelStyle};">Cl ප්‍රතිඵල</label>
           <select id="de_result_chlorine" style="${inputStyle}">
             <option value="">-- select --</option>
             <option value="Satisfied">සතුටුදායක</option>
             <option value="Unsatisfied">අසතුටුදායක</option>
           </select>
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">බැක්ටීරියානු සාම්පල දිනය</label>
+          <label class="cdw-label" style="${labelStyle};">බැක්ටීරියානු සාම්පල දිනය</label>
           <input id="de_bacteria_sample_date" type="date" style="${inputStyle}" />
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">බැක්ටීරියා ප්‍රතිඵල</label>
+          <label class="cdw-label" style="${labelStyle};">බැක්ටීරියා ප්‍රතිඵල</label>
           <select id="de_result_bacteria" style="${inputStyle}">
             <option value="">-- select --</option>
             <option value="Satisfied">සතුටුදායක</option>
             <option value="Unsatisfied">අසතුටුදායක</option>
           </select>
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">ගත් ක්‍රියාමාර්ග</label>
+          <label class="cdw-label" style="${labelStyle};">ගත් ක්‍රියාමාර්ග</label>
           <input id="de_actions_taken" style="${inputStyle}" placeholder="ගත් ක්‍රියාමාර්ග ටික ලියන්න" />
 
-          <label style="${labelStyle};text-align:right;padding-right:8px;">තෛයිමාසික වාර්තාව යැවූ දිනය</label>
+          <label class="cdw-label" style="${labelStyle};">තෛයිමාසික වාර්තාව යැවූ දිනය</label>
           <input id="de_report_sent_date" type="date" style="${inputStyle}" />
 
           <div></div>
-          <div style="display:flex;gap:8px;margin-top:6px;">
+          <div class="cdw-actions">
             <button id="save_de_btn" style="background:#0b74d1;color:#fff;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Add / Save</button>
             <button id="clear_de_btn" style="background:#e2e8f0;color:#111;padding:10px 12px;border:none;border-radius:8px;cursor:pointer;">Clear</button>
-            <button id="goto_records_btn" style="margin-left:auto;background:#06ad7d;color:#fff;padding:10px 12px;border:none;border-radius:8px;cursor:pointer;">View Records</button>
+            <span class="cdw-spacer"></span>
+            <button id="goto_records_btn" style="background:#06ad7d;color:#fff;padding:10px 12px;border:none;border-radius:8px;cursor:pointer;">View Records</button>
           </div>
         </div>
       </div>
@@ -254,19 +279,18 @@
     cont.innerHTML = `
       <div style="background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(12,40,60,0.06);">
         <h4 style="margin:0 0 10px 0;color:#073b6a;">පොදු ජල මුලාශ්‍ර ලේඛණය</h4>
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-          <select id="r_filter_year" style="${inputStyle};width:auto;"><option value="">All years</option></select>
-          <select id="r_filter_source" style="${inputStyle};width:auto;"><option value="">All sources</option>${sourceOptions}</select>
-          <select id="r_filter_result" style="${inputStyle};width:auto;">
+        <div class="cdw-filters">
+          <select id="r_filter_year" style="${inputStyle}"><option value="">All years</option></select>
+          <select id="r_filter_source" style="${inputStyle}"><option value="">All sources</option>${sourceOptions}</select>
+          <select id="r_filter_result" style="${inputStyle}">
             <option value="">All results</option><option value="Satisfied">සතුටුදායක</option><option value="Unsatisfied">අසතුටුදායක</option>
           </select>
           <button id="r_apply_filter" style="background:#0b74d1;color:#fff;padding:8px 12px;border:none;border-radius:8px;cursor:pointer;">Apply</button>
           <button id="r_clear_filter" style="background:#e2e8f0;color:#111;padding:8px 12px;border:none;border-radius:8px;cursor:pointer;">Clear</button>
-          <div style="margin-left:auto;"></div>
         </div>
 
-        <div style="overflow:auto;">
-          <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <div class="cdw-table-wrap">
+          <table class="cdw-table">
             <thead>
               <tr style="text-align:left;color:#2b3b4a;">
                 <th style="width:56px;padding:8px 6px;">S/N</th>

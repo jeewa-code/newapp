@@ -34,7 +34,7 @@
 
     window.openMonthlyScheduleModule = async function (title) {
         const realContent = document.getElementById("contentArea");
-        if (!realContent) return alert("contentArea not found");
+        if (!realContent) return showError("contentArea not found");
 
         // Clean up previous instance first
         if (currentCleanupFunction) {

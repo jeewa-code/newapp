@@ -863,11 +863,11 @@
 
     window.saveMonthlyData = function () {
         localStorage.setItem('phi_monthly_activities', JSON.stringify(monthlyData));
-        alert('Monthly data saved successfully!');
+        showSuccess('Monthly data saved successfully!');
     };
 
-    window.clearMonthlyData = function () {
-        if (!confirm('Are you sure you want to clear all monthly data?')) return;
+    window.clearMonthlyData = async function () {
+        if (!await showConfirm('Are you sure you want to clear all monthly data?')) return;
         monthlyData = {};
         localStorage.removeItem('phi_monthly_activities');
         document.getElementById('activitiesTableContainer').innerHTML = renderActivitiesTable(new Date().getFullYear(), new Date().getMonth() + 1);
@@ -979,7 +979,7 @@
     function printTableOnly() {
         var container = document.getElementById(TABLE_CONTAINER_ID);
         if (!container) {
-            alert('Print failed: table container with id "' + TABLE_CONTAINER_ID + '" not found.');
+            showError('Print failed: table container with id "' + TABLE_CONTAINER_ID + '" not found.');
             return;
         }
 
@@ -994,7 +994,7 @@
 
         var printWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes');
         if (!printWindow) {
-            alert('Could not open print window. Please allow popups for this site or use the browser print dialog.');
+            showWarning('Could not open print window. Please allow popups for this site or use the browser print dialog.');
             return;
         }
 

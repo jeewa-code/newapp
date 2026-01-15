@@ -20,7 +20,7 @@
     if(!content) return console.warn("contentArea not found");
     content.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h2 style="margin:0;font-size:20px;color:#062238;">${esc(title)}</h2>
+        <h2 style="margin:0;font-size:20px;color:#fff;">${esc(title)}</h2>
         <button onclick="showContent('Registers', null)" style="background:#0b74d1;color:white;padding:8px 12px;border:none;border-radius:8px;cursor:pointer;">පසුගියට</button>
       </div>
 
@@ -330,13 +330,13 @@
   }
 
   // delete handler
-  function onDelete(e){
+  async function onDelete(e){
     const id = e.currentTarget.dataset.id;
-    if(!confirm("මෙම record එක මකා දමන්නද?")) return;
+    if(!await showConfirm("මෙම record එක මකා දමන්නද?")) return;
     let arr = load();
     arr = arr.filter(x=>String(x.id)!==String(id));
     save(arr);
-    alert("Record deleted.");
+    showSuccess("Record deleted.");
     // refresh records
     if(document.getElementById("nc_tab_records").classList.contains('active')) renderRecords();
   }
