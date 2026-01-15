@@ -88,14 +88,14 @@
   // Build UI (same structure as before)
   window.openInfectious = function (title = "Infectious Diseases Register") {
     const content = document.getElementById("contentArea");
-    
+
     // Get GN Divisions for dropdown
     const gnDivisions = loadGNDivisions();
-    const gnOptions = gnDivisions.length 
+    const gnOptions = gnDivisions.length
       ? gnDivisions.map(g => {
-          const display = g.no && g.name ? `${g.no} - ${g.name}` : (g.no || g.name || g.id);
-          return `<option value="${display}">${display}</option>`;
-        }).join("")
+        const display = g.no && g.name ? `${g.no} - ${g.name}` : (g.no || g.name || g.id);
+        return `<option value="${display}">${display}</option>`;
+      }).join("")
       : '<option value="">No GN Divisions available</option>';
 
     // Get unique occupations from existing patients
@@ -106,84 +106,8 @@
     const occupationOptions = uniqueOccupations.length
       ? uniqueOccupations.map(occ => `<option value="${occ}">${occ}</option>`).join("")
       : '';
-    content.innerHTML = `
-      <style>
-        .reserve-hidden { opacity:0; pointer-events:none; min-height:46px; transition:opacity .12s ease; }
-        .reserve-visible { opacity:1; pointer-events:auto; min-height:46px; transition:opacity .12s ease; }
-        .scroll-top { overflow:auto; transform: rotateX(180deg); -webkit-overflow-scrolling: touch; }
-        .scroll-top > table { transform: rotateX(180deg); width:100%; border-collapse: collapse; }
-        table#patientEntryTable th, table#patientEntryTable td, table#patientLogTable th, table#patientLogTable td {
-          padding:6px 8px; border:1px solid #eee; font-size:13px; vertical-align:top;
-        }
-        .house-thumb { width:100px; height:100px; border:1px solid #ccc; display:inline-block; background:#fafafa; object-fit:cover; border-radius:4px; }
-        .thumb-wrap { display:flex; gap:8px; align-items:center; }
-        
-        /* Grid form layout with labels on top */
-        #patientForm { display: flex; flex-direction: column; gap: 16px; max-width: 100%; }
-        #patientForm .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-        #patientForm .form-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
-        #patientForm .form-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
-        #patientForm .form-row.cols-4 { grid-template-columns: repeat(4, 1fr); }
-        #patientForm .form-row.full-width { grid-template-columns: 1fr; }
-        #patientForm .field-group { display: flex; flex-direction: column; gap: 6px; }
-        #patientForm label { font-weight: 500; font-size: 14px; color: #333; white-space: normal; }
-        #patientForm input, #patientForm select, #patientForm textarea { 
-          width: 100%;
-          padding: 8px 10px; 
-          border: 1px solid #d0d6db; 
-          border-radius: 6px; 
-          font-size: 14px;
-          box-sizing: border-box;
-        }
-        #patientForm textarea { min-height: 70px; resize: vertical; }
-        #patientForm button { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        
-        /* Section groups with borders */
-        .form-section-group {
-          border: 1px solid #d0d6db;
-          border-radius: 8px;
-          padding: 16px;
-          background: #fafbfc;
-          margin-bottom: 16px;
-        }
-        
-        /* Section headers */
-        .form-section-header { 
-          background: linear-gradient(135deg, #0b5ea8 0%, #1976d2 100%); 
-          color: white; 
-          padding: 10px 14px; 
-          border-radius: 6px; 
-          font-weight: 600; 
-          font-size: 15px; 
-          margin-bottom: 16px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        /* Disease definition form */
-        #diseaseDefinitionForm { display: flex; flex-direction: column; gap: 16px; max-width: 100%; }
-        #diseaseDefinitionForm .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        #diseaseDefinitionForm .field-group { display: flex; flex-direction: column; gap: 6px; }
-        #diseaseDefinitionForm label { font-weight: 500; font-size: 14px; color: #333; white-space: normal; }
-        #diseaseDefinitionForm input, #diseaseDefinitionForm select { 
-          width: 100%;
-          padding: 8px 10px; 
-          border: 1px solid #d0d6db; 
-          border-radius: 6px; 
-          font-size: 14px;
-          box-sizing: border-box;
-        }
-        
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-          #patientForm .form-row, #diseaseDefinitionForm .form-row { 
-            grid-template-columns: 1fr !important; 
-          }
-          .thumb-wrap { flex-direction: column; }
-          .house-thumb { width: 100%; height: auto; max-height: 200px; }
-          .form-section-header { font-size: 14px; padding: 8px 12px; }
-        }
-      </style>
-
+    requestAnimationFrame(() => {
+      content.innerHTML = `
       <h2>${title}</h2>
       <div class="tabs glass">
         <button class="tab-btn active" data-tab="tab1-patients" type="button">රෝගී දත්ත ඇතුළත් කිරීම</button>
@@ -299,7 +223,7 @@
                   ${diseases.map(d => `<option value="${d.name}">${d.name}</option>`).join("")}
                 </select>
               </div>
-              <div class="field-group" id="patientIdContainer" class="reserve-hidden">
+              <div class="field-group reserve-hidden" id="patientIdContainer">
                 <label>ලේඛණ ගත අංකය:</label>
                 <input type="text" name="patientId" id="patientId" readonly>
               </div>
@@ -341,7 +265,7 @@
                   <option value="Recovery">Recovery</option>
                 </select>
               </div>
-              <div class="field-group" id="terminationDateContainer" class="reserve-hidden">
+              <div class="field-group reserve-hidden" id="terminationDateContainer">
                 <label>Termination Date:</label>
                 <input type="date" name="terminationDate" id="terminationDate">
               </div>
@@ -400,39 +324,55 @@
 
       <!-- Tab 2 -->
       <div class="tab-content" id="tab2-definitions">
-        <form id="diseaseDefinitionForm">
-          <div>
-            <label>රෝගයේ නම:</label>
-            <input type="text" name="name" required>
+        <div class="form-section-group">
+          <div class="form-section-header">නව බෝවන රෝග එකතු කිරීම</div>
+          <form id="diseaseDefinitionForm">
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>රෝගයේ නම:</label>
+                <input type="text" name="name" required>
+              </div>
+              <div class="field-group">
+                <label>රෝගයේ හදුනාගැනීමේ කේතය:</label>
+                <input type="text" name="code" required>
+              </div>
+            </div>
+
+            <div class="form-row cols-2">
+              <div class="field-group">
+                <label>Group:</label>
+                <select name="group" id="groupSelect" required>
+                  <option value="">-- තෝරන්න / Type කරන්න --</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-top:10px;">
+              <button type="submit" id="addUpdateDiseaseBtn">Add / Update</button>
+              <button type="button" id="deleteDiseaseBtn" style="background:#b71c1c;color:white;">Delete</button>
+              <button type="button" id="clearDiseaseBtn" style="background:#757575;color:white;">Clear</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="form-section-group">
+          <div class="form-section-header">රෝග ලැයිස්තුව</div>
+          <div style="overflow:auto;">
+            <table id="diseaseDefinitionTable">
+              <thead><tr><th>No</th><th>Name</th><th>Code</th><th>Group</th></tr></thead>
+              <tbody></tbody>
+            </table>
           </div>
-          <div>
-            <label>රෝගයේ හදුනාගැනීමේ කේතය:</label>
-            <input type="text" name="code" required>
-          </div>
-          <div>
-            <label>Group:</label>
-            <select name="group" id="groupSelect" required>
-              <option value="">-- තෝරන්න / Type කරන්න --</option>
-              <option value="A">A</option>
-              <option value="B">B</option>
-            </select>
-          </div>
-          <div style="margin-top:10px;">
-            <button type="submit" id="addUpdateDiseaseBtn">Add / Update</button>
-            <button type="button" id="deleteDiseaseBtn" style="background:#b71c1c;color:white;">Delete</button>
-            <button type="button" id="clearDiseaseBtn" style="background:#757575;color:white;">Clear</button>
-          </div>
-        </form>
-        <table id="diseaseDefinitionTable" style="width:100%; margin-top:12px;">
-          <thead><tr><th>No</th><th>Name</th><th>Code</th><th>Group</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        </div>
       </div>
 
       <!-- Tab 3 -->
       <div class="tab-content" id="tab3-log">
-        <h3>බෝවන රෝග ලේඛණය</h3>
-        <div class="filters glass" style="padding:15px; margin-bottom:15px;">
+        <div class="form-section-group">
+          <div class="form-section-header">බෝවන රෝග ලේඛණය</div>
+          <div class="filters" style="padding:15px; margin-bottom:15px;">
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
             <div style="display: flex; flex-direction: column; gap: 6px;">
               <label style="font-weight: 500; font-size: 14px;">වර්ෂය:</label>
@@ -474,8 +414,12 @@
             <button id="clearFiltersBtn" style="background:#757575; color:white; padding:10px 16px; border-radius:6px; border:none; cursor:pointer; font-weight: 600;">Clear</button>
           </div>
         </div>
+        </div>
 
-        <div class="scroll-top" id="logScrollWrap" style="overflow:auto;">
+        <div class="form-section-group">
+          <div class="form-section-header">රෝගීන් ලැයිස්තුව</div>
+
+        <div class="scroll-top" id="logScrollWrap" style="overflow-x:auto; width:100%;">
           <table id="patientLogTable" style="min-width:1200px; border-collapse: collapse; width:100%; margin-top:12px;">
             <thead>
               <tr>
@@ -489,532 +433,534 @@
             <tbody></tbody>
           </table>
         </div>
+        </div>
       </div>
     `; // end innerHTML
 
-    // ---------- element refs ----------
-    const tabButtons = content.querySelectorAll(".tab-btn");
-    const tabContents = content.querySelectorAll(".tab-content");
+      // ---------- element refs ----------
+      const tabButtons = content.querySelectorAll(".tab-btn");
+      const tabContents = content.querySelectorAll(".tab-content");
 
-    // get frequently used refs after DOM creation
-    const patientForm = document.getElementById("patientForm");
-    const patientEntryTbody = document.querySelector("#patientEntryTable tbody");
-    const diseaseSelect = document.getElementById("diseaseSelect");
-    const patientIdContainer = document.getElementById("patientIdContainer");
-    const patientIdInput = document.getElementById("patientId");
-    const deletePatientBtn = document.getElementById("deletePatientBtn");
-    const clearPatientBtn = document.getElementById("clearPatientBtn");
+      // get frequently used refs after DOM creation
+      const patientForm = document.getElementById("patientForm");
+      const patientEntryTbody = document.querySelector("#patientEntryTable tbody");
+      const diseaseSelect = document.getElementById("diseaseSelect");
+      const patientIdContainer = document.getElementById("patientIdContainer");
+      const patientIdInput = document.getElementById("patientId");
+      const deletePatientBtn = document.getElementById("deletePatientBtn");
+      const clearPatientBtn = document.getElementById("clearPatientBtn");
 
-    const markHouseBtn = document.getElementById("markHouseBtn");
-    const houseCoordReadout = document.getElementById("houseCoordReadout");
-    const houseXInput = document.getElementById("houseX");
-    const houseYInput = document.getElementById("houseY");
-    const houseImgWInput = document.getElementById("houseImgWidth");
-    const houseImgHInput = document.getElementById("houseImgHeight");
-    const houseThumbEl = document.getElementById("houseThumb");
+      const markHouseBtn = document.getElementById("markHouseBtn");
+      const houseCoordReadout = document.getElementById("houseCoordReadout");
+      const houseXInput = document.getElementById("houseX");
+      const houseYInput = document.getElementById("houseY");
+      const houseImgWInput = document.getElementById("houseImgWidth");
+      const houseImgHInput = document.getElementById("houseImgHeight");
+      const houseThumbEl = document.getElementById("houseThumb");
 
-    const terminationStatusSelect = document.getElementById("terminationStatus");
-    const terminationDateContainer = document.getElementById("terminationDateContainer");
-    const terminationDateInput = document.getElementById("terminationDate");
+      const terminationStatusSelect = document.getElementById("terminationStatus");
+      const terminationDateContainer = document.getElementById("terminationDateContainer");
+      const terminationDateInput = document.getElementById("terminationDate");
 
-    const diseaseDefinitionForm = document.getElementById("diseaseDefinitionForm");
-    const diseaseDefinitionTbody = document.querySelector("#diseaseDefinitionTable tbody");
-    const groupSelect = document.getElementById("groupSelect");
-    const deleteDiseaseBtn = document.getElementById("deleteDiseaseBtn");
-    const clearDiseaseBtn = document.getElementById("clearDiseaseBtn");
+      const diseaseDefinitionForm = document.getElementById("diseaseDefinitionForm");
+      const diseaseDefinitionTbody = document.querySelector("#diseaseDefinitionTable tbody");
+      const groupSelect = document.getElementById("groupSelect");
+      const deleteDiseaseBtn = document.getElementById("deleteDiseaseBtn");
+      const clearDiseaseBtn = document.getElementById("clearDiseaseBtn");
 
-    const patientLogTbody = document.querySelector("#patientLogTable tbody");
-    const filterYear = document.getElementById("filterYear");
-    const filterDisease = document.getElementById("filterDisease");
-    const filterAgeMin = document.getElementById("filterAgeMin");
-    const filterAgeMax = document.getElementById("filterAgeMax");
-    const filterDroDivision = document.getElementById("filterDroDivision");
-    const filterSex = document.getElementById("filterSex");
-    const applyFiltersBtn = document.getElementById("applyFiltersBtn");
-    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+      const patientLogTbody = document.querySelector("#patientLogTable tbody");
+      const filterYear = document.getElementById("filterYear");
+      const filterDisease = document.getElementById("filterDisease");
+      const filterAgeMin = document.getElementById("filterAgeMin");
+      const filterAgeMax = document.getElementById("filterAgeMax");
+      const filterDroDivision = document.getElementById("filterDroDivision");
+      const filterSex = document.getElementById("filterSex");
+      const applyFiltersBtn = document.getElementById("applyFiltersBtn");
+      const clearFiltersBtn = document.getElementById("clearFiltersBtn");
 
-    // initialize reserve-hidden on containers
-    if (patientIdContainer && !patientIdContainer.classList.contains("reserve-hidden")) {
-      patientIdContainer.classList.add("reserve-hidden");
-    }
-    if (terminationDateContainer && !terminationDateContainer.classList.contains("reserve-hidden")) {
-      terminationDateContainer.classList.add("reserve-hidden");
-    }
+      // initialize reserve-hidden on containers
+      if (patientIdContainer && !patientIdContainer.classList.contains("reserve-hidden")) {
+        patientIdContainer.classList.add("reserve-hidden");
+      }
+      if (terminationDateContainer && !terminationDateContainer.classList.contains("reserve-hidden")) {
+        terminationDateContainer.classList.add("reserve-hidden");
+      }
 
-    // ---------- ID generation helper ----------
-    function generatePatientId(diseaseName, dateOfReceipt, currentPatientIndex = null) {
-      if (!diseaseName || !dateOfReceipt) return "";
-      const selectedDisease = diseases.find(d => d.name === diseaseName);
-      if (!selectedDisease) return "";
-      const diseaseCode = selectedDisease.code || selectedDisease.name.slice(0,3).toUpperCase();
-      const year = new Date(dateOfReceipt).getFullYear();
-      const patientsInYearForDisease = infectiousPatients.filter((p, index) => {
-        const pYear = p.dateOfReceipt ? new Date(p.dateOfReceipt).getFullYear() : null;
-        return pYear === year && p.natureOfDisease === diseaseName && index !== currentPatientIndex;
-      });
-      const diseaseCountForYear = patientsInYearForDisease.length + 1;
-      const allPatientsInCurrentYear = infectiousPatients.filter((p, index) => {
+      // ---------- ID generation helper ----------
+      function generatePatientId(diseaseName, dateOfReceipt, currentPatientIndex = null) {
+        if (!diseaseName || !dateOfReceipt) return "";
+        const selectedDisease = diseases.find(d => d.name === diseaseName);
+        if (!selectedDisease) return "";
+        const diseaseCode = selectedDisease.code || selectedDisease.name.slice(0, 3).toUpperCase();
+        const year = new Date(dateOfReceipt).getFullYear();
+        const patientsInYearForDisease = infectiousPatients.filter((p, index) => {
+          const pYear = p.dateOfReceipt ? new Date(p.dateOfReceipt).getFullYear() : null;
+          return pYear === year && p.natureOfDisease === diseaseName && index !== currentPatientIndex;
+        });
+        const diseaseCountForYear = patientsInYearForDisease.length + 1;
+        const allPatientsInCurrentYear = infectiousPatients.filter((p, index) => {
           const pYear = p.dateOfReceipt ? new Date(p.dateOfReceipt).getFullYear() : null;
           return pYear === year && index !== currentPatientIndex;
-      });
-      const overallPatientCountForYear = allPatientsInCurrentYear.length + 1;
-      return `${diseaseCode}/${String(diseaseCountForYear).padStart(2, '0')}/ID/${String(overallPatientCountForYear).padStart(2, '0')}/${year}`;
-    }
+        });
+        const overallPatientCountForYear = allPatientsInCurrentYear.length + 1;
+        return `${diseaseCode}/${String(diseaseCountForYear).padStart(2, '0')}/ID/${String(overallPatientCountForYear).padStart(2, '0')}/${year}`;
+      }
 
-    function updatePatientIdField() {
-      const diseaseName = diseaseSelect.value;
-      const dateOfReceipt = patientForm.dateOfReceipt.value;
-      if (diseaseName && dateOfReceipt) {
-        reserveShow(patientIdContainer);
-        if (selectedPatientIndex === null || patientIdInput.readOnly) {
-          patientIdInput.value = generatePatientId(diseaseName, dateOfReceipt, selectedPatientIndex);
+      function updatePatientIdField() {
+        const diseaseName = diseaseSelect.value;
+        const dateOfReceipt = patientForm.dateOfReceipt.value;
+        if (diseaseName && dateOfReceipt) {
+          reserveShow(patientIdContainer);
+          if (selectedPatientIndex === null || patientIdInput.readOnly) {
+            patientIdInput.value = generatePatientId(diseaseName, dateOfReceipt, selectedPatientIndex);
+          }
+        } else {
+          reserveHide(patientIdContainer);
+          patientIdInput.value = "";
         }
-      } else {
-        reserveHide(patientIdContainer);
-        patientIdInput.value = "";
       }
-    }
-    diseaseSelect.addEventListener('change', updatePatientIdField);
-    patientForm.addEventListener('change', (e) => {
-      if (e.target && e.target.name === 'dateOfReceipt') updatePatientIdField();
-    });
-
-    patientIdInput.addEventListener('click', () => { patientIdInput.readOnly = false; patientIdInput.focus(); });
-    patientIdInput.addEventListener('blur', () => { patientIdInput.readOnly = true; });
-
-    // termination select behavior
-    terminationStatusSelect.addEventListener('change', () => {
-      const v = terminationStatusSelect.value;
-      if (v === "Death" || v === "Recovery") {
-        reserveShow(terminationDateContainer);
-        terminationDateInput.required = true;
-      } else {
-        reserveHide(terminationDateContainer);
-        terminationDateInput.required = false;
-        terminationDateInput.value = "";
-      }
-    });
-
-    // ---------- disease definitions ----------
-    function renderDiseaseDefinitionTable() {
-      diseaseDefinitionTbody.innerHTML = diseases.map((d, i) => `<tr data-index="${i}"><td>${i+1}</td><td>${d.name}</td><td>${d.code}</td><td>${d.group}</td></tr>`).join("");
-      diseaseDefinitionTbody.querySelectorAll("tr").forEach(row => {
-        row.onclick = () => {
-          selectedDiseaseIndex = +row.dataset.index;
-          const dd = diseases[selectedDiseaseIndex];
-          diseaseDefinitionForm.name.value = dd.name;
-          diseaseDefinitionForm.code.value = dd.code;
-          groupSelect.value = dd.group;
-        };
+      diseaseSelect.addEventListener('change', updatePatientIdField);
+      patientForm.addEventListener('change', (e) => {
+        if (e.target && e.target.name === 'dateOfReceipt') updatePatientIdField();
       });
-    }
 
-    diseaseDefinitionForm.onsubmit = (e) => {
-      e.preventDefault();
-      const d = { name: diseaseDefinitionForm.name.value.trim(), code: diseaseDefinitionForm.code.value.trim(), group: diseaseDefinitionForm.group.value.trim() };
-      if (selectedDiseaseIndex !== null) diseases[selectedDiseaseIndex] = d;
-      else diseases.push(d);
-      localStorage.setItem(DISEASE_STORAGE_KEY, JSON.stringify(diseases));
-      updateDiseaseSelectOptions();
-      renderDiseaseDefinitionTable();
-      diseaseDefinitionForm.reset();
-      selectedDiseaseIndex = null;
-    };
+      patientIdInput.addEventListener('click', () => { patientIdInput.readOnly = false; patientIdInput.focus(); });
+      patientIdInput.addEventListener('blur', () => { patientIdInput.readOnly = true; });
 
-    deleteDiseaseBtn.onclick = async () => {
-      if (selectedDiseaseIndex !== null && await showConfirm("Delete this disease definition?")) {
-        diseases.splice(selectedDiseaseIndex,1);
+      // termination select behavior
+      terminationStatusSelect.addEventListener('change', () => {
+        const v = terminationStatusSelect.value;
+        if (v === "Death" || v === "Recovery") {
+          reserveShow(terminationDateContainer);
+          terminationDateInput.required = true;
+        } else {
+          reserveHide(terminationDateContainer);
+          terminationDateInput.required = false;
+          terminationDateInput.value = "";
+        }
+      });
+
+      // ---------- disease definitions ----------
+      function renderDiseaseDefinitionTable() {
+        diseaseDefinitionTbody.innerHTML = diseases.map((d, i) => `<tr data-index="${i}"><td>${i + 1}</td><td>${d.name}</td><td>${d.code}</td><td>${d.group}</td></tr>`).join("");
+        diseaseDefinitionTbody.querySelectorAll("tr").forEach(row => {
+          row.onclick = () => {
+            selectedDiseaseIndex = +row.dataset.index;
+            const dd = diseases[selectedDiseaseIndex];
+            diseaseDefinitionForm.name.value = dd.name;
+            diseaseDefinitionForm.code.value = dd.code;
+            groupSelect.value = dd.group;
+          };
+        });
+      }
+
+      diseaseDefinitionForm.onsubmit = (e) => {
+        e.preventDefault();
+        const d = { name: diseaseDefinitionForm.name.value.trim(), code: diseaseDefinitionForm.code.value.trim(), group: diseaseDefinitionForm.group.value.trim() };
+        if (selectedDiseaseIndex !== null) diseases[selectedDiseaseIndex] = d;
+        else diseases.push(d);
         localStorage.setItem(DISEASE_STORAGE_KEY, JSON.stringify(diseases));
         updateDiseaseSelectOptions();
         renderDiseaseDefinitionTable();
+        diseaseDefinitionForm.reset();
         selectedDiseaseIndex = null;
-      }
-    };
-    clearDiseaseBtn.onclick = () => { diseaseDefinitionForm.reset(); selectedDiseaseIndex = null; };
-
-    function updateDiseaseSelectOptions() {
-      diseaseSelect.innerHTML = `<option value="">-- තෝරන්න --</option>` + diseases.map(d => `<option value="${d.name}">${d.name}</option>`).join("");
-      const fd = document.getElementById("filterDisease");
-      if (fd) fd.innerHTML = `<option value="">සියලු රෝග</option>` + diseases.map(d => `<option value="${d.name}">${d.name}</option>`).join("");
-    }
-    updateDiseaseSelectOptions();
-
-    // ---------- render entry & log tables ----------
-    function renderPatientEntryTable() {
-      patientEntryTbody.innerHTML = infectiousPatients.map((p, idx) => {
-        const px = (p.houseX && p.houseImgWidth) ? pxPercent(p.houseX, p.houseImgWidth) : (p.houseX ? 'n/a' : '');
-        const py = (p.houseY && p.houseImgHeight) ? pxPercent(p.houseY, p.houseImgHeight) : (p.houseY ? 'n/a' : '');
-        return `<tr data-index="${idx}" style="cursor:pointer;">
-          <td>${idx+1}</td>
-          <td>${p.patientId || ''}</td>
-          <td>${p.dateOfReceipt || ''}</td>
-          <td>${p.droDivision || ''}</td>
-          <td>${p.locality || ''}</td>
-          <td>${p.patientName || ''}</td>
-          <td>${p.age ?? ''}</td>
-          <td>${p.sex || ''}</td>
-          <td>${p.race || ''}</td>
-          <td>${p.occupation || ''}</td>
-          <td>${p.religion || ''}</td>
-          <td>${p.dateOfNotification || ''}</td>
-          <td>${p.byWhomNotified || ''}</td>
-          <td>${p.examinedBy || ''}</td>
-          <td>${p.labResults || ''}</td>
-          <td>${p.isolation || ''}</td>
-          <td>${p.terminationStatus || ''}</td>
-          <td>${p.terminationDate || ''}</td>
-          <td>${p.sourceOfInfection || ''}</td>
-          <td>${(p.remarks || '').replace(/\n/g,'<br>')}</td>
-          <td>${px}</td>
-          <td>${py}</td>
-          <td>${p.natureOfDisease || ''}</td>
-          <td>${p.dateOfOnset || ''}</td>
-          <td>${p.dateOfDischarge || ''}</td>
-        </tr>`;
-      }).join("");
-
-      patientEntryTbody.querySelectorAll("tr").forEach(row => {
-        row.onclick = () => {
-          selectedPatientIndex = +row.dataset.index;
-          const p = infectiousPatients[selectedPatientIndex];
-          try {
-            patientForm.dateOfReceipt.value = p.dateOfReceipt || "";
-            patientForm.droDivision.value = p.droDivision || "";
-            patientForm.locality.value = p.locality || "";
-            patientForm.patientName.value = p.patientName || "";
-            patientForm.age.value = p.age ?? "";
-            patientForm.sex.value = p.sex || "";
-            patientForm.race.value = p.race || "";
-            patientForm.occupation.value = p.occupation || "";
-            patientForm.religion.value = p.religion || "";
-            patientForm.dateOfNotification.value = p.dateOfNotification || "";
-            patientForm.byWhomNotified.value = p.byWhomNotified || "";
-            patientForm.examinedBy.value = p.examinedBy || "PHI Nehinna";
-            patientForm.labResults.value = p.labResults || "";
-            patientForm.isolation.value = p.isolation || "";
-            patientForm.terminationStatus.value = p.terminationStatus || "";
-            if (p.terminationStatus === "Death" || p.terminationStatus === "Recovery") {
-              reserveShow(terminationDateContainer);
-              terminationDateInput.required = true;
-              patientForm.terminationDate.value = p.terminationDate || "";
-            } else {
-              reserveHide(terminationDateContainer);
-              terminationDateInput.required = false;
-              patientForm.terminationDate.value = "";
-            }
-            patientForm.sourceOfInfection.value = p.sourceOfInfection || "";
-            patientForm.remarks.value = p.remarks || "";
-            patientForm.natureOfDisease.value = p.natureOfDisease || "";
-            patientForm.dateOfOnset.value = p.dateOfOnset || "";
-            patientForm.dateOfDischarge.value = p.dateOfDischarge || "";
-
-            if (p.patientId) {
-              reserveShow(patientIdContainer);
-              patientIdInput.value = p.patientId;
-              patientIdInput.readOnly = true;
-            } else {
-              reserveHide(patientIdContainer);
-              patientIdInput.value = "";
-            }
-
-            if (p.houseX && p.houseY) {
-              houseXInput.value = p.houseX;
-              houseYInput.value = p.houseY;
-              houseImgWInput.value = p.houseImgWidth || "";
-              houseImgHInput.value = p.houseImgHeight || "";
-              houseCoordReadout.textContent = `House: ${p.houseImgWidth ? pxPercent(p.houseX, p.houseImgWidth) : '?'} , ${p.houseImgHeight ? pxPercent(p.houseY, p.houseImgHeight) : '?'}`;
-              // try to show thumbnail if possible:
-              buildHouseThumbnailFromMap(p).catch(()=>{});
-            } else {
-              houseCoordReadout.textContent = "(No location)";
-              houseXInput.value = "";
-              houseYInput.value = "";
-              houseImgWInput.value = "";
-              houseImgHInput.value = "";
-              hideHouseThumb();
-            }
-
-            updatePatientIdField();
-          } catch (err) {
-            console.error("Populate form error:", err);
-          }
-        };
-      });
-    }
-
-    function renderPatientLogTable() {
-      const tbody = patientLogTbody;
-      let rows = infectiousPatients.slice();
-      const year = filterYear.value;
-      const disease = filterDisease.value;
-      const minA = parseInt(filterAgeMin.value);
-      const maxA = parseInt(filterAgeMax.value);
-      const dro = (filterDroDivision.value || "").toLowerCase();
-      const sex = filterSex.value;
-      rows = rows.filter(p => {
-        const pYear = p.dateOfReceipt ? new Date(p.dateOfReceipt).getFullYear().toString() : "";
-        return (!year || pYear === year) &&
-               (!disease || p.natureOfDisease === disease) &&
-               (isNaN(minA) || (p.age !== null && p.age >= minA)) &&
-               (isNaN(maxA) || (p.age !== null && p.age <= maxA)) &&
-               (!dro || (p.droDivision || "").toLowerCase().includes(dro)) &&
-               (!sex || p.sex === sex);
-      });
-      rows.sort((a,b) => new Date(a.dateOfReceipt) - new Date(b.dateOfReceipt));
-      tbody.innerHTML = rows.map((p,i) => {
-        const px = (p.houseX && p.houseImgWidth) ? pxPercent(p.houseX, p.houseImgWidth) : (p.houseX ? 'n/a' : '');
-        const py = (p.houseY && p.houseImgHeight) ? pxPercent(p.houseY, p.houseImgHeight) : (p.houseY ? 'n/a' : '');
-        return `<tr>
-          <td>${i+1}</td>
-          <td>${p.patientId || ''}</td>
-          <td>${p.dateOfReceipt || ''}</td>
-          <td>${p.droDivision || ''}</td>
-          <td>${p.locality || ''}</td>
-          <td>${p.patientName || ''}</td>
-          <td>${p.age ?? ''}</td>
-          <td>${p.sex || ''}</td>
-          <td>${p.race || ''}</td>
-          <td>${p.occupation || ''}</td>
-          <td>${p.religion || ''}</td>
-          <td>${p.dateOfNotification || ''}</td>
-          <td>${p.byWhomNotified || ''}</td>
-          <td>${p.examinedBy || ''}</td>
-          <td>${p.labResults || ''}</td>
-          <td>${p.isolation || ''}</td>
-          <td>${p.terminationStatus || ''}</td>
-          <td>${p.terminationDate || ''}</td>
-          <td>${p.sourceOfInfection || ''}</td>
-          <td>${(p.remarks || '').replace(/\n/g,'<br>')}</td>
-          <td>${px}</td>
-          <td>${py}</td>
-          <td>${p.natureOfDisease || ''}</td>
-          <td>${p.dateOfOnset || ''}</td>
-          <td>${p.dateOfDischarge || ''}</td>
-        </tr>`;
-      }).join("");
-    }
-
-    // ---------- thumbnail helpers (same as earlier) ----------
-    async function buildHouseThumbnailFromMap(recordOrPayload) {
-      const x = recordOrPayload.houseX ?? recordOrPayload.x;
-      const y = recordOrPayload.houseY ?? recordOrPayload.y;
-      const w = recordOrPayload.houseImgWidth ?? recordOrPayload.imgWidth;
-      const h = recordOrPayload.houseImgHeight ?? recordOrPayload.imgHeight;
-      if (!x || !y || !w || !h) { showHouseThumbPlaceholder(x,y); return; }
-
-      try {
-        if (window.phiMapAPI && typeof window.phiMapAPI.getMapImageDataURL === "function") {
-          const dataUrl = await window.phiMapAPI.getMapImageDataURL();
-          if (!dataUrl) { showHouseThumbPlaceholder(x,y); return; }
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement("canvas");
-            const thumbSize = 100;
-            canvas.width = thumbSize; canvas.height = thumbSize;
-            const ctx = canvas.getContext("2d");
-            const sx = Math.max(0, Math.min(x - thumbSize/2, img.width - thumbSize));
-            const sy = Math.max(0, Math.min(y - thumbSize/2, img.height - thumbSize));
-            ctx.drawImage(img, sx, sy, thumbSize, thumbSize, 0, 0, thumbSize, thumbSize);
-            const relX = x - sx; const relY = y - sy;
-            ctx.beginPath(); ctx.fillStyle = "rgba(255,0,0,0.9)"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
-            ctx.arc(relX, relY, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-            houseThumbEl.src = canvas.toDataURL("image/png"); houseThumbEl.style.display = "inline-block";
-          };
-          img.onerror = () => showHouseThumbPlaceholder(x,y);
-          img.src = dataUrl;
-          return;
-        } else {
-          showHouseThumbPlaceholder(x,y);
-        }
-      } catch (err) {
-        console.warn("Thumbnail build failed:", err);
-        showHouseThumbPlaceholder(x,y);
-      }
-    }
-
-    function showHouseThumbPlaceholder(x, y) {
-      const canvas = document.createElement("canvas");
-      canvas.width = 100; canvas.height = 100;
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#f8f8f8"; ctx.fillRect(0,0,100,100);
-      ctx.fillStyle = "#666"; ctx.font = "10px sans-serif"; ctx.fillText("No map image",8,48);
-      const coordText = (x && y) ? `x:${Math.round(x)},y:${Math.round(y)}` : "no coords";
-      ctx.fillText(coordText,8,64);
-      houseThumbEl.src = canvas.toDataURL("image/png");
-      houseThumbEl.style.display = "inline-block";
-    }
-    function hideHouseThumb(){ houseThumbEl.style.display = "none"; houseThumbEl.src = ""; }
-
-    // ---------- map selection ----------
-    markHouseBtn.addEventListener('click', () => {
-      const snapshot = {};
-      try { new FormData(patientForm).forEach((v,k)=> snapshot[k]=v); } catch(e){console.warn(e);}
-
-      if (!window.phiMapAPI || typeof window.phiMapAPI.enablePointSelection !== "function") {
-        if (typeof window.openPhiAreaMap === "function") window.openPhiAreaMap();
-        alert("PHI Map module not ready. Open PHI Area Map and upload the map first.");
-        return;
-      }
-      if (typeof window.openPhiAreaMap === "function") window.openPhiAreaMap();
-
-      setTimeout(() => {
-        try {
-          window.phiMapAPI.enablePointSelection(async (payload) => {
-            if (!payload || typeof payload.x === "undefined") { alert("No point selected on map."); return; }
-            if (window.phiMapAPI && typeof window.phiMapAPI.addSymbolAt === "function") {
-              try { window.phiMapAPI.addSymbolAt(payload.x, payload.y, "house"); } catch(e){console.warn(e);}
-            }
-            setTimeout(() => {
-              if (typeof openInfectious === "function") openInfectious("Infectious Diseases Register");
-              setTimeout(async () => {
-                const f = document.getElementById("patientForm");
-                if (!f) { alert("Could not restore Infectious form."); return; }
-                try { Object.entries(snapshot).forEach(([k,v])=> { const el = f.elements.namedItem(k); if(el) el.value = v; }); } catch(e){console.warn(e);}
-                const hx = document.getElementById("houseX"), hy = document.getElementById("houseY"), hw = document.getElementById("houseImgWidth"), hh = document.getElementById("houseImgHeight"), ro = document.getElementById("houseCoordReadout");
-                if (hx && hy && ro) {
-                  hx.value = Math.round(payload.x); hy.value = Math.round(payload.y);
-                  if (payload.imgWidth) hw.value = payload.imgWidth; if (payload.imgHeight) hh.value = payload.imgHeight;
-                  const pxVal = payload.imgWidth ? Math.round((payload.x/payload.imgWidth)*100) + '%' : Math.round((payload.normalizedX||0)*100) + '%';
-                  const pyVal = payload.imgHeight ? Math.round((payload.y/payload.imgHeight)*100) + '%' : Math.round((payload.normalizedY||0)*100) + '%';
-                  ro.textContent = `House: (${pxVal}, ${pyVal})`;
-                  await buildHouseThumbnailFromMap(payload);
-                }
-                // ensure tab1 visible
-                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-                document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-                const tab1Btn = Array.from(document.querySelectorAll(".tab-btn")).find(b => b.dataset.tab === "tab1-patients");
-                if (tab1Btn) { tab1Btn.classList.add("active"); document.getElementById("tab1-patients").classList.add("active"); }
-                renderPatientEntryTable(); renderPatientLogTable();
-              }, 140);
-            }, 120);
-          });
-        } catch (err) {
-          console.error("enablePointSelection error:", err);
-          alert("Could not enable map selection. Ensure PHI Map module is loaded and map saved.");
-        }
-      }, 220);
-    });
-
-    // ---------- form submit / delete / clear ----------
-    patientForm.onsubmit = (e) => {
-      e.preventDefault();
-      
-      // Validation for required fields
-      if (!patientForm.dateOfReceipt.value) {
-        showError("I.D. Card ලැබුණු දිනය අවශ්‍යයි / I.D. Card date is required.");
-        patientForm.dateOfReceipt.focus();
-        return;
-      }
-      if (!patientForm.patientName.value.trim()) {
-        showError("Name අවශ්‍යයි / Name is required.");
-        patientForm.patientName.focus();
-        return;
-      }
-      if (!patientForm.droDivision.value) {
-        showError("GN Division(D.R.O. Division) අවශ්‍යයි / GN Division is required.");
-        patientForm.droDivision.focus();
-        return;
-      }
-      if (!patientForm.natureOfDisease.value) {
-        showError("රෝගය තෝරන්න / Please select a disease.");
-        patientForm.natureOfDisease.focus();
-        return;
-      }
-      if (!patientForm.dateOfOnset.value) {
-        showError("රෝගය වැළඳුණු දිනය අවශ්‍යයි / Date of onset is required.");
-        patientForm.dateOfOnset.focus();
-        return;
-      }
-      
-      const termStatus = terminationStatusSelect.value;
-      if ((termStatus === "Death" || termStatus === "Recovery") && !terminationDateInput.value) {
-        showError("Please pick the termination date when Termination is set to Death or Recovery.");
-        return;
-      }
-      updatePatientIdField();
-      const rec = {
-        patientId: patientIdInput.value.trim(),
-        dateOfReceipt: patientForm.dateOfReceipt.value,
-        droDivision: patientForm.droDivision.value,
-        locality: patientForm.locality.value,
-        patientName: patientForm.patientName.value,
-        age: patientForm.age.value ? Number(patientForm.age.value) : null,
-        sex: patientForm.sex.value,
-        race: patientForm.race.value,
-        occupation: patientForm.occupation.value,
-        religion: patientForm.religion.value,
-        dateOfNotification: patientForm.dateOfNotification.value,
-        byWhomNotified: patientForm.byWhomNotified.value,
-        examinedBy: patientForm.examinedBy.value,
-        labResults: patientForm.labResults.value,
-        isolation: patientForm.isolation.value,
-        terminationStatus: patientForm.terminationStatus.value,
-        terminationDate: patientForm.terminationDate ? patientForm.terminationDate.value : "",
-        sourceOfInfection: patientForm.sourceOfInfection.value,
-        remarks: patientForm.remarks.value,
-        houseX: houseXInput.value ? Number(houseXInput.value) : null,
-        houseY: houseYInput.value ? Number(houseYInput.value) : null,
-        houseImgWidth: houseImgWInput.value ? Number(houseImgWInput.value) : null,
-        houseImgHeight: houseImgHInput.value ? Number(houseImgHInput.value) : null,
-        natureOfDisease: patientForm.natureOfDisease.value,
-        dateOfOnset: patientForm.dateOfOnset.value,
-        dateOfDischarge: patientForm.dateOfDischarge.value
       };
-      const isDup = infectiousPatients.some((p, i) => p.patientId === rec.patientId && i !== selectedPatientIndex);
-      if (isDup) { showError("Patient ID already exists. Choose another."); return; }
-      if (selectedPatientIndex !== null) infectiousPatients[selectedPatientIndex] = rec;
-      else infectiousPatients.push(rec);
-      localStorage.setItem(PATIENT_STORAGE_KEY, JSON.stringify(infectiousPatients));
-      renderPatientEntryTable(); renderPatientLogTable();
-      patientForm.reset(); reserveHide(patientIdContainer); patientIdInput.value = ""; houseCoordReadout.textContent = "(No location)"; hideHouseThumb();
-      selectedPatientIndex = null; reserveHide(terminationDateContainer); terminationDateInput.required = false; terminationDateInput.value = "";
-      showSuccess("Record saved.");
-    };
 
-    deletePatientBtn.onclick = async () => {
-      if (selectedPatientIndex !== null) {
-        if (await showConfirm("Delete this record?")) {
-          infectiousPatients.splice(selectedPatientIndex,1);
-          localStorage.setItem(PATIENT_STORAGE_KEY, JSON.stringify(infectiousPatients));
-          renderPatientEntryTable(); renderPatientLogTable();
-          patientForm.reset(); selectedPatientIndex = null; houseCoordReadout.textContent = "(No location)"; hideHouseThumb();
-          reserveHide(patientIdContainer); reserveHide(terminationDateContainer);
+      deleteDiseaseBtn.onclick = async () => {
+        if (selectedDiseaseIndex !== null && await showConfirm("Delete this disease definition?")) {
+          diseases.splice(selectedDiseaseIndex, 1);
+          localStorage.setItem(DISEASE_STORAGE_KEY, JSON.stringify(diseases));
+          updateDiseaseSelectOptions();
+          renderDiseaseDefinitionTable();
+          selectedDiseaseIndex = null;
         }
-      } else showError("Select a record first.");
-    };
-    clearPatientBtn.onclick = async () => {
-      if (await showConfirm("Clear form?")) {
-        patientForm.reset(); selectedPatientIndex = null; reserveHide(patientIdContainer); patientIdInput.value = ""; houseCoordReadout.textContent = "(No location)"; hideHouseThumb(); reserveHide(terminationDateContainer); terminationDateInput.required = false; terminationDateInput.value = "";
+      };
+      clearDiseaseBtn.onclick = () => { diseaseDefinitionForm.reset(); selectedDiseaseIndex = null; };
+
+      function updateDiseaseSelectOptions() {
+        diseaseSelect.innerHTML = `<option value="">-- තෝරන්න --</option>` + diseases.map(d => `<option value="${d.name}">${d.name}</option>`).join("");
+        const fd = document.getElementById("filterDisease");
+        if (fd) fd.innerHTML = `<option value="">සියලු රෝග</option>` + diseases.map(d => `<option value="${d.name}">${d.name}</option>`).join("");
       }
-    };
+      updateDiseaseSelectOptions();
 
-    // ---------- filters ----------
-    applyFiltersBtn.onclick = renderPatientLogTable;
-    clearFiltersBtn.onclick = () => {
-      filterYear.value = ""; filterDisease.value = ""; filterAgeMin.value = ""; filterAgeMax.value = ""; filterDroDivision.value = ""; filterSex.value = ""; renderPatientLogTable();
-    };
-    [filterYear, filterDisease, filterAgeMin, filterAgeMax, filterDroDivision, filterSex].forEach(el => { if (el) el.addEventListener('change', renderPatientLogTable); });
+      // ---------- render entry & log tables ----------
+      function renderPatientEntryTable() {
+        patientEntryTbody.innerHTML = infectiousPatients.map((p, idx) => {
+          const px = (p.houseX && p.houseImgWidth) ? pxPercent(p.houseX, p.houseImgWidth) : (p.houseX ? 'n/a' : '');
+          const py = (p.houseY && p.houseImgHeight) ? pxPercent(p.houseY, p.houseImgHeight) : (p.houseY ? 'n/a' : '');
+          return `<tr data-index="${idx}" style="cursor:pointer;">
+          <td>${idx + 1}</td>
+          <td>${p.patientId || ''}</td>
+          <td>${p.dateOfReceipt || ''}</td>
+          <td>${p.droDivision || ''}</td>
+          <td>${p.locality || ''}</td>
+          <td>${p.patientName || ''}</td>
+          <td>${p.age ?? ''}</td>
+          <td>${p.sex || ''}</td>
+          <td>${p.race || ''}</td>
+          <td>${p.occupation || ''}</td>
+          <td>${p.religion || ''}</td>
+          <td>${p.dateOfNotification || ''}</td>
+          <td>${p.byWhomNotified || ''}</td>
+          <td>${p.examinedBy || ''}</td>
+          <td>${p.labResults || ''}</td>
+          <td>${p.isolation || ''}</td>
+          <td>${p.terminationStatus || ''}</td>
+          <td>${p.terminationDate || ''}</td>
+          <td>${p.sourceOfInfection || ''}</td>
+          <td>${(p.remarks || '').replace(/\n/g, '<br>')}</td>
+          <td>${px}</td>
+          <td>${py}</td>
+          <td>${p.natureOfDisease || ''}</td>
+          <td>${p.dateOfOnset || ''}</td>
+          <td>${p.dateOfDischarge || ''}</td>
+        </tr>`;
+        }).join("");
 
-    // ---------- TAB SWITCHING (robust) ----------
-    // Use a handler that toggles active classes and attempts to call renderers if available.
-    tabButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const target = btn.dataset.tab;
-        // toggle active classes
-        tabButtons.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
-        btn.classList.add('active');
-        const targetEl = document.getElementById(target);
-        if (targetEl) targetEl.classList.add('active');
-        // call renderers if defined (safe guard)
-        try { if (target === 'tab1-patients' && typeof renderPatientEntryTable === 'function') renderPatientEntryTable(); } catch(e){}
-        try { if (target === 'tab2-definitions' && typeof renderDiseaseDefinitionTable === 'function') renderDiseaseDefinitionTable(); } catch(e){}
-        try { if (target === 'tab3-log' && typeof renderPatientLogTable === 'function') renderPatientLogTable(); } catch(e){}
+        patientEntryTbody.querySelectorAll("tr").forEach(row => {
+          row.onclick = () => {
+            selectedPatientIndex = +row.dataset.index;
+            const p = infectiousPatients[selectedPatientIndex];
+            try {
+              patientForm.dateOfReceipt.value = p.dateOfReceipt || "";
+              patientForm.droDivision.value = p.droDivision || "";
+              patientForm.locality.value = p.locality || "";
+              patientForm.patientName.value = p.patientName || "";
+              patientForm.age.value = p.age ?? "";
+              patientForm.sex.value = p.sex || "";
+              patientForm.race.value = p.race || "";
+              patientForm.occupation.value = p.occupation || "";
+              patientForm.religion.value = p.religion || "";
+              patientForm.dateOfNotification.value = p.dateOfNotification || "";
+              patientForm.byWhomNotified.value = p.byWhomNotified || "";
+              patientForm.examinedBy.value = p.examinedBy || "PHI Nehinna";
+              patientForm.labResults.value = p.labResults || "";
+              patientForm.isolation.value = p.isolation || "";
+              patientForm.terminationStatus.value = p.terminationStatus || "";
+              if (p.terminationStatus === "Death" || p.terminationStatus === "Recovery") {
+                reserveShow(terminationDateContainer);
+                terminationDateInput.required = true;
+                patientForm.terminationDate.value = p.terminationDate || "";
+              } else {
+                reserveHide(terminationDateContainer);
+                terminationDateInput.required = false;
+                patientForm.terminationDate.value = "";
+              }
+              patientForm.sourceOfInfection.value = p.sourceOfInfection || "";
+              patientForm.remarks.value = p.remarks || "";
+              patientForm.natureOfDisease.value = p.natureOfDisease || "";
+              patientForm.dateOfOnset.value = p.dateOfOnset || "";
+              patientForm.dateOfDischarge.value = p.dateOfDischarge || "";
+
+              if (p.patientId) {
+                reserveShow(patientIdContainer);
+                patientIdInput.value = p.patientId;
+                patientIdInput.readOnly = true;
+              } else {
+                reserveHide(patientIdContainer);
+                patientIdInput.value = "";
+              }
+
+              if (p.houseX && p.houseY) {
+                houseXInput.value = p.houseX;
+                houseYInput.value = p.houseY;
+                houseImgWInput.value = p.houseImgWidth || "";
+                houseImgHInput.value = p.houseImgHeight || "";
+                houseCoordReadout.textContent = `House: ${p.houseImgWidth ? pxPercent(p.houseX, p.houseImgWidth) : '?'} , ${p.houseImgHeight ? pxPercent(p.houseY, p.houseImgHeight) : '?'}`;
+                // try to show thumbnail if possible:
+                buildHouseThumbnailFromMap(p).catch(() => { });
+              } else {
+                houseCoordReadout.textContent = "(No location)";
+                houseXInput.value = "";
+                houseYInput.value = "";
+                houseImgWInput.value = "";
+                houseImgHInput.value = "";
+                hideHouseThumb();
+              }
+
+              updatePatientIdField();
+            } catch (err) {
+              console.error("Populate form error:", err);
+            }
+          };
+        });
+      }
+
+      function renderPatientLogTable() {
+        const tbody = patientLogTbody;
+        let rows = infectiousPatients.slice();
+        const year = filterYear.value;
+        const disease = filterDisease.value;
+        const minA = parseInt(filterAgeMin.value);
+        const maxA = parseInt(filterAgeMax.value);
+        const dro = (filterDroDivision.value || "").toLowerCase();
+        const sex = filterSex.value;
+        rows = rows.filter(p => {
+          const pYear = p.dateOfReceipt ? new Date(p.dateOfReceipt).getFullYear().toString() : "";
+          return (!year || pYear === year) &&
+            (!disease || p.natureOfDisease === disease) &&
+            (isNaN(minA) || (p.age !== null && p.age >= minA)) &&
+            (isNaN(maxA) || (p.age !== null && p.age <= maxA)) &&
+            (!dro || (p.droDivision || "").toLowerCase().includes(dro)) &&
+            (!sex || p.sex === sex);
+        });
+        rows.sort((a, b) => new Date(a.dateOfReceipt) - new Date(b.dateOfReceipt));
+        tbody.innerHTML = rows.map((p, i) => {
+          const px = (p.houseX && p.houseImgWidth) ? pxPercent(p.houseX, p.houseImgWidth) : (p.houseX ? 'n/a' : '');
+          const py = (p.houseY && p.houseImgHeight) ? pxPercent(p.houseY, p.houseImgHeight) : (p.houseY ? 'n/a' : '');
+          return `<tr>
+          <td>${i + 1}</td>
+          <td>${p.patientId || ''}</td>
+          <td>${p.dateOfReceipt || ''}</td>
+          <td>${p.droDivision || ''}</td>
+          <td>${p.locality || ''}</td>
+          <td>${p.patientName || ''}</td>
+          <td>${p.age ?? ''}</td>
+          <td>${p.sex || ''}</td>
+          <td>${p.race || ''}</td>
+          <td>${p.occupation || ''}</td>
+          <td>${p.religion || ''}</td>
+          <td>${p.dateOfNotification || ''}</td>
+          <td>${p.byWhomNotified || ''}</td>
+          <td>${p.examinedBy || ''}</td>
+          <td>${p.labResults || ''}</td>
+          <td>${p.isolation || ''}</td>
+          <td>${p.terminationStatus || ''}</td>
+          <td>${p.terminationDate || ''}</td>
+          <td>${p.sourceOfInfection || ''}</td>
+          <td>${(p.remarks || '').replace(/\n/g, '<br>')}</td>
+          <td>${px}</td>
+          <td>${py}</td>
+          <td>${p.natureOfDisease || ''}</td>
+          <td>${p.dateOfOnset || ''}</td>
+          <td>${p.dateOfDischarge || ''}</td>
+        </tr>`;
+        }).join("");
+      }
+
+      // ---------- thumbnail helpers (same as earlier) ----------
+      async function buildHouseThumbnailFromMap(recordOrPayload) {
+        const x = recordOrPayload.houseX ?? recordOrPayload.x;
+        const y = recordOrPayload.houseY ?? recordOrPayload.y;
+        const w = recordOrPayload.houseImgWidth ?? recordOrPayload.imgWidth;
+        const h = recordOrPayload.houseImgHeight ?? recordOrPayload.imgHeight;
+        if (!x || !y || !w || !h) { showHouseThumbPlaceholder(x, y); return; }
+
+        try {
+          if (window.phiMapAPI && typeof window.phiMapAPI.getMapImageDataURL === "function") {
+            const dataUrl = await window.phiMapAPI.getMapImageDataURL();
+            if (!dataUrl) { showHouseThumbPlaceholder(x, y); return; }
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              const thumbSize = 100;
+              canvas.width = thumbSize; canvas.height = thumbSize;
+              const ctx = canvas.getContext("2d");
+              const sx = Math.max(0, Math.min(x - thumbSize / 2, img.width - thumbSize));
+              const sy = Math.max(0, Math.min(y - thumbSize / 2, img.height - thumbSize));
+              ctx.drawImage(img, sx, sy, thumbSize, thumbSize, 0, 0, thumbSize, thumbSize);
+              const relX = x - sx; const relY = y - sy;
+              ctx.beginPath(); ctx.fillStyle = "rgba(255,0,0,0.9)"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+              ctx.arc(relX, relY, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+              houseThumbEl.src = canvas.toDataURL("image/png"); houseThumbEl.style.display = "inline-block";
+            };
+            img.onerror = () => showHouseThumbPlaceholder(x, y);
+            img.src = dataUrl;
+            return;
+          } else {
+            showHouseThumbPlaceholder(x, y);
+          }
+        } catch (err) {
+          console.warn("Thumbnail build failed:", err);
+          showHouseThumbPlaceholder(x, y);
+        }
+      }
+
+      function showHouseThumbPlaceholder(x, y) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 100; canvas.height = 100;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#f8f8f8"; ctx.fillRect(0, 0, 100, 100);
+        ctx.fillStyle = "#666"; ctx.font = "10px sans-serif"; ctx.fillText("No map image", 8, 48);
+        const coordText = (x && y) ? `x:${Math.round(x)},y:${Math.round(y)}` : "no coords";
+        ctx.fillText(coordText, 8, 64);
+        houseThumbEl.src = canvas.toDataURL("image/png");
+        houseThumbEl.style.display = "inline-block";
+      }
+      function hideHouseThumb() { houseThumbEl.style.display = "none"; houseThumbEl.src = ""; }
+
+      // ---------- map selection ----------
+      markHouseBtn.addEventListener('click', () => {
+        const snapshot = {};
+        try { new FormData(patientForm).forEach((v, k) => snapshot[k] = v); } catch (e) { console.warn(e); }
+
+        if (!window.phiMapAPI || typeof window.phiMapAPI.enablePointSelection !== "function") {
+          if (typeof window.openPhiAreaMap === "function") window.openPhiAreaMap();
+          alert("PHI Map module not ready. Open PHI Area Map and upload the map first.");
+          return;
+        }
+        if (typeof window.openPhiAreaMap === "function") window.openPhiAreaMap();
+
+        setTimeout(() => {
+          try {
+            window.phiMapAPI.enablePointSelection(async (payload) => {
+              if (!payload || typeof payload.x === "undefined") { alert("No point selected on map."); return; }
+              if (window.phiMapAPI && typeof window.phiMapAPI.addSymbolAt === "function") {
+                try { window.phiMapAPI.addSymbolAt(payload.x, payload.y, "house"); } catch (e) { console.warn(e); }
+              }
+              setTimeout(() => {
+                if (typeof openInfectious === "function") openInfectious("Infectious Diseases Register");
+                setTimeout(async () => {
+                  const f = document.getElementById("patientForm");
+                  if (!f) { alert("Could not restore Infectious form."); return; }
+                  try { Object.entries(snapshot).forEach(([k, v]) => { const el = f.elements.namedItem(k); if (el) el.value = v; }); } catch (e) { console.warn(e); }
+                  const hx = document.getElementById("houseX"), hy = document.getElementById("houseY"), hw = document.getElementById("houseImgWidth"), hh = document.getElementById("houseImgHeight"), ro = document.getElementById("houseCoordReadout");
+                  if (hx && hy && ro) {
+                    hx.value = Math.round(payload.x); hy.value = Math.round(payload.y);
+                    if (payload.imgWidth) hw.value = payload.imgWidth; if (payload.imgHeight) hh.value = payload.imgHeight;
+                    const pxVal = payload.imgWidth ? Math.round((payload.x / payload.imgWidth) * 100) + '%' : Math.round((payload.normalizedX || 0) * 100) + '%';
+                    const pyVal = payload.imgHeight ? Math.round((payload.y / payload.imgHeight) * 100) + '%' : Math.round((payload.normalizedY || 0) * 100) + '%';
+                    ro.textContent = `House: (${pxVal}, ${pyVal})`;
+                    await buildHouseThumbnailFromMap(payload);
+                  }
+                  // ensure tab1 visible
+                  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                  document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+                  const tab1Btn = Array.from(document.querySelectorAll(".tab-btn")).find(b => b.dataset.tab === "tab1-patients");
+                  if (tab1Btn) { tab1Btn.classList.add("active"); document.getElementById("tab1-patients").classList.add("active"); }
+                  renderPatientEntryTable(); renderPatientLogTable();
+                }, 140);
+              }, 120);
+            });
+          } catch (err) {
+            console.error("enablePointSelection error:", err);
+            alert("Could not enable map selection. Ensure PHI Map module is loaded and map saved.");
+          }
+        }, 220);
       });
-    });
 
-    // initial render
-    renderPatientEntryTable(); renderDiseaseDefinitionTable(); renderPatientLogTable();
+      // ---------- form submit / delete / clear ----------
+      patientForm.onsubmit = (e) => {
+        e.preventDefault();
+
+        // Validation for required fields
+        if (!patientForm.dateOfReceipt.value) {
+          showError("I.D. Card ලැබුණු දිනය අවශ්‍යයි / I.D. Card date is required.");
+          patientForm.dateOfReceipt.focus();
+          return;
+        }
+        if (!patientForm.patientName.value.trim()) {
+          showError("Name අවශ්‍යයි / Name is required.");
+          patientForm.patientName.focus();
+          return;
+        }
+        if (!patientForm.droDivision.value) {
+          showError("GN Division(D.R.O. Division) අවශ්‍යයි / GN Division is required.");
+          patientForm.droDivision.focus();
+          return;
+        }
+        if (!patientForm.natureOfDisease.value) {
+          showError("රෝගය තෝරන්න / Please select a disease.");
+          patientForm.natureOfDisease.focus();
+          return;
+        }
+        if (!patientForm.dateOfOnset.value) {
+          showError("රෝගය වැළඳුණු දිනය අවශ්‍යයි / Date of onset is required.");
+          patientForm.dateOfOnset.focus();
+          return;
+        }
+
+        const termStatus = terminationStatusSelect.value;
+        if ((termStatus === "Death" || termStatus === "Recovery") && !terminationDateInput.value) {
+          showError("Please pick the termination date when Termination is set to Death or Recovery.");
+          return;
+        }
+        updatePatientIdField();
+        const rec = {
+          patientId: patientIdInput.value.trim(),
+          dateOfReceipt: patientForm.dateOfReceipt.value,
+          droDivision: patientForm.droDivision.value,
+          locality: patientForm.locality.value,
+          patientName: patientForm.patientName.value,
+          age: patientForm.age.value ? Number(patientForm.age.value) : null,
+          sex: patientForm.sex.value,
+          race: patientForm.race.value,
+          occupation: patientForm.occupation.value,
+          religion: patientForm.religion.value,
+          dateOfNotification: patientForm.dateOfNotification.value,
+          byWhomNotified: patientForm.byWhomNotified.value,
+          examinedBy: patientForm.examinedBy.value,
+          labResults: patientForm.labResults.value,
+          isolation: patientForm.isolation.value,
+          terminationStatus: patientForm.terminationStatus.value,
+          terminationDate: patientForm.terminationDate ? patientForm.terminationDate.value : "",
+          sourceOfInfection: patientForm.sourceOfInfection.value,
+          remarks: patientForm.remarks.value,
+          houseX: houseXInput.value ? Number(houseXInput.value) : null,
+          houseY: houseYInput.value ? Number(houseYInput.value) : null,
+          houseImgWidth: houseImgWInput.value ? Number(houseImgWInput.value) : null,
+          houseImgHeight: houseImgHInput.value ? Number(houseImgHInput.value) : null,
+          natureOfDisease: patientForm.natureOfDisease.value,
+          dateOfOnset: patientForm.dateOfOnset.value,
+          dateOfDischarge: patientForm.dateOfDischarge.value
+        };
+        const isDup = infectiousPatients.some((p, i) => p.patientId === rec.patientId && i !== selectedPatientIndex);
+        if (isDup) { showError("Patient ID already exists. Choose another."); return; }
+        if (selectedPatientIndex !== null) infectiousPatients[selectedPatientIndex] = rec;
+        else infectiousPatients.push(rec);
+        localStorage.setItem(PATIENT_STORAGE_KEY, JSON.stringify(infectiousPatients));
+        renderPatientEntryTable(); renderPatientLogTable();
+        patientForm.reset(); reserveHide(patientIdContainer); patientIdInput.value = ""; houseCoordReadout.textContent = "(No location)"; hideHouseThumb();
+        selectedPatientIndex = null; reserveHide(terminationDateContainer); terminationDateInput.required = false; terminationDateInput.value = "";
+        showSuccess("Record saved.");
+      };
+
+      deletePatientBtn.onclick = async () => {
+        if (selectedPatientIndex !== null) {
+          if (await showConfirm("Delete this record?")) {
+            infectiousPatients.splice(selectedPatientIndex, 1);
+            localStorage.setItem(PATIENT_STORAGE_KEY, JSON.stringify(infectiousPatients));
+            renderPatientEntryTable(); renderPatientLogTable();
+            patientForm.reset(); selectedPatientIndex = null; houseCoordReadout.textContent = "(No location)"; hideHouseThumb();
+            reserveHide(patientIdContainer); reserveHide(terminationDateContainer);
+          }
+        } else showError("Select a record first.");
+      };
+      clearPatientBtn.onclick = async () => {
+        if (await showConfirm("Clear form?")) {
+          patientForm.reset(); selectedPatientIndex = null; reserveHide(patientIdContainer); patientIdInput.value = ""; houseCoordReadout.textContent = "(No location)"; hideHouseThumb(); reserveHide(terminationDateContainer); terminationDateInput.required = false; terminationDateInput.value = "";
+        }
+      };
+
+      // ---------- filters ----------
+      applyFiltersBtn.onclick = renderPatientLogTable;
+      clearFiltersBtn.onclick = () => {
+        filterYear.value = ""; filterDisease.value = ""; filterAgeMin.value = ""; filterAgeMax.value = ""; filterDroDivision.value = ""; filterSex.value = ""; renderPatientLogTable();
+      };
+      [filterYear, filterDisease, filterAgeMin, filterAgeMax, filterDroDivision, filterSex].forEach(el => { if (el) el.addEventListener('change', renderPatientLogTable); });
+
+      // ---------- TAB SWITCHING (robust) ----------
+      // Use a handler that toggles active classes and attempts to call renderers if available.
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.tab;
+          // toggle active classes
+          tabButtons.forEach(b => b.classList.remove('active'));
+          tabContents.forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          const targetEl = document.getElementById(target);
+          if (targetEl) targetEl.classList.add('active');
+          // call renderers if defined (safe guard)
+          try { if (target === 'tab1-patients' && typeof renderPatientEntryTable === 'function') renderPatientEntryTable(); } catch (e) { }
+          try { if (target === 'tab2-definitions' && typeof renderDiseaseDefinitionTable === 'function') renderDiseaseDefinitionTable(); } catch (e) { }
+          try { if (target === 'tab3-log' && typeof renderPatientLogTable === 'function') renderPatientLogTable(); } catch (e) { }
+        });
+      });
+
+      // initial render
+      renderPatientEntryTable(); renderDiseaseDefinitionTable(); renderPatientLogTable();
+    }); // requestAnimationFrame wrapper end
   }; // end openInfectious
 
 })(); // end module

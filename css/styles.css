@@ -53,6 +53,8 @@ body {
 .container {
   max-width: var(--max-width);
   margin: 0 auto;
+  overflow-x: hidden;
+  /* Fix unwanted scrollbar */
 }
 
 .header {
@@ -142,6 +144,8 @@ body {
   height: 100%;
   color: var(--text-light);
   overflow-y: auto;
+  flex-shrink: 0;
+  /* Prevent sidebar from collapsing */
 }
 
 .sidebar ul li {
@@ -212,8 +216,14 @@ body {
   flex-direction: column;
   gap: clamp(10px, 2vw, 15px);
   height: 100%;
-  overflow: visible;
+  width: 100%;
+  overflow-x: auto;
+  /* Handle horizontal overflow */
+  overflow-y: auto;
+  /* Handle vertical overflow (changed from visible to prevent spillover) */
   position: relative;
+  min-width: 0;
+  /* Prevention for flex blowout */
 }
 
 /* Global Scrollbars */

@@ -22,12 +22,9 @@
 
 
   <link rel="stylesheet" href="css/registers/sanitation.css">
-  <link rel="stylesheet" href="css/registers/infectious.css">
+  <link rel="stylesheet" href="css/registers/infectious.css?v=20260116_2">
   <link rel="stylesheet" href="css/registers/schoolImmunization.css">
   <link rel="stylesheet" href="css/phi/phiKeyMap.css">
-
-
-
 
 </head>
 
@@ -96,14 +93,14 @@
   <!-- place somewhere inside generateBoardsContent() return HTML, where carousel should appear -->
 
   <!-- JS Files - CORRECT ORDER IS IMPORTANT -->
-  
+
   <!-- SweetAlert2 Library -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
+
   <!-- Alert Utility Wrapper -->
   <script>
     // Global alert and confirm wrappers using SweetAlert2
-    window.showAlert = function(message, type = 'info', title = '') {
+    window.showAlert = function (message, type = 'info', title = '') {
       const config = {
         text: message,
         icon: type,
@@ -118,7 +115,7 @@
       return Swal.fire(config);
     };
 
-    window.showConfirm = function(message, title = 'තහවුරු කරන්න / Confirm') {
+    window.showConfirm = function (message, title = 'තහවුරු කරන්න / Confirm') {
       return Swal.fire({
         title: title,
         text: message,
@@ -136,7 +133,7 @@
       }).then((result) => result.isConfirmed);
     };
 
-    window.showSuccess = function(message, title = 'සාර්ථකයි / Success') {
+    window.showSuccess = function (message, title = 'සාර්ථකයි / Success') {
       return Swal.fire({
         title: title,
         text: message,
@@ -151,7 +148,7 @@
       });
     };
 
-    window.showError = function(message, title = 'දෝෂයකි / Error') {
+    window.showError = function (message, title = 'දෝෂයකි / Error') {
       return Swal.fire({
         title: title,
         text: message,
@@ -165,7 +162,7 @@
       });
     };
 
-    window.showWarning = function(message, title = 'අවවාදයයි / Warning') {
+    window.showWarning = function (message, title = 'අවවාදයයි / Warning') {
       return Swal.fire({
         title: title,
         text: message,
@@ -209,7 +206,7 @@
 
   <script src="js/registers/sanitation.js"></script>
   <script src="js/registers/latrineConstruction.js"></script>
-  <script src="js/registers/infectious.js"></script>
+  <script src="js/registers/infectious.js?v=20260116_2"></script>
   <script src="js/registers/nonCommunicable.js"></script>
   <script src="js/registers/notices.js"></script>
   <script src="js/registers/foodAnalysis.js"></script>

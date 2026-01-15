@@ -308,8 +308,7 @@
     return weekNumber;
   }
 
-  // NEW: Auto-fill schedule from fixed dates with CORRECT week calculation
-  // NEW: Auto-fill schedule from fixed dates with CORRECT week calculation
+  // NEW: Auto-fill schedule from fixed dates with CORRECT week calculation and UI update
   function autoFillScheduleFromFixedDates(monthValue) {
     if (!monthValue) return;
 
@@ -323,19 +322,30 @@
 
     const scheduleRows = tbody.querySelectorAll("tr");
 
+    // Helper to update the custom button component
+    const updateButton = (btn, value, type) => {
+      if (!btn) return;
+      btn.dataset.value = value || "";
+      const textSpan = btn.querySelector("span");
+      if (textSpan) {
+        if (value) {
+          textSpan.textContent = type === 'role' ? getRoleNameById(value) : getPlaceNameById(value);
+        } else {
+          textSpan.textContent = "-- තෝරන්න --";
+        }
+      }
+      // Dispatch change to trigger style updates (blue background etc)
+      btn.dispatchEvent(new Event('change'));
+    };
+
     // Clear existing values first (but preserve holidays)
     scheduleRows.forEach(tr => {
       // Only clear if not a holiday
       if (!tr.classList.contains("ms-holiday-row")) {
-        const morningRole = tr.querySelector(".tpl-morning-role");
-        const morningPlace = tr.querySelector(".tpl-morning-place");
-        const afternoonRole = tr.querySelector(".tpl-afternoon-role");
-        const afternoonPlace = tr.querySelector(".tpl-afternoon-place");
-
-        if (morningRole) morningRole.value = "";
-        if (morningPlace) morningPlace.value = "";
-        if (afternoonRole) afternoonRole.value = "";
-        if (afternoonPlace) afternoonPlace.value = "";
+        updateButton(tr.querySelector(".tpl-morning-role"), "", "role");
+        updateButton(tr.querySelector(".tpl-morning-place"), "", "place");
+        updateButton(tr.querySelector(".tpl-afternoon-role"), "", "role");
+        updateButton(tr.querySelector(".tpl-afternoon-place"), "", "place");
       }
     });
 
@@ -353,32 +363,28 @@
       // Skip if this is a holiday row
       if (tr.classList.contains("ms-holiday-row")) continue;
 
-      const morningRole = tr.querySelector(".tpl-morning-role");
-      const morningPlace = tr.querySelector(".tpl-morning-place");
-      const afternoonRole = tr.querySelector(".tpl-afternoon-role");
-      const afternoonPlace = tr.querySelector(".tpl-afternoon-place");
-
       // Get fixed dates for this specific day and week
       const fixedDates = getFixedDatesForDay(dayOfWeek, weekNumber);
 
       fixedDates.forEach(fd => {
-        const roleName = getRoleNameById(fd.roleId);
-        const placeName = getPlaceNameById(fd.placeId);
-
         if (fd.time === 'morning') {
-          // පෙරවරු - set both role and place in morning column
-          if (morningRole && roleName) morningRole.value = fd.roleId;
-          if (morningPlace && placeName) morningPlace.value = fd.placeId;
+          // පෙරවරු
+          if (fd.roleId) updateButton(tr.querySelector(".tpl-morning-role"), fd.roleId, "role");
+          if (fd.placeId) updateButton(tr.querySelector(".tpl-morning-place"), fd.placeId, "place");
         } else if (fd.time === 'afternoon') {
-          // පස්වරු - set both role and place in afternoon column
-          if (afternoonRole && roleName) afternoonRole.value = fd.roleId;
-          if (afternoonPlace && placeName) afternoonPlace.value = fd.placeId;
+          // පස්වරු
+          if (fd.roleId) updateButton(tr.querySelector(".tpl-afternoon-role"), fd.roleId, "role");
+          if (fd.placeId) updateButton(tr.querySelector(".tpl-afternoon-place"), fd.placeId, "place");
         } else if (fd.time === 'full_day') {
-          // දවසම - set both role and place in BOTH morning and afternoon columns
-          if (morningRole && roleName) morningRole.value = fd.roleId;
-          if (morningPlace && placeName) morningPlace.value = fd.placeId;
-          if (afternoonRole && roleName) afternoonRole.value = fd.roleId;
-          if (afternoonPlace && placeName) afternoonPlace.value = fd.placeId;
+          // දවසම
+          if (fd.roleId) {
+            updateButton(tr.querySelector(".tpl-morning-role"), fd.roleId, "role");
+            updateButton(tr.querySelector(".tpl-afternoon-role"), fd.roleId, "role");
+          }
+          if (fd.placeId) {
+            updateButton(tr.querySelector(".tpl-morning-place"), fd.placeId, "place");
+            updateButton(tr.querySelector(".tpl-afternoon-place"), fd.placeId, "place");
+          }
         }
       });
     }
@@ -519,303 +525,269 @@
   </thead>`;
     const tbody = el("tbody");
 
-    // Helper function to create cascading menu button
+    // Helper function to create cascading menu button (Improved Accordion Style)
     function createCascadingMenuButton(namePrefix, type, preservedValue, disabled) {
       const btnId = `${namePrefix}-${type}-btn`;
       const menuId = `${namePrefix}-${type}-menu`;
-      
+
       const items = type === 'role' ? loadKeyRoles() : loadKeyPlaces();
-      const displayText = preservedValue ? 
-        (type === 'role' ? getRoleNameById(preservedValue) : getPlaceNameById(preservedValue)) : 
+      const displayText = preservedValue ?
+        (type === 'role' ? getRoleNameById(preservedValue) : getPlaceNameById(preservedValue)) :
         `-- තෝරන්න --`;
-      
+
       const wrapper = el("div", {
-        style: "position:relative;flex:1;min-width:0"
+        style: "position:relative;flex:1;min-width:0;width:100%"
       });
-      
+
       const btn = el("button", {
         id: btnId,
         type: "button",
         class: `${namePrefix}-${type}`,
-        style: `width:100%;padding:8px 14px;border:1px solid #3fd113;border-radius:6px;background:#e0e0e0;
-                font-size:11px;color:#000;text-align:left;cursor:pointer;
-                display:flex;justify-content:space-between;align-items:center;transition:background 0.2s ease;
-                ${disabled ? 'opacity:0.6;cursor:not-allowed;' : ''}`
+        style: `width:100%;padding:4px 8px;border:1px solid #d0d6db;border-radius:4px;
+          background:${preservedValue ? '#e3f2fd' : '#fff'};
+          color:${preservedValue ? '#000' : '#000'};
+          text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+          font-size:11px;min-height:28px;
+          ${disabled ? 'opacity:0.6;cursor:not-allowed;background:#f5f5f5;' : ''}`
       });
       btn.disabled = disabled;
-      
-
       btn.dataset.value = preservedValue || "";
-      
+
       const textSpan = el("span", {
-        style: "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1"
+        style: "flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
       });
-      textSpan.textContent = displayText;
-      
-      const arrow = el("span", { style: "margin-left:4px;color:#6b7280;font-size:10px" });
+      textSpan.textContent = displayText || "-- තෝරන්න --";
+
+      const arrow = el("span", { style: "margin-left:4px;color:#666;font-size:10px;transition:transform 0.2s;" });
       arrow.textContent = "▼";
-      
+
       btn.appendChild(textSpan);
       btn.appendChild(arrow);
-      
-      // Create cascading menu
+
+      // Create dropdown
       const menu = el("div", {
         id: menuId,
-        style: `position:absolute;top:100%;left:0;min-width:220px;max-width:300px;
-                background:#bfbfbf;border:1px solid #838383;border-radius:8px;
-                box-shadow:0 10px 30px rgba(56, 56, 56, 0.1);z-index:1000;display:none;
-                max-height:400px;margin-top:4px;overflow:visible`
+        style: `position:absolute;bottom:100%;left:0;width:100%;background:#eef6fc;
+          border:1px solid #d0d6db;border-radius:4px;box-shadow:0 4px 8px rgba(0,0,0,0.15);
+          max-height:300px;overflow-y:auto;z-index:9999;display:none;margin-bottom:2px;
+          font-family: 'Noto Sans Sinhala', 'Noto Sans', Arial, sans-serif;
+          font-size: 12px;`
       });
-      
-      // Add menu items
+
+      let selectedValue = preservedValue || "";
+
+      // Populate dropdown items
       items.forEach(item => {
-        const itemDiv = el("div", {
-          style: `padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;
-                  align-items:center;border-bottom:1px solid #bfbfbf;transition:background 0.15s ease;position:relative;font-size:14px`
+        const mainText = item.main || item.id;
+        const hasSub = item.sub && Array.isArray(item.sub) && item.sub.length > 0;
+
+        const mainDiv = el("div", {
+          class: "dropdown-main-item",
+          style: `padding:8px 10px;cursor:pointer;border-bottom:1px solid #eee;
+            font-weight:${hasSub ? '500' : 'normal'};display:flex;justify-content:space-between;align-items:center;
+            transition:background 0.2s;`
         });
-        itemDiv.dataset.value = item.id;
-        
-        // Check if this is an afternoon place menu
-        const isAfternoonPlace = namePrefix.includes('afternoon') && type === 'place';
-        
-        // Check if has sub items
-        if (item.sub && item.sub.length > 0) {
-          const indicator = el("span", {
-            style: isAfternoonPlace ? "margin-right:8px;color:#666;font-size:14px" : "margin-left:8px;color:#666;font-size:14px"
+
+        const mainTextSpan = el("span", { text: mainText });
+        mainDiv.appendChild(mainTextSpan);
+
+        if (hasSub) {
+          const expandIcon = el("span", {
+            class: "expand-icon",
+            style: "color:#666;font-size:10px;transition:transform 0.2s;",
+            text: "▶"
           });
-          indicator.textContent = isAfternoonPlace ? "◀" : "▶";
-          
-          if (isAfternoonPlace) {
-            itemDiv.appendChild(indicator);
-          }
-        }
-        
-        const mainText = el("span", {
-          style: "flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
-        });
-        mainText.textContent = item.main || item.id;
-        itemDiv.appendChild(mainText);
-        
-        // Check if has sub items
-        if (item.sub && item.sub.length > 0) {
-          if (!isAfternoonPlace) {
-            const indicator = itemDiv.querySelector("span");
-            if (!indicator || indicator === mainText) {
-              const newIndicator = el("span", {
-                style: "margin-left:8px;color:#666;font-size:14px"
-              });
-              newIndicator.textContent = "▶";
-              itemDiv.appendChild(newIndicator);
-            }
-          }
-          
-          // Create submenu
-          const submenu = el("div", {
-            style: `position:absolute;left:100%;top:0;min-width:180px;
-                    background:#bfbfbf;border:1px solid #3f3f3f;border-radius:8px;
-                    box-shadow:0 10px 30px rgba(0,0,0,0.1);display:none;
-                    max-height:400px;overflow-y:auto;z-index:10002`
+          mainDiv.appendChild(expandIcon);
+
+          // Create sub-items container
+          const subContainer = el("div", {
+            class: "sub-items-container",
+            style: "display:none;background:#eeeeee;"
           });
 
-          const positionSubmenu = () => {
-            submenu.style.display = "block";
-            // Check if this is an afternoon place menu (tpl-afternoon-place)
-            const isAfternoonPlace = namePrefix.includes('afternoon') && type === 'place';
-            
-            if (isAfternoonPlace) {
-              // Always show on left for afternoon place
-              submenu.style.left = "auto";
-              submenu.style.right = "100%";
-            } else {
-              // Default: show on right, flip to left if needed
-              submenu.style.left = "100%";
-              submenu.style.right = "auto";
-              const rect = submenu.getBoundingClientRect();
-              if (rect.right > window.innerWidth && rect.left > 0) {
-                submenu.style.left = "auto";
-                submenu.style.right = "100%";
-              }
-            }
-          };
-          
           item.sub.forEach(subItem => {
-            const subDiv = el("div", {
-              style: "padding:12px 14px;cursor:pointer;border-bottom:1px solid #e5e7eb;transition:background 0.15s ease;font-size:14px"
-            });
-            const subId = `${item.id}:${typeof subItem === 'object' ? subItem.name : subItem}`;
-            subDiv.dataset.value = subId;
-            
             const subName = typeof subItem === 'object' ? subItem.name : subItem;
-            const subCode = typeof subItem === 'object' && subItem.code ? ` (${subItem.code})` : '';
-            subDiv.textContent = subName + subCode;
-            
-            subDiv.addEventListener("mouseenter", () => {
-              subDiv.style.background = "#2196F3";
-              subDiv.style.color = "#fff";
+            const subCode = typeof subItem === 'object' ? subItem.code : "";
+            const subText = subCode ? `${subName} (${subCode})` : subName;
+            const subValue = `${item.id}:${subName}`;
+
+            const subDiv = el("div", {
+              class: "dropdown-sub-item",
+              style: `padding:8px 10px 8px 25px;cursor:pointer;border-bottom:1px solid #e0e0e0;
+                transition:background 0.2s;`
             });
-            subDiv.addEventListener("mouseleave", () => {
-              subDiv.style.background = "transparent";
-              subDiv.style.color = "#000";
-            });
+            subDiv.textContent = subText;
+
+            subDiv.addEventListener("mouseenter", () => subDiv.style.background = "#b3e1ffff");
+            subDiv.addEventListener("mouseleave", () => subDiv.style.background = "#eeeeee");
             subDiv.addEventListener("click", (e) => {
               e.stopPropagation();
-              btn.dataset.value = subId;
+              btn.dataset.value = subValue;
               textSpan.textContent = subName;
               menu.style.display = "none";
-              submenu.style.display = "none";
-              // Trigger change event
-              btn.dispatchEvent(new Event('change', { bubbles: true }));
-            });
-            
-            submenu.appendChild(subDiv);
-          });
-          
-          itemDiv.appendChild(submenu);
-          
-          itemDiv.addEventListener("mouseenter", () => {
-            itemDiv.style.background = "#2196F3";
-            itemDiv.style.color = "#fff";
-            const indicators = itemDiv.querySelectorAll('span');
-            indicators.forEach(span => { if (span !== mainText) span.style.color = "#fff"; });
-            positionSubmenu();
-          });
-          itemDiv.addEventListener("mouseleave", (e) => {
-            // Delay hiding to allow moving to submenu
-            setTimeout(() => {
-              if (!submenu.matches(':hover')) {
-                itemDiv.style.background = "transparent";
-                itemDiv.style.color = "#000";
-                const indicators = itemDiv.querySelectorAll('span');
-                indicators.forEach(span => { if (span !== mainText) span.style.color = "#666"; });
-                submenu.style.display = "none";
+              arrow.style.transform = "rotate(0deg)";
+
+              if (menu.parentElement === document.body) {
+                wrapper.appendChild(menu);
               }
-            }, 100);
+
+              const event = new Event('change', { bubbles: true });
+              btn.dispatchEvent(event);
+            });
+
+            subContainer.appendChild(subDiv);
           });
-          
-          // Keep submenu open when hovering over it
-          submenu.addEventListener("mouseenter", () => {
-            submenu.style.display = "block";
-            itemDiv.style.background = "#2196F3";
-            itemDiv.style.color = "#fff";
-            const indicators = itemDiv.querySelectorAll('span');
-            indicators.forEach(span => { if (span !== mainText) span.style.color = "#fff"; });
+
+          // Main item click handler (toggle sub-items)
+          mainDiv.addEventListener("mouseenter", () => mainDiv.style.background = "#a7edffff");
+          mainDiv.addEventListener("mouseleave", () => mainDiv.style.background = "#fff");
+          mainDiv.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isExpanded = subContainer.style.display === "block";
+
+            // Collapse all other sub-containers in this menu
+            menu.querySelectorAll(".sub-items-container").forEach(container => {
+              container.style.display = "none";
+              // Reset icons logic omitted for brevity as traversing manually is tricky without direct reference.
+              // Relying on re-render or just simple toggle for now.
+              // Actually consistent logic:
+              const prev = container.previousElementSibling; // This is mainDiv usually? No, in my Append order below: mainDiv, subContainer.
+              if (prev) {
+                const icon = prev.querySelector(".expand-icon");
+                if (icon) icon.style.transform = "rotate(0deg)";
+              }
+            });
+
+            if (!isExpanded) {
+              subContainer.style.display = "block";
+              expandIcon.style.transform = "rotate(90deg)";
+            } else {
+              subContainer.style.display = "none";
+              expandIcon.style.transform = "rotate(0deg)";
+            }
           });
-          submenu.addEventListener("mouseleave", () => {
-            submenu.style.display = "none";
-            itemDiv.style.background = "transparent";
-            itemDiv.style.color = "#000";
-            const indicators = itemDiv.querySelectorAll('span');
-            indicators.forEach(span => { if (span !== mainText) span.style.color = "#666"; });
-          });
+
+          menu.appendChild(mainDiv);
+          menu.appendChild(subContainer);
         } else {
-          // No submenu - click to select main item
-          itemDiv.addEventListener("mouseenter", () => {
-            itemDiv.style.background = "#2196F3";
-            itemDiv.style.color = "#fff";
-          });
-          itemDiv.addEventListener("mouseleave", () => {
-            itemDiv.style.background = "transparent";
-            itemDiv.style.color = "#000";
-          });
-        }
-        
-        // Main item click
-        itemDiv.addEventListener("click", (e) => {
-          if (!item.sub || item.sub.length === 0) {
+          // No sub items
+          mainDiv.addEventListener("mouseenter", () => mainDiv.style.background = "#e6f2ff");
+          mainDiv.addEventListener("mouseleave", () => mainDiv.style.background = "#fff");
+          mainDiv.addEventListener("click", (e) => {
+            e.stopPropagation();
             btn.dataset.value = item.id;
-            textSpan.textContent = item.main || item.id;
+            textSpan.textContent = mainText;
             menu.style.display = "none";
-            // Trigger change event
-            btn.dispatchEvent(new Event('change', { bubbles: true }));
+            arrow.style.transform = "rotate(0deg)";
+
+            if (menu.parentElement === document.body) {
+              wrapper.appendChild(menu);
+            }
+
+            const event = new Event('change', { bubbles: true });
+            btn.dispatchEvent(event);
+          });
+          menu.appendChild(mainDiv);
+        }
+      });
+
+      // Display button click handler
+      if (!disabled) {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isOpen = menu.style.display === "block";
+
+          // Close all other menus (checking id suffix)
+          document.querySelectorAll('[id$="-menu"]').forEach(m => {
+            if (m !== menu && m.style.display === "block") {
+              m.style.display = "none";
+              // Move back to wrapper if necessary.
+              // For safety, we can't easily find the wrapper of 'm' here without extra data.
+              // But the 'click outside' listener on document handles most cleanup.
+              // Force hiding is better than overlapping.
+            }
+          });
+
+          if (isOpen) {
+            menu.style.display = "none";
+            arrow.style.transform = "rotate(0deg)";
+            if (menu.parentElement === document.body) {
+              wrapper.appendChild(menu);
+            }
+          } else {
+            // Move to body to avoid overflow clipping
+            document.body.appendChild(menu);
+            menu.style.display = "block";
+            arrow.style.transform = "rotate(180deg)";
+
+            // Fixed positioning calculations
+            const rect = btn.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const spaceBelow = viewportHeight - rect.bottom;
+
+            menu.style.position = "fixed";
+            menu.style.width = Math.max(rect.width, 220) + "px";
+
+            menu.style.left = rect.left + "px";
+            menu.style.zIndex = "10000";
+            menu.style.margin = "0";
+
+            // Check if there is enough space below (e.g., 250px)
+            if (spaceBelow >= 250) {
+              // Open downwards
+              menu.style.top = (rect.bottom + 2) + "px";
+              menu.style.bottom = "auto";
+            } else {
+              // Open upwards
+              menu.style.bottom = (viewportHeight - rect.top + 2) + "px";
+              menu.style.top = "auto";
+            }
+
+            // Adjust left if goes offscreen?
+            const menuRect = menu.getBoundingClientRect();
+            if (menuRect.right > window.innerWidth) {
+              menu.style.left = (window.innerWidth - menuRect.width - 20) + "px";
+            }
           }
         });
-        
-        menu.appendChild(itemDiv);
-      });
-      
-      // Toggle menu on button click
-      btn.addEventListener("click", (e) => {
-        if (disabled) return;
-        e.stopPropagation();
-        
-        // Check if month is selected before allowing dropdown interaction
-        if (!monthInput.value) {
-          showWarning("කරුණාකර මුලින්ම මාසය තෝරන්න\n\nPlease select the month first\n\nதயவுசெய்து முதலில் மாதத்தைத் தேர்ந்தெடுக்கவும்", "මාසය තෝරන්න / Select Month");
-          // Highlight month input to draw attention
-          monthInput.style.border = "2px solid #ef4444";
-          monthInput.style.boxShadow = "0 0 0 3px rgba(239, 68, 68, 0.1)";
-          setTimeout(() => monthInput.focus(), 100);
-          return;
-        }
-        
-        const isVisible = menu.style.display === "block";
-        // Close all other menus
-        document.querySelectorAll('[id$="-menu"]').forEach(m => m.style.display = "none");
-        
-        if (!isVisible) {
-          // Check available space
-          const btnRect = btn.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-          const spaceBelow = viewportHeight - btnRect.bottom;
-          const spaceAbove = btnRect.top;
-          
-          // Determine if we should show menu above or below
-          // On mobile or when space is limited, prefer showing where there's more space
-          const menuEstimatedHeight = 250; // estimated menu height
-          const shouldShowAbove = spaceBelow < menuEstimatedHeight && spaceAbove > spaceBelow && spaceAbove > 100;
-          
-          if (shouldShowAbove) {
-            menu.style.top = "auto";
-            menu.style.bottom = "100%";
-            menu.style.marginTop = "0";
-            menu.style.marginBottom = "4px";
-            menu.style.maxHeight = `${Math.min(400, spaceAbove - 50)}px`;
-          } else {
-            menu.style.top = "100%";
-            menu.style.bottom = "auto";
-            menu.style.marginTop = "4px";
-            menu.style.marginBottom = "0";
-            menu.style.maxHeight = `${Math.min(400, spaceBelow - 50)}px`;
+
+        // Close dropdown when clicking outside
+        const closeHandler = (e) => {
+          if (!wrapper.contains(e.target) && !menu.contains(e.target)) {
+            if (menu.style.display === "block") {
+              menu.style.display = "none";
+              arrow.style.transform = "rotate(0deg)";
+              if (menu.parentElement === document.body) {
+                wrapper.appendChild(menu);
+              }
+              // Collapse sub-items
+              menu.querySelectorAll(".sub-items-container").forEach(container => {
+                container.style.display = "none";
+                const icon = container.previousElementSibling?.querySelector(".expand-icon");
+                if (icon) icon.style.transform = "rotate(0deg)";
+              });
+            }
           }
-          menu.style.display = "block";
-        } else {
-          menu.style.display = "none";
-        }
-      });
-      
+        };
+        document.addEventListener("click", closeHandler);
+      }
+
       wrapper.appendChild(btn);
       wrapper.appendChild(menu);
-      
-      // Add change event listener to highlight button and cell when selection is made
+
+      // Add change event listener to update button style
       btn.addEventListener('change', () => {
-        // Find the parent td element
-        let td = btn.closest('td');
-        if (td && btn.dataset.value) {
-          // Apply green background when selection is made
-          td.style.backgroundColor = '#ffffff'; // Light green
-          // Change button color when selected
-          btn.style.background = '#309138'; // Green
-          btn.style.color = '#fff'; // White text
-          btn.style.borderColor = '#45a049';
-          arrow.style.color = '#fff';
-        } else if (td) {
-          // Remove background if no selection
-          td.style.backgroundColor = '';
-          btn.style.background = '#e0e0e0'; // Gray
+        if (btn.dataset.value) {
+          btn.style.backgroundColor = '#207733ff'; // Blue background when selected
           btn.style.color = '#000';
-          btn.style.borderColor = '#3fd113';
-          arrow.style.color = '#6b7280';
+          btn.style.borderColor = '#000000ff';
+        } else {
+          btn.style.backgroundColor = '#9e9e9eff';
+          btn.style.color = '#000';
+          btn.style.borderColor = '#d0d6db';
         }
       });
-      
-      // Set initial button color if there's a preserved value
-      if (preservedValue) {
-        btn.style.background = '#4CAF50';
-        btn.style.color = '#fff';
-        btn.style.borderColor = '#45a049';
-        arrow.style.color = '#fff';
-      }
-      
+
       return wrapper;
     }
 
@@ -830,7 +802,7 @@
 
       // Use cascading menu buttons instead of selects
       const roleMenu = createCascadingMenuButton(namePrefix, 'role', preservedRole, disabled);
-      
+
       const dash = el("div", { style: "width:12px;text-align:center;color:#000" });
       dash.textContent = "-";
 
@@ -839,17 +811,17 @@
       wrap.appendChild(roleMenu);
       wrap.appendChild(dash);
       wrap.appendChild(placeMenu);
-      
+
       // Check if there's already a selection and highlight accordingly
       setTimeout(() => {
         const roleBtn = roleMenu.querySelector('button');
         const placeBtn = placeMenu.querySelector('button');
         const td = wrap.closest('td');
         if (td && ((roleBtn && roleBtn.dataset.value) || (placeBtn && placeBtn.dataset.value))) {
-          td.style.backgroundColor = '#58b467'; // Light green
+          td.style.backgroundColor = '#ffffffff'; // Light green
         }
       }, 0);
-      
+
       return wrap;
     }
 
@@ -915,13 +887,13 @@
         </div>
       </div>
     `;
-    
+
     // Wrap table in container that allows overflow for dropdowns
     const tableWrapper = el("div", {
       style: "overflow:visible;position:relative"
     });
     tableWrapper.appendChild(table);
-    
+
     templateWrap.appendChild(tableWrapper);
     templateWrap.appendChild(footer);
 
@@ -1246,9 +1218,9 @@
       const key = storageKeyForMonth(payload.month);
       const exists = !!localStorage.getItem(key);
       if (exists) {
-        if (!await showConfirm(`A saved schedule already exists for ${payload.month}. Overwrite?`)) { 
-          showWarning("Save cancelled."); 
-          return; 
+        if (!await showConfirm(`A saved schedule already exists for ${payload.month}. Overwrite?`)) {
+          showWarning("Save cancelled.");
+          return;
         }
       }
       localStorage.setItem(key, JSON.stringify(payload));
@@ -1467,19 +1439,14 @@
           // Attach double-click toggle handler on the entire row (or you can attach to tdM/tdA)
           const dblHandler = function (ev) {
             ev.stopPropagation();
-            // Check if currently shows button menus (duty) -> switch back to locked Sunday
-            const hasButtons = !!tdM.querySelector(".tpl-morning-role") || !!tdA.querySelector(".tpl-afternoon-role");
-            if (hasButtons) {
-              // store current button values then make locked
-              const mRoleBtn = tdM.querySelector(".tpl-morning-role");
-              const mPlaceBtn = tdM.querySelector(".tpl-morning-place");
-              const aRoleBtn = tdA.querySelector(".tpl-afternoon-role");
-              const aPlaceBtn = tdA.querySelector(".tpl-afternoon-place");
-
-              const curMRole = mRoleBtn ? (mRoleBtn.dataset.value || "") : "";
-              const curMPlace = mPlaceBtn ? (mPlaceBtn.dataset.value || "") : "";
-              const curARole = aRoleBtn ? (aRoleBtn.dataset.value || "") : "";
-              const curAPlace = aPlaceBtn ? (aPlaceBtn.dataset.value || "") : "";
+            // If currently shows selects (duty) -> switch back to locked Sunday
+            const hasSelects = !!tdM.querySelector("select") || !!tdA.querySelector("select");
+            if (hasSelects) {
+              // store current select values then make locked
+              const curMRole = (tdM.querySelector(".tpl-morning-role") || { value: "" }).value || "";
+              const curMPlace = (tdM.querySelector(".tpl-morning-place") || { value: "" }).value || "";
+              const curARole = (tdA.querySelector(".tpl-afternoon-role") || { value: "" }).value || "";
+              const curAPlace = (tdA.querySelector(".tpl-afternoon-place") || { value: "" }).value || "";
 
               if (curMRole) tr.dataset.morningRole = curMRole; else delete tr.dataset.morningRole;
               if (curMPlace) tr.dataset.morningPlace = curMPlace; else delete tr.dataset.morningPlace;
@@ -1492,9 +1459,9 @@
             } else {
               // currently locked => convert to duty selects
               makeDutySunday();
-              // focus first button for better UX
-              const firstBtn = tdM.querySelector("button");
-              if (firstBtn) try { firstBtn.focus(); } catch (e) { }
+              // focus first select for better UX
+              const firstSel = tdM.querySelector("select, textarea, input");
+              if (firstSel) try { firstSel.focus(); } catch (e) { }
             }
           };
 

@@ -11,22 +11,308 @@
 
   /* ================= HELPERS ================= */
   const $ = id => document.getElementById(id);
-  const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-  const load = k => JSON.parse(localStorage.getItem(k)||"[]");
-  const save = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
-  const esc = t => {const d=document.createElement("div"); d.textContent=t; return d.innerHTML;};
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const load = k => JSON.parse(localStorage.getItem(k) || "[]");
+  const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+  const esc = t => { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; };
+
+  /* ================= COLLAPSIBLE DROPDOWN SELECT HELPER ================= */
+  function createDropdownSelect(namePrefix, type, preservedValue, disabled) {
+    const items = type === 'role' ? load(ROLE_KEY) : load(PLACE_KEY);
+
+    const wrapper = document.createElement("div");
+    wrapper.className = `${namePrefix}-${type}-wrapper`;
+    wrapper.style.cssText = "position:relative;width:100%;";
+
+    // Display button
+    const displayBtn = document.createElement("button");
+    displayBtn.type = "button";
+    displayBtn.className = `${namePrefix}-${type}-display`;
+    displayBtn.style.cssText = `width:100%;padding:4px 8px;border:1px solid #d0d6db;border-radius:4px;
+      background:#fff;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+      font-size:clamp(11px,2.5vw,13px);min-height:32px;${disabled ? 'opacity:0.6;cursor:not-allowed;background:#f5f5f5;' : ''}`;
+    displayBtn.disabled = disabled;
+
+    const displayText = document.createElement("span");
+    displayText.style.cssText = "flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+    displayText.textContent = "-- තෝරන්න --";
+
+    const arrow = document.createElement("span");
+    arrow.style.cssText = "margin-left:4px;color:#666;font-size:10px;transition:transform 0.2s;";
+    arrow.textContent = "▼";
+
+    displayBtn.appendChild(displayText);
+    displayBtn.appendChild(arrow);
+
+    // Dropdown menu
+    const dropdown = document.createElement("div");
+    dropdown.className = `${namePrefix}-${type}-dropdown`;
+    dropdown.style.cssText = `position:absolute;top:100%;left:0;width:100%;background:#fff;
+      border:1px solid #d0d6db;border-radius:4px;box-shadow:0 4px 8px rgba(0,0,0,0.15);
+      max-height:300px;overflow-y:auto;z-index:9999;display:none;margin-top:2px;`;
+
+    let selectedValue = preservedValue || "";
+
+    // Populate dropdown items
+    items.forEach(item => {
+      const mainText = item.main || item.id;
+      const hasSub = item.sub && Array.isArray(item.sub) && item.sub.length > 0;
+
+      const mainDiv = document.createElement("div");
+      mainDiv.className = "dropdown-main-item";
+      mainDiv.style.cssText = `padding:8px 10px;cursor:pointer;border-bottom:1px solid #eee;
+        font-weight:${hasSub ? '500' : 'normal'};display:flex;justify-content:space-between;align-items:center;
+        transition:background 0.2s;font-size:clamp(11px,2.5vw,13px);`;
+      mainDiv.dataset.itemId = item.id;
+      mainDiv.dataset.hasSub = hasSub;
+
+      const mainTextSpan = document.createElement("span");
+      mainTextSpan.textContent = mainText;
+      mainDiv.appendChild(mainTextSpan);
+
+      if (hasSub) {
+        const expandIcon = document.createElement("span");
+        expandIcon.className = "expand-icon";
+        expandIcon.style.cssText = "color:#666;font-size:10px;transition:transform 0.2s;";
+        expandIcon.textContent = "▶";
+        mainDiv.appendChild(expandIcon);
+
+        // Create sub-items container
+        const subContainer = document.createElement("div");
+        subContainer.className = "sub-items-container";
+        subContainer.style.cssText = "display:none;background:#f8f9fa;";
+
+        item.sub.forEach(subItem => {
+          const subName = typeof subItem === 'object' ? subItem.name : subItem;
+          const subCode = typeof subItem === 'object' ? subItem.code : "";
+          const subText = subCode ? `${subName} (${subCode})` : subName;
+          const subValue = `${item.id}:${subName}`;
+
+          const subDiv = document.createElement("div");
+          subDiv.className = "dropdown-sub-item";
+          subDiv.style.cssText = `padding:8px 10px 8px 25px;cursor:pointer;border-bottom:1px solid #e0e0e0;
+            transition:background 0.2s;font-size:clamp(10px,2.3vw,12px);`;
+          subDiv.textContent = subText;
+          subDiv.dataset.value = subValue;
+          subDiv.dataset.displayText = subText;
+
+          if (preservedValue === subValue) {
+            displayText.textContent = subText;
+            selectedValue = subValue;
+          }
+
+          // Sub-item click handler
+          subDiv.addEventListener("mouseenter", () => subDiv.style.background = "#e3f2fd");
+          subDiv.addEventListener("mouseleave", () => subDiv.style.background = "#f8f9fa");
+          subDiv.addEventListener("click", (e) => {
+            e.stopPropagation();
+            selectedValue = subDiv.dataset.value;
+            displayText.textContent = subDiv.dataset.displayText;
+            dropdown.style.display = "none";
+            arrow.style.transform = "rotate(0deg)";
+
+            if (dropdown.parentElement === document.body) {
+              wrapper.appendChild(dropdown);
+            }
+
+            // Trigger change event
+            const event = new Event('change', { bubbles: true });
+            wrapper.dispatchEvent(event);
+          });
+
+          subContainer.appendChild(subDiv);
+        });
+
+        // Main item click handler (toggle sub-items)
+        mainDiv.addEventListener("mouseenter", () => mainDiv.style.background = "#f0f0f0");
+        mainDiv.addEventListener("mouseleave", () => mainDiv.style.background = "#fff");
+        mainDiv.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isExpanded = subContainer.style.display === "block";
+
+          // Collapse all other sub-containers
+          dropdown.querySelectorAll(".sub-items-container").forEach(container => {
+            container.style.display = "none";
+            const icon = container.previousElementSibling?.querySelector(".expand-icon");
+            if (icon) icon.style.transform = "rotate(0deg)";
+          });
+
+          if (!isExpanded) {
+            subContainer.style.display = "block";
+            expandIcon.style.transform = "rotate(90deg)";
+          } else {
+            subContainer.style.display = "none";
+            expandIcon.style.transform = "rotate(0deg)";
+          }
+        });
+
+        dropdown.appendChild(mainDiv);
+        dropdown.appendChild(subContainer);
+      } else {
+        // Main item without sub-items (selectable)
+        if (preservedValue === item.id) {
+          displayText.textContent = mainText;
+          selectedValue = item.id;
+        }
+
+        mainDiv.addEventListener("mouseenter", () => mainDiv.style.background = "#e3f2fd");
+        mainDiv.addEventListener("mouseleave", () => mainDiv.style.background = "#fff");
+        mainDiv.addEventListener("click", (e) => {
+          e.stopPropagation();
+          selectedValue = item.id;
+          displayText.textContent = mainText;
+          dropdown.style.display = "none";
+          arrow.style.transform = "rotate(0deg)";
+
+          if (dropdown.parentElement === document.body) {
+            wrapper.appendChild(dropdown);
+          }
+
+          // Trigger change event
+          const event = new Event('change', { bubbles: true });
+          wrapper.dispatchEvent(event);
+        });
+
+        dropdown.appendChild(mainDiv);
+      }
+    });
+
+    // Display button click handler
+    if (!disabled) {
+      displayBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = dropdown.style.display === "block";
+
+        // Close all other dropdowns
+        document.querySelectorAll('[class*="-dropdown"]').forEach(dd => {
+          if (dd !== dropdown && dd.style.display === "block") {
+            dd.style.display = "none";
+            // If it was moved to body, we can't easily find its original wrapper here without extra tracking.
+            // But since we use the document click listener to close & restore, this might leave orphans if we aren't careful.
+            // ideally we trigger a click on document?? No.
+            // Let's just hide it. The orphan issue is minor if they are few. 
+            // Better: Dispatch a custom event or let the individual document listeners handle it?
+            // Actually, the individual document listeners will handle "clicking outside" for other dropdowns.
+            // So we might not need to manually force close others here if the click logic is robust?
+            // But this click is "inside" THIS wrapper, so it might not trigger "outside" for OTHERS if we aren't careful.
+            // However, appending to body makes them siblings.
+            // Let's stick to hiding them.
+            dd.style.display = "none";
+          }
+        });
+
+        if (isOpen) {
+          dropdown.style.display = "none";
+          arrow.style.transform = "rotate(0deg)";
+          if (dropdown.parentElement === document.body) {
+            wrapper.appendChild(dropdown);
+          }
+        } else {
+          // Move to body to avoid overflow clipping
+          document.body.appendChild(dropdown);
+          dropdown.style.display = "block";
+          arrow.style.transform = "rotate(180deg)";
+
+          // Fixed positioning calculations
+          const rect = displayBtn.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const spaceBelow = viewportHeight - rect.bottom;
+
+          dropdown.style.position = "fixed";
+          dropdown.style.width = rect.width + "px";
+          dropdown.style.left = rect.left + "px";
+          dropdown.style.zIndex = "10000";
+          dropdown.style.margin = "0"; // reset margin
+
+          // Check if there is enough space below (e.g., 250px)
+          if (spaceBelow >= 250) {
+            // Open downwards
+            dropdown.style.top = (rect.bottom + 2) + "px";
+            dropdown.style.bottom = "auto";
+          } else {
+            // Open upwards
+            dropdown.style.bottom = (viewportHeight - rect.top + 2) + "px";
+            dropdown.style.top = "auto";
+          }
+        }
+      });
+
+      // Close dropdown when clicking outside
+      const closeHandler = (e) => {
+        // Check if click is outside wrapper AND outside dropdown
+        if (!wrapper.contains(e.target) && !dropdown.contains(e.target)) {
+          if (dropdown.style.display === "block") {
+            dropdown.style.display = "none";
+            arrow.style.transform = "rotate(0deg)";
+            if (dropdown.parentElement === document.body) {
+              wrapper.appendChild(dropdown);
+            }
+            // Collapse sub-items
+            dropdown.querySelectorAll(".sub-items-container").forEach(container => {
+              container.style.display = "none";
+              const icon = container.previousElementSibling?.querySelector(".expand-icon");
+              if (icon) icon.style.transform = "rotate(0deg)";
+            });
+          }
+        }
+      };
+
+      // Use capture true or just document bubbling? Bubbling is fine.
+      document.addEventListener("click", closeHandler);
+
+      // Cleanup listener if wrapper is removed? 
+      // Not easily possible in vanilla JS without MutationObserver. 
+      // But we rely on "closeHandler" logic.
+    }
+
+    // Add getValue method to wrapper
+    wrapper.getValue = () => selectedValue;
+    wrapper.setValue = (val) => {
+      selectedValue = val;
+      // Update display text based on value
+      if (!val) {
+        displayText.textContent = "-- තෝරන්න --";
+        return;
+      }
+
+      if (val.includes(':')) {
+        const [mainId, subName] = val.split(':');
+        const mainItem = items.find(x => String(x.id) === String(mainId));
+        if (mainItem && mainItem.sub) {
+          const subItem = mainItem.sub.find(s => {
+            const sName = typeof s === 'object' ? s.name : s;
+            return sName === subName;
+          });
+          if (subItem) {
+            const subCode = typeof subItem === 'object' ? subItem.code : "";
+            displayText.textContent = subCode ? `${subName} (${subCode})` : subName;
+          }
+        }
+      } else {
+        const mainItem = items.find(x => String(x.id) === String(val));
+        if (mainItem) {
+          displayText.textContent = mainItem.main || mainItem.id;
+        }
+      }
+    };
+
+    wrapper.appendChild(displayBtn);
+    wrapper.appendChild(dropdown);
+
+    return wrapper;
+  }
 
   /* ================= CASCADING MENU HELPER ================= */
   function createCascadingMenuButton(namePrefix, type, preservedValue, disabled) {
     const btnId = `${namePrefix}-${type}-btn`;
     const menuId = `${namePrefix}-${type}-menu`;
-    
+
     const items = type === 'role' ? load(ROLE_KEY) : load(PLACE_KEY);
     const displayText = preservedValue ? getDisplayNameById(type, preservedValue) : `-- තෝරන්න --`;
-    
+
     const wrapper = document.createElement("div");
     wrapper.style.cssText = "position:relative;flex:1;min-width:0";
-    
+
     const btn = document.createElement("button");
     btn.id = btnId;
     btn.type = "button";
@@ -37,18 +323,18 @@
             ${disabled ? 'opacity:0.6;cursor:not-allowed;' : ''}`;
     btn.disabled = disabled;
     btn.dataset.value = preservedValue || "";
-    
+
     const textSpan = document.createElement("span");
     textSpan.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1";
     textSpan.textContent = displayText;
-    
+
     const arrow = document.createElement("span");
     arrow.style.cssText = "margin-left:4px;color:#6b7280;font-size:clamp(10px,2.2vw,12px)";
     arrow.textContent = "▼";
-    
+
     btn.appendChild(textSpan);
     btn.appendChild(arrow);
-    
+
     // Add hover effect
     if (!disabled) {
       btn.addEventListener("mouseenter", () => {
@@ -62,7 +348,7 @@
         arrow.style.color = "#6b7280";
       });
     }
-    
+
     // Create cascading menu
     const menu = document.createElement("div");
     menu.id = menuId;
@@ -70,26 +356,26 @@
             background:#f5f5f5;border:1px solid #ccc;border-radius:8px;
             box-shadow:0 10px 30px rgba(0,0,0,0.3);z-index:99999;display:none;
             max-height:400px;margin-top:4px;overflow:visible`;
-    
+
     // Add menu items
     items.forEach(item => {
       const itemDiv = document.createElement("div");
       itemDiv.style.cssText = `padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,14px);cursor:pointer;display:flex;justify-content:space-between;
               align-items:center;border-bottom:1px solid #bfbfbf;transition:background 0.15s ease;position:relative;font-size:clamp(12px,2.8vw,14px);min-height:44px;`;
       itemDiv.dataset.value = item.id;
-      
+
       const mainText = document.createElement("span");
       mainText.style.cssText = "flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
       mainText.textContent = item.main || item.id;
       itemDiv.appendChild(mainText);
-      
+
       // Check if has sub items
       if (item.sub && item.sub.length > 0) {
         const indicator = document.createElement("span");
         indicator.style.cssText = "margin-left:8px;color:#666;font-size:clamp(12px,2.8vw,14px)";
         indicator.textContent = "▶";
         itemDiv.appendChild(indicator);
-        
+
         // Create submenu
         const submenu = document.createElement("div");
         submenu.style.cssText = `position:absolute;left:100%;top:0;min-width:180px;
@@ -107,17 +393,17 @@
             submenu.style.right = "100%";
           }
         };
-        
+
         item.sub.forEach(subItem => {
           const subDiv = document.createElement("div");
           subDiv.style.cssText = "padding:clamp(10px,2.5vw,12px) clamp(12px,3vw,14px);cursor:pointer;border-bottom:1px solid #e5e7eb;transition:background 0.15s ease;font-size:clamp(11px,2.5vw,14px);min-height:40px;display:flex;align-items:center;";
           const subId = `${item.id}:${typeof subItem === 'object' ? subItem.name : subItem}`;
           subDiv.dataset.value = subId;
-          
+
           const subName = typeof subItem === 'object' ? subItem.name : subItem;
           const subCode = typeof subItem === 'object' && subItem.code ? ` (${subItem.code})` : '';
           subDiv.textContent = subName + subCode;
-          
+
           subDiv.addEventListener("mouseenter", () => {
             subDiv.style.background = "#2196F3";
             subDiv.style.color = "#fff";
@@ -134,50 +420,13 @@
             submenu.style.display = "none";
             btn.dispatchEvent(new Event('change', { bubbles: true }));
           });
-          
-          // Touch support for submenu items
-          subDiv.addEventListener("touchend", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            btn.dataset.value = subId;
-            textSpan.textContent = subName;
-            menu.style.display = "none";
-            submenu.style.display = "none";
-            btn.dispatchEvent(new Event('change', { bubbles: true }));
-          });
-          
+
           submenu.appendChild(subDiv);
         });
-        
+
         itemDiv.appendChild(submenu);
-        
-        // Touch/Click handler for mobile - toggle submenu
-        let touchHandled = false;
-        itemDiv.addEventListener("touchstart", (e) => {
-          touchHandled = true;
-          const isSubmenuVisible = submenu.style.display === "block";
-          
-          // Close all other submenus
-          document.querySelectorAll('[id$="-menu"] > div > div').forEach(div => {
-            const sm = div.querySelector('div[style*="position:absolute"]');
-            if (sm && sm !== submenu) sm.style.display = "none";
-          });
-          
-          if (!isSubmenuVisible) {
-            itemDiv.style.background = "#2196F3";
-            itemDiv.style.color = "#fff";
-            const indicators = itemDiv.querySelectorAll('span');
-            indicators.forEach(span => { if (span !== mainText) span.style.color = "#fff"; });
-            positionSubmenu();
-            e.stopPropagation();
-          }
-        });
-        
+
         itemDiv.addEventListener("mouseenter", () => {
-          if (touchHandled) {
-            touchHandled = false;
-            return;
-          }
           itemDiv.style.background = "#2196F3";
           itemDiv.style.color = "#fff";
           const indicators = itemDiv.querySelectorAll('span');
@@ -195,7 +444,7 @@
             }
           }, 100);
         });
-        
+
         submenu.addEventListener("mouseenter", () => {
           submenu.style.display = "block";
           itemDiv.style.background = "#2196F3";
@@ -221,7 +470,7 @@
           itemDiv.style.color = "#000";
         });
       }
-      
+
       // Main item click
       itemDiv.addEventListener("click", (e) => {
         if (!item.sub || item.sub.length === 0) {
@@ -231,27 +480,27 @@
           btn.dispatchEvent(new Event('change', { bubbles: true }));
         }
       });
-      
+
       menu.appendChild(itemDiv);
     });
-    
+
     // Toggle menu on button click
     btn.addEventListener("click", (e) => {
       if (disabled) return;
       e.stopPropagation();
       const isVisible = menu.style.display === "block";
       document.querySelectorAll('[id$="-menu"]').forEach(m => m.style.display = "none");
-      
+
       if (!isVisible) {
         menu.style.display = "block";
       } else {
         menu.style.display = "none";
       }
     });
-    
+
     wrapper.appendChild(btn);
     wrapper.appendChild(menu);
-    
+
     return wrapper;
   }
 
@@ -285,8 +534,8 @@
   });
 
   /* ================= MAIN RENDER ================= */
-  window.renderPhiKeyMapTab = function(container){
-    if(typeof container==="string") container=$(container);
+  window.renderPhiKeyMapTab = function (container) {
+    if (typeof container === "string") container = $(container);
 
     container.innerHTML = `
       <div class="glass" style="padding:20px;padding:clamp(10px,3vw,20px);">
@@ -303,21 +552,21 @@
       </div>
     `;
 
-    $("kmSelect").addEventListener("change",()=>{activeEdit=null; renderSection();});
+    $("kmSelect").addEventListener("change", () => { activeEdit = null; renderSection(); });
     renderSection();
   };
 
-  function renderSection(){
-    const v=$("kmSelect").value;
-    if(v==="role") renderMainSub("role",ROLE_KEY,"ප්‍රධාන රාජකාරිය");
-    if(v==="place") renderMainSub("place",PLACE_KEY,"ප්‍රධාන ස්ථානය");
-    if(v==="holiday") renderHoliday();
-    if(v==="fixedDates") renderFixedDates();
+  function renderSection() {
+    const v = $("kmSelect").value;
+    if (v === "role") renderMainSub("role", ROLE_KEY, "ප්‍රධාන රාජකාරිය");
+    if (v === "place") renderMainSub("place", PLACE_KEY, "ප්‍රධාන ස්ථානය");
+    if (v === "holiday") renderHoliday();
+    if (v === "fixedDates") renderFixedDates();
   }
 
   /* ================= ROLE / PLACE ================= */
-  function renderMainSub(type,key,label){
-    const data=load(key);
+  function renderMainSub(type, key, label) {
+    const data = load(key);
 
     $("kmBody").innerHTML = `
       <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px;">
@@ -341,24 +590,24 @@
           </tr>
         </thead>
         <tbody>
-          ${data.map((r,i)=>`
+          ${data.map((r, i) => `
             <tr style="border-bottom:1px solid #eee">
-              <td style="padding:10px;vertical-align:top" rowspan="${Math.max(r.sub.length+1,2)}">${i+1}</td>
+              <td style="padding:10px;vertical-align:top" rowspan="${Math.max(r.sub.length + 1, 2)}">${i + 1}</td>
 
-              <td style="padding:10px;vertical-align:top" rowspan="${Math.max(r.sub.length+1,2)}">
-                ${renderMainCell(type,key,r)}
+              <td style="padding:10px;vertical-align:top" rowspan="${Math.max(r.sub.length + 1, 2)}">
+                ${renderMainCell(type, key, r)}
               </td>
 
-              ${r.sub.length>0 ? `
-                <td style="padding:10px">${renderSubName(type,r,0)}</td>
-                <td style="padding:10px">${renderSubCode(type,r,0)}</td>
-                <td style="padding:10px">${renderSubActions(type,r.id,0)}</td>
+              ${r.sub.length > 0 ? `
+                <td style="padding:10px">${renderSubName(type, r, 0)}</td>
+                <td style="padding:10px">${renderSubCode(type, r, 0)}</td>
+                <td style="padding:10px">${renderSubActions(type, r.id, 0)}</td>
               </tr>
-              ${r.sub.slice(1).map((s,si)=>`
+              ${r.sub.slice(1).map((s, si) => `
                 <tr style="border-bottom:1px solid #eee">
-                  <td style="padding:10px">${renderSubName(type,r,si+1)}</td>
-                  <td style="padding:10px">${renderSubCode(type,r,si+1)}</td>
-                  <td style="padding:10px">${renderSubActions(type,r.id,si+1)}</td>
+                  <td style="padding:10px">${renderSubName(type, r, si + 1)}</td>
+                  <td style="padding:10px">${renderSubCode(type, r, si + 1)}</td>
+                  <td style="padding:10px">${renderSubActions(type, r.id, si + 1)}</td>
                 </tr>
               `).join("")}
               ` : `
@@ -390,8 +639,8 @@
     `;
   }
 
-  function renderMainCell(type,key,r){
-    if(activeEdit && activeEdit.type===type && activeEdit.id===r.id && activeEdit.subIndex==null){
+  function renderMainCell(type, key, r) {
+    if (activeEdit && activeEdit.type === type && activeEdit.id === r.id && activeEdit.subIndex == null) {
       return `
         <div style="display:flex;gap:6px">
           <input id="editMain_${r.id}" value="${esc(r.main)}"
@@ -418,36 +667,36 @@
     `;
   }
 
-  function renderSubName(type,r,si){
-    const s=r.sub[si];
-    if(activeEdit && activeEdit.type===type && activeEdit.id===r.id && activeEdit.subIndex===si){
-      return `<input id="editSubName_${r.id}_${si}" value="${esc(s.name||s)}"
+  function renderSubName(type, r, si) {
+    const s = r.sub[si];
+    if (activeEdit && activeEdit.type === type && activeEdit.id === r.id && activeEdit.subIndex === si) {
+      return `<input id="editSubName_${r.id}_${si}" value="${esc(s.name || s)}"
                      style="width:100%;padding:5px">`;
     }
     return `<div ondblclick="editSubStart('${type}','${r.id}',${si})"
                  style="cursor:pointer;padding:4px;border-radius:4px"
                  onmouseover="this.style.background='#f8f9fa'"
                  onmouseout="this.style.background='transparent'">
-              ${esc(typeof s==='object'?s.name:s)}
+              ${esc(typeof s === 'object' ? s.name : s)}
             </div>`;
   }
 
-  function renderSubCode(type,r,si){
-    const s=r.sub[si];
-    if(activeEdit && activeEdit.type===type && activeEdit.id===r.id && activeEdit.subIndex===si){
-      return `<input id="editSubCode_${r.id}_${si}" value="${esc(typeof s==='object'?s.code||'':'')}"
+  function renderSubCode(type, r, si) {
+    const s = r.sub[si];
+    if (activeEdit && activeEdit.type === type && activeEdit.id === r.id && activeEdit.subIndex === si) {
+      return `<input id="editSubCode_${r.id}_${si}" value="${esc(typeof s === 'object' ? s.code || '' : '')}"
                      style="width:100%;padding:5px">`;
     }
     return `<div ondblclick="editSubStart('${type}','${r.id}',${si})"
                  style="cursor:pointer;padding:4px;border-radius:4px;color:#666;font-family:monospace"
                  onmouseover="this.style.background='#f8f9fa'"
                  onmouseout="this.style.background='transparent'">
-              ${esc(typeof s==='object'?s.code||'':'')}
+              ${esc(typeof s === 'object' ? s.code || '' : '')}
             </div>`;
   }
 
-  function renderSubActions(type,id,si){
-    if(activeEdit && activeEdit.type===type && activeEdit.id===id && activeEdit.subIndex===si){
+  function renderSubActions(type, id, si) {
+    if (activeEdit && activeEdit.type === type && activeEdit.id === id && activeEdit.subIndex === si) {
       return `
         <div style="display:flex;gap:4px">
           <button onclick="saveSub('${type}','${id}',${si})"
@@ -466,10 +715,10 @@
   }
 
   /* ================= HOLIDAY ================= */
-  function renderHoliday(){
-    const d=load(HOLIDAY_KEY);
+  function renderHoliday() {
+    const d = load(HOLIDAY_KEY);
 
-    $("kmBody").innerHTML=`
+    $("kmBody").innerHTML = `
       <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px;">
       <input id="holidayInput" placeholder="නිවාඩු නාමය"
              style="padding:8px;flex:1;min-width:200px;font-size:14px;">
@@ -482,11 +731,11 @@
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
       <table style="width:100%;margin-top:16px;background:#fff;min-width:400px;">
         <tbody>
-          ${d.map((h,i)=>`
+          ${d.map((h, i) => `
             <tr>
-              <td style="padding:10px;width:60px">${i+1}</td>
+              <td style="padding:10px;width:60px">${i + 1}</td>
               <td style="padding:10px">
-                ${activeEdit && activeEdit.id===h.id ? `
+                ${activeEdit && activeEdit.id === h.id ? `
                   <input id="editHoliday_${h.id}" value="${esc(h.name)}">
                   <button onclick="saveHoliday('${h.id}')">Save</button>
                   <button onclick="cancelEdit()">Cancel</button>
@@ -509,80 +758,80 @@
   }
 
   /* ================= EDIT CONTROL ================= */
-  window.editMainStart=(type,id)=>{activeEdit={type,id,subIndex:null}; renderSection();};
-  window.editSubStart=(type,id,si)=>{activeEdit={type,id,subIndex:si}; renderSection();};
-  window.editHolidayStart=id=>{activeEdit={type:"holiday",id}; renderSection();};
-  window.cancelEdit=()=>{activeEdit=null; renderSection();};
+  window.editMainStart = (type, id) => { activeEdit = { type, id, subIndex: null }; renderSection(); };
+  window.editSubStart = (type, id, si) => { activeEdit = { type, id, subIndex: si }; renderSection(); };
+  window.editHolidayStart = id => { activeEdit = { type: "holiday", id }; renderSection(); };
+  window.cancelEdit = () => { activeEdit = null; renderSection(); };
 
   /* ================= CRUD ================= */
-  window.addMain=type=>{
-    const key=type==="role"?ROLE_KEY:PLACE_KEY;
-    const i=$(type+"MainInput");
-    if(!i.value.trim())return;
-    const d=load(key);
-    d.push({id:uid(),main:i.value.trim(),sub:[]});
-    save(key,d); renderSection();
+  window.addMain = type => {
+    const key = type === "role" ? ROLE_KEY : PLACE_KEY;
+    const i = $(type + "MainInput");
+    if (!i.value.trim()) return;
+    const d = load(key);
+    d.push({ id: uid(), main: i.value.trim(), sub: [] });
+    save(key, d); renderSection();
   };
 
-  window.saveMain=(type,id)=>{
-    const key=type==="role"?ROLE_KEY:PLACE_KEY;
-    const d=load(key);
-    d.find(x=>x.id===id).main=$(`editMain_${id}`).value.trim();
-    save(key,d); activeEdit=null; renderSection();
+  window.saveMain = (type, id) => {
+    const key = type === "role" ? ROLE_KEY : PLACE_KEY;
+    const d = load(key);
+    d.find(x => x.id === id).main = $(`editMain_${id}`).value.trim();
+    save(key, d); activeEdit = null; renderSection();
   };
 
-  window.deleteMain=(type,id)=>{
-    if(confirm("Delete main?")){
-      const key=type==="role"?ROLE_KEY:PLACE_KEY;
-      save(key,load(key).filter(x=>x.id!==id));
+  window.deleteMain = (type, id) => {
+    if (confirm("Delete main?")) {
+      const key = type === "role" ? ROLE_KEY : PLACE_KEY;
+      save(key, load(key).filter(x => x.id !== id));
       renderSection();
     }
   };
 
-  window.addSub=(type,id)=>{
-    const key=type==="role"?ROLE_KEY:PLACE_KEY;
-    const iName=$(`subName_${id}`);
-    const iCode=$(`subCode_${id}`);
-    if(!iName.value.trim())return;
-    const d=load(key);
-    d.find(x=>x.id===id).sub.push({name:iName.value.trim(),code:iCode.value.trim()});
-    save(key,d); renderSection();
+  window.addSub = (type, id) => {
+    const key = type === "role" ? ROLE_KEY : PLACE_KEY;
+    const iName = $(`subName_${id}`);
+    const iCode = $(`subCode_${id}`);
+    if (!iName.value.trim()) return;
+    const d = load(key);
+    d.find(x => x.id === id).sub.push({ name: iName.value.trim(), code: iCode.value.trim() });
+    save(key, d); renderSection();
   };
 
-  window.saveSub=(type,id,si)=>{
-    const key=type==="role"?ROLE_KEY:PLACE_KEY;
-    const d=load(key);
-    const entry=d.find(x=>x.id===id);
-    const name=$(`editSubName_${id}_${si}`).value.trim();
-    const code=$(`editSubCode_${id}_${si}`).value.trim();
-    entry.sub[si]={name:name,code:code};
-    save(key,d); activeEdit=null; renderSection();
+  window.saveSub = (type, id, si) => {
+    const key = type === "role" ? ROLE_KEY : PLACE_KEY;
+    const d = load(key);
+    const entry = d.find(x => x.id === id);
+    const name = $(`editSubName_${id}_${si}`).value.trim();
+    const code = $(`editSubCode_${id}_${si}`).value.trim();
+    entry.sub[si] = { name: name, code: code };
+    save(key, d); activeEdit = null; renderSection();
   };
 
-  window.deleteSub=(type,id,si)=>{
-    const key=type==="role"?ROLE_KEY:PLACE_KEY;
-    const d=load(key);
-    d.find(x=>x.id===id).sub.splice(si,1);
-    save(key,d); renderSection();
+  window.deleteSub = (type, id, si) => {
+    const key = type === "role" ? ROLE_KEY : PLACE_KEY;
+    const d = load(key);
+    d.find(x => x.id === id).sub.splice(si, 1);
+    save(key, d); renderSection();
   };
 
-  window.addHoliday=()=>{
-    const i=$("holidayInput");
-    if(!i.value.trim())return;
-    const d=load(HOLIDAY_KEY);
-    d.push({id:uid(),name:i.value.trim()});
-    save(HOLIDAY_KEY,d); renderSection();
+  window.addHoliday = () => {
+    const i = $("holidayInput");
+    if (!i.value.trim()) return;
+    const d = load(HOLIDAY_KEY);
+    d.push({ id: uid(), name: i.value.trim() });
+    save(HOLIDAY_KEY, d); renderSection();
   };
 
-  window.saveHoliday=id=>{
-    const d=load(HOLIDAY_KEY);
-    d.find(x=>x.id===id).name=$(`editHoliday_${id}`).value.trim();
-    save(HOLIDAY_KEY,d); activeEdit=null; renderSection();
+  window.saveHoliday = id => {
+    const d = load(HOLIDAY_KEY);
+    d.find(x => x.id === id).name = $(`editHoliday_${id}`).value.trim();
+    save(HOLIDAY_KEY, d); activeEdit = null; renderSection();
   };
 
-  window.deleteHoliday=id=>{
-    if(confirm("Delete holiday?")){
-      save(HOLIDAY_KEY,load(HOLIDAY_KEY).filter(x=>x.id!==id));
+  window.deleteHoliday = id => {
+    if (confirm("Delete holiday?")) {
+      save(HOLIDAY_KEY, load(HOLIDAY_KEY).filter(x => x.id !== id));
       renderSection();
     }
   };
@@ -595,9 +844,9 @@
 
     $("kmBody").innerHTML = `
       <h4 style="margin:0 0 12px 0; color: #0b5ea8;font-size:clamp(14px,3.5vw,18px);">රාජකාරි සදහා නියත දිනයන් ලබා දීම</h4>
-      <div style="padding:clamp(8px,2vw,12px);border-radius:8px;overflow:visible;position:relative;">
+      <div style="background:#fff;padding:clamp(8px,2vw,12px);border-radius:8px;overflow:visible;position:relative;">
         <div style="overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;">
-          <table style="width:100%;border-collapse:collapse;font-size:clamp(11px,2.5vw,13px); text-align: left;overflow:visible;min-width:800px;background:#fff;">
+          <table style="width:100%;border-collapse:collapse;font-size:clamp(11px,2.5vw,13px); text-align: left;overflow:visible;min-width:800px;">
             <thead style="overflow:visible;">
               <tr style="text-align:left; background: #f0f7ff;overflow:visible;">
                 <th style="width:40px; padding:clamp(6px,1.5vw,8px);white-space:nowrap;">#</th>
@@ -640,20 +889,20 @@
       tdNum.textContent = i + 1;
       tr.appendChild(tdNum);
 
-      // Role column with cascading menu
+      // Role column with dropdown select
       const tdRole = document.createElement("td");
-      tdRole.style.cssText = "padding:8px;position:relative;overflow:visible";
+      tdRole.style.cssText = "padding:8px;";
       tdRole.className = "fd-role-cell";
-      const roleBtn = createCascadingMenuButton(`fd-${fd.id}`, 'role', fd.roleId, true);
-      tdRole.appendChild(roleBtn);
+      const roleSelect = createDropdownSelect(`fd-${fd.id}`, 'role', fd.roleId, true);
+      tdRole.appendChild(roleSelect);
       tr.appendChild(tdRole);
 
-      // Place column with cascading menu
+      // Place column with dropdown select
       const tdPlace = document.createElement("td");
-      tdPlace.style.cssText = "padding:8px;position:relative;overflow:visible";
+      tdPlace.style.cssText = "padding:8px;";
       tdPlace.className = "fd-place-cell";
-      const placeBtn = createCascadingMenuButton(`fd-${fd.id}`, 'place', fd.placeId, true);
-      tdPlace.appendChild(placeBtn);
+      const placeSelect = createDropdownSelect(`fd-${fd.id}`, 'place', fd.placeId, true);
+      tdPlace.appendChild(placeSelect);
       tr.appendChild(tdPlace);
 
       // Day column
@@ -715,13 +964,13 @@
       editBtn.dataset.id = fd.id;
       editBtn.textContent = "Edit";
       editBtn.style.cssText = "margin-right:4px; padding:4px 8px; background:#1976d2; color:#fff; border:none; border-radius:4px; cursor:pointer;";
-      
+
       const deleteBtn = document.createElement("button");
       deleteBtn.className = "fd_delete";
       deleteBtn.dataset.id = fd.id;
       deleteBtn.textContent = "Delete";
       deleteBtn.style.cssText = "padding:4px 8px; background:#dc3545; color:#fff; border:none; border-radius:4px; cursor:pointer;";
-      
+
       tdActions.appendChild(editBtn);
       tdActions.appendChild(deleteBtn);
       tr.appendChild(tdActions);
@@ -740,20 +989,20 @@
     newTdNum.textContent = "New";
     newTr.appendChild(newTdNum);
 
-    // Role column with cascading menu
+    // Role column with dropdown select
     const newTdRole = document.createElement("td");
-    newTdRole.style.cssText = "padding:8px;position:relative;overflow:visible";
+    newTdRole.style.cssText = "padding:8px;";
     newTdRole.id = "fd_new_role_cell";
-    const newRoleBtn = createCascadingMenuButton('fd-new', 'role', '', false);
-    newTdRole.appendChild(newRoleBtn);
+    const newRoleSelect = createDropdownSelect('fd-new', 'role', '', false);
+    newTdRole.appendChild(newRoleSelect);
     newTr.appendChild(newTdRole);
 
-    // Place column with cascading menu
+    // Place column with dropdown select
     const newTdPlace = document.createElement("td");
-    newTdPlace.style.cssText = "padding:8px;position:relative;overflow:visible";
+    newTdPlace.style.cssText = "padding:8px;";
     newTdPlace.id = "fd_new_place_cell";
-    const newPlaceBtn = createCascadingMenuButton('fd-new', 'place', '', false);
-    newTdPlace.appendChild(newPlaceBtn);
+    const newPlaceSelect = createDropdownSelect('fd-new', 'place', '', false);
+    newTdPlace.appendChild(newPlaceSelect);
     newTr.appendChild(newTdPlace);
 
     // Day column
@@ -815,21 +1064,6 @@
     newTr.appendChild(newTdActions);
 
     tbody.appendChild(newTr);
-    
-    // Add 5 empty placeholder rows
-    for (let i = 0; i < 5; i++) {
-      const emptyTr = document.createElement("tr");
-      emptyTr.style.cssText = "background:#fff;height:50px;";
-      
-      for (let j = 0; j < 7; j++) {
-        const emptyTd = document.createElement("td");
-        emptyTd.style.cssText = "padding:20px 8px;border-bottom:1px solid #eee;";
-        emptyTd.innerHTML = "&nbsp;";
-        emptyTr.appendChild(emptyTd);
-      }
-      
-      tbody.appendChild(emptyTr);
-    }
   }
 
   function attachFixedDatesHandlers() {
@@ -839,14 +1073,14 @@
 
     // Add new fixed date
     if (addBtn) {
-      addBtn.addEventListener("click", function() {
+      addBtn.addEventListener("click", function () {
         const roleCell = $("fd_new_role_cell");
         const placeCell = $("fd_new_place_cell");
-        const roleBtn = roleCell ? roleCell.querySelector(".fd-new-role") : null;
-        const placeBtn = placeCell ? placeCell.querySelector(".fd-new-place") : null;
-        
-        const roleId = roleBtn ? roleBtn.dataset.value : "";
-        const placeId = placeBtn ? placeBtn.dataset.value : "";
+        const roleWrapper = roleCell ? roleCell.querySelector(".fd-new-role-wrapper") : null;
+        const placeWrapper = placeCell ? placeCell.querySelector(".fd-new-place-wrapper") : null;
+
+        const roleId = roleWrapper ? roleWrapper.getValue() : "";
+        const placeId = placeWrapper ? placeWrapper.getValue() : "";
         const day = $("fd_new_day").value;
         const week = $("fd_new_week").value;
         const time = $("fd_new_time").value;
@@ -874,24 +1108,24 @@
 
     // Edit fixed date
     editButtons.forEach(btn => {
-      btn.addEventListener("click", function() {
+      btn.addEventListener("click", function () {
         const id = this.dataset.id;
         const row = this.closest("tr");
         const isEditing = row.dataset.editMode === "true";
-        
+
         if (isEditing) {
           // Save changes
           const roleCell = row.querySelector(".fd-role-cell");
           const placeCell = row.querySelector(".fd-place-cell");
-          const roleBtn = roleCell ? roleCell.querySelector(`button.fd-${id}-role`) : null;
-          const placeBtn = placeCell ? placeCell.querySelector(`button.fd-${id}-place`) : null;
-          
-          const roleId = roleBtn ? roleBtn.dataset.value : "";
-          const placeId = placeBtn ? placeBtn.dataset.value : "";
+          const roleWrapper = roleCell ? roleCell.querySelector(`.fd-${id}-role-wrapper`) : null;
+          const placeWrapper = placeCell ? placeCell.querySelector(`.fd-${id}-place-wrapper`) : null;
+
+          const roleId = roleWrapper ? roleWrapper.getValue() : "";
+          const placeId = placeWrapper ? placeWrapper.getValue() : "";
           const daySelect = row.querySelector(".fd_day_select");
           const weekSelect = row.querySelector(".fd_week_select");
           const timeSelect = row.querySelector(".fd_time_select");
-          
+
           const day = daySelect ? daySelect.value : "";
           const week = weekSelect ? weekSelect.value : "";
           const time = timeSelect ? timeSelect.value : "";
@@ -919,19 +1153,29 @@
         } else {
           // Enable editing mode
           row.dataset.editMode = "true";
-          
-          // Enable cascading menu buttons
+
+          // Enable custom dropdowns
           const roleCell = row.querySelector(".fd-role-cell");
           const placeCell = row.querySelector(".fd-place-cell");
           if (roleCell) {
             const roleBtn = roleCell.querySelector("button");
-            if (roleBtn) roleBtn.disabled = false;
+            if (roleBtn) {
+              roleBtn.disabled = false;
+              roleBtn.style.opacity = "1";
+              roleBtn.style.cursor = "pointer";
+              roleBtn.style.background = "#fff";
+            }
           }
           if (placeCell) {
             const placeBtn = placeCell.querySelector("button");
-            if (placeBtn) placeBtn.disabled = false;
+            if (placeBtn) {
+              placeBtn.disabled = false;
+              placeBtn.style.opacity = "1";
+              placeBtn.style.cursor = "pointer";
+              placeBtn.style.background = "#fff";
+            }
           }
-          
+
           // Enable other selects
           const daySelect = row.querySelector(".fd_day_select");
           const weekSelect = row.querySelector(".fd_week_select");
@@ -939,7 +1183,7 @@
           if (daySelect) daySelect.disabled = false;
           if (weekSelect) weekSelect.disabled = false;
           if (timeSelect) timeSelect.disabled = false;
-          
+
           this.textContent = "Save";
           this.style.background = "#28a745";
         }
@@ -948,14 +1192,14 @@
 
     // Delete fixed date
     deleteButtons.forEach(btn => {
-      btn.addEventListener("click", async function() {
+      btn.addEventListener("click", async function () {
         const id = this.dataset.id;
-        const confirmDelete = window.showConfirm 
+        const confirmDelete = window.showConfirm
           ? await showConfirm("මෙම නියත දිනය මකා දමන්නද?\nDelete this fixed date?")
           : confirm("Delete this fixed date?");
-          
+
         if (!confirmDelete) return;
-        
+
         const arr = load(FIXED_DATES_KEY).filter(x => String(x.id) !== String(id));
         save(FIXED_DATES_KEY, arr);
         renderFixedDatesRows();
