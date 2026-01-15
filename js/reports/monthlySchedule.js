@@ -537,12 +537,14 @@
         id: btnId,
         type: "button",
         class: `${namePrefix}-${type}`,
-        style: `width:100%;padding:8px 14px;border:1px solid #ccc;border-radius:6px;background:#fff;
+        style: `width:100%;padding:8px 14px;border:1px solid #3fd113;border-radius:6px;background:#e0e0e0;
                 font-size:11px;color:#000;text-align:left;cursor:pointer;
-                display:flex;justify-content:space-between;align-items:center;
+                display:flex;justify-content:space-between;align-items:center;transition:background 0.2s ease;
                 ${disabled ? 'opacity:0.6;cursor:not-allowed;' : ''}`
       });
       btn.disabled = disabled;
+      
+
       btn.dataset.value = preservedValue || "";
       
       const textSpan = el("span", {
@@ -560,16 +562,16 @@
       const menu = el("div", {
         id: menuId,
         style: `position:absolute;top:100%;left:0;min-width:220px;max-width:300px;
-                background:#fff;border:1px solid #e5e7eb;border-radius:8px;
-                box-shadow:0 10px 30px rgba(0,0,0,0.1);z-index:1000;display:none;
+                background:#bfbfbf;border:1px solid #838383;border-radius:8px;
+                box-shadow:0 10px 30px rgba(56, 56, 56, 0.1);z-index:1000;display:none;
                 max-height:400px;margin-top:4px;overflow:visible`
       });
       
       // Add menu items
       items.forEach(item => {
         const itemDiv = el("div", {
-          style: `padding:8px 14px;cursor:pointer;display:flex;justify-content:space-between;
-                  align-items:center;border-bottom:1px solid #e5e7eb;transition:background 0.15s ease;position:relative`
+          style: `padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;
+                  align-items:center;border-bottom:1px solid #bfbfbf;transition:background 0.15s ease;position:relative;font-size:14px`
         });
         itemDiv.dataset.value = item.id;
         
@@ -610,7 +612,7 @@
           // Create submenu
           const submenu = el("div", {
             style: `position:absolute;left:100%;top:0;min-width:180px;
-                    background:#fff;border:1px solid #e5e7eb;border-radius:8px;
+                    background:#bfbfbf;border:1px solid #3f3f3f;border-radius:8px;
                     box-shadow:0 10px 30px rgba(0,0,0,0.1);display:none;
                     max-height:400px;overflow-y:auto;z-index:10002`
           });
@@ -638,7 +640,7 @@
           
           item.sub.forEach(subItem => {
             const subDiv = el("div", {
-              style: "padding:8px 14px;cursor:pointer;border-bottom:1px solid #e5e7eb;transition:background 0.15s ease"
+              style: "padding:12px 14px;cursor:pointer;border-bottom:1px solid #e5e7eb;transition:background 0.15s ease;font-size:14px"
             });
             const subId = `${item.id}:${typeof subItem === 'object' ? subItem.name : subItem}`;
             subDiv.dataset.value = subId;
@@ -648,10 +650,12 @@
             subDiv.textContent = subName + subCode;
             
             subDiv.addEventListener("mouseenter", () => {
-              subDiv.style.background = "#f3f4f6";
+              subDiv.style.background = "#2196F3";
+              subDiv.style.color = "#fff";
             });
             subDiv.addEventListener("mouseleave", () => {
-              subDiv.style.background = "#fff";
+              subDiv.style.background = "transparent";
+              subDiv.style.color = "#000";
             });
             subDiv.addEventListener("click", (e) => {
               e.stopPropagation();
@@ -669,14 +673,20 @@
           itemDiv.appendChild(submenu);
           
           itemDiv.addEventListener("mouseenter", () => {
-            itemDiv.style.background = "#f3f4f6";
+            itemDiv.style.background = "#2196F3";
+            itemDiv.style.color = "#fff";
+            const indicators = itemDiv.querySelectorAll('span');
+            indicators.forEach(span => { if (span !== mainText) span.style.color = "#fff"; });
             positionSubmenu();
           });
           itemDiv.addEventListener("mouseleave", (e) => {
             // Delay hiding to allow moving to submenu
             setTimeout(() => {
               if (!submenu.matches(':hover')) {
-                itemDiv.style.background = "#fff";
+                itemDiv.style.background = "transparent";
+                itemDiv.style.color = "#000";
+                const indicators = itemDiv.querySelectorAll('span');
+                indicators.forEach(span => { if (span !== mainText) span.style.color = "#666"; });
                 submenu.style.display = "none";
               }
             }, 100);
@@ -685,19 +695,27 @@
           // Keep submenu open when hovering over it
           submenu.addEventListener("mouseenter", () => {
             submenu.style.display = "block";
-            itemDiv.style.background = "#f3f4f6";
+            itemDiv.style.background = "#2196F3";
+            itemDiv.style.color = "#fff";
+            const indicators = itemDiv.querySelectorAll('span');
+            indicators.forEach(span => { if (span !== mainText) span.style.color = "#fff"; });
           });
           submenu.addEventListener("mouseleave", () => {
             submenu.style.display = "none";
-            itemDiv.style.background = "#fff";
+            itemDiv.style.background = "transparent";
+            itemDiv.style.color = "#000";
+            const indicators = itemDiv.querySelectorAll('span');
+            indicators.forEach(span => { if (span !== mainText) span.style.color = "#666"; });
           });
         } else {
           // No submenu - click to select main item
           itemDiv.addEventListener("mouseenter", () => {
-            itemDiv.style.background = "#f3f4f6";
+            itemDiv.style.background = "#2196F3";
+            itemDiv.style.color = "#fff";
           });
           itemDiv.addEventListener("mouseleave", () => {
-            itemDiv.style.background = "#fff";
+            itemDiv.style.background = "transparent";
+            itemDiv.style.color = "#000";
           });
         }
         
@@ -719,6 +737,17 @@
       btn.addEventListener("click", (e) => {
         if (disabled) return;
         e.stopPropagation();
+        
+        // Check if month is selected before allowing dropdown interaction
+        if (!monthInput.value) {
+          showWarning("කරුණාකර මුලින්ම මාසය තෝරන්න\n\nPlease select the month first\n\nதயவுசெய்து முதலில் மாதத்தைத் தேர்ந்தெடுக்கவும்", "මාසය තෝරන්න / Select Month");
+          // Highlight month input to draw attention
+          monthInput.style.border = "2px solid #ef4444";
+          monthInput.style.boxShadow = "0 0 0 3px rgba(239, 68, 68, 0.1)";
+          setTimeout(() => monthInput.focus(), 100);
+          return;
+        }
+        
         const isVisible = menu.style.display === "block";
         // Close all other menus
         document.querySelectorAll('[id$="-menu"]').forEach(m => m.style.display = "none");
@@ -757,18 +786,35 @@
       wrapper.appendChild(btn);
       wrapper.appendChild(menu);
       
-      // Add change event listener to highlight cell when selection is made
+      // Add change event listener to highlight button and cell when selection is made
       btn.addEventListener('change', () => {
         // Find the parent td element
         let td = btn.closest('td');
         if (td && btn.dataset.value) {
           // Apply green background when selection is made
-          td.style.backgroundColor = '#58b467'; // Light green
+          td.style.backgroundColor = '#ffffff'; // Light green
+          // Change button color when selected
+          btn.style.background = '#309138'; // Green
+          btn.style.color = '#fff'; // White text
+          btn.style.borderColor = '#45a049';
+          arrow.style.color = '#fff';
         } else if (td) {
           // Remove background if no selection
           td.style.backgroundColor = '';
+          btn.style.background = '#e0e0e0'; // Gray
+          btn.style.color = '#000';
+          btn.style.borderColor = '#3fd113';
+          arrow.style.color = '#6b7280';
         }
       });
+      
+      // Set initial button color if there's a preserved value
+      if (preservedValue) {
+        btn.style.background = '#4CAF50';
+        btn.style.color = '#fff';
+        btn.style.borderColor = '#45a049';
+        arrow.style.color = '#fff';
+      }
       
       return wrapper;
     }
@@ -1421,14 +1467,19 @@
           // Attach double-click toggle handler on the entire row (or you can attach to tdM/tdA)
           const dblHandler = function (ev) {
             ev.stopPropagation();
-            // If currently shows selects (duty) -> switch back to locked Sunday
-            const hasSelects = !!tdM.querySelector("select") || !!tdA.querySelector("select");
-            if (hasSelects) {
-              // store current select values then make locked
-              const curMRole = (tdM.querySelector(".tpl-morning-role") || { value: "" }).value || "";
-              const curMPlace = (tdM.querySelector(".tpl-morning-place") || { value: "" }).value || "";
-              const curARole = (tdA.querySelector(".tpl-afternoon-role") || { value: "" }).value || "";
-              const curAPlace = (tdA.querySelector(".tpl-afternoon-place") || { value: "" }).value || "";
+            // Check if currently shows button menus (duty) -> switch back to locked Sunday
+            const hasButtons = !!tdM.querySelector(".tpl-morning-role") || !!tdA.querySelector(".tpl-afternoon-role");
+            if (hasButtons) {
+              // store current button values then make locked
+              const mRoleBtn = tdM.querySelector(".tpl-morning-role");
+              const mPlaceBtn = tdM.querySelector(".tpl-morning-place");
+              const aRoleBtn = tdA.querySelector(".tpl-afternoon-role");
+              const aPlaceBtn = tdA.querySelector(".tpl-afternoon-place");
+
+              const curMRole = mRoleBtn ? (mRoleBtn.dataset.value || "") : "";
+              const curMPlace = mPlaceBtn ? (mPlaceBtn.dataset.value || "") : "";
+              const curARole = aRoleBtn ? (aRoleBtn.dataset.value || "") : "";
+              const curAPlace = aPlaceBtn ? (aPlaceBtn.dataset.value || "") : "";
 
               if (curMRole) tr.dataset.morningRole = curMRole; else delete tr.dataset.morningRole;
               if (curMPlace) tr.dataset.morningPlace = curMPlace; else delete tr.dataset.morningPlace;
@@ -1441,9 +1492,9 @@
             } else {
               // currently locked => convert to duty selects
               makeDutySunday();
-              // focus first select for better UX
-              const firstSel = tdM.querySelector("select, textarea, input");
-              if (firstSel) try { firstSel.focus(); } catch (e) { }
+              // focus first button for better UX
+              const firstBtn = tdM.querySelector("button");
+              if (firstBtn) try { firstBtn.focus(); } catch (e) { }
             }
           };
 
