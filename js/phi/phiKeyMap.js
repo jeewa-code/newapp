@@ -135,12 +135,49 @@
             btn.dispatchEvent(new Event('change', { bubbles: true }));
           });
           
+          // Touch support for submenu items
+          subDiv.addEventListener("touchend", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            btn.dataset.value = subId;
+            textSpan.textContent = subName;
+            menu.style.display = "none";
+            submenu.style.display = "none";
+            btn.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          
           submenu.appendChild(subDiv);
         });
         
         itemDiv.appendChild(submenu);
         
+        // Touch/Click handler for mobile - toggle submenu
+        let touchHandled = false;
+        itemDiv.addEventListener("touchstart", (e) => {
+          touchHandled = true;
+          const isSubmenuVisible = submenu.style.display === "block";
+          
+          // Close all other submenus
+          document.querySelectorAll('[id$="-menu"] > div > div').forEach(div => {
+            const sm = div.querySelector('div[style*="position:absolute"]');
+            if (sm && sm !== submenu) sm.style.display = "none";
+          });
+          
+          if (!isSubmenuVisible) {
+            itemDiv.style.background = "#2196F3";
+            itemDiv.style.color = "#fff";
+            const indicators = itemDiv.querySelectorAll('span');
+            indicators.forEach(span => { if (span !== mainText) span.style.color = "#fff"; });
+            positionSubmenu();
+            e.stopPropagation();
+          }
+        });
+        
         itemDiv.addEventListener("mouseenter", () => {
+          if (touchHandled) {
+            touchHandled = false;
+            return;
+          }
           itemDiv.style.background = "#2196F3";
           itemDiv.style.color = "#fff";
           const indicators = itemDiv.querySelectorAll('span');
