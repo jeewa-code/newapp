@@ -44,28 +44,52 @@
   function getRoleNameById(id) {
     if (!id) return "";
     const arr = loadKeyRoles();
-    const r = arr.find(x => String(x.id) === String(id));
-    if (!r) return "";
-    // Check if it's a main item or sub-item (format: mainId:subName)
+    // Check if it's a sub-item (format: mainId:subName)
     if (id.includes(':')) {
       const [mainId, subName] = id.split(':');
       const main = arr.find(x => String(x.id) === String(mainId));
-      return main ? subName : "";
+      if (main && main.sub && Array.isArray(main.sub)) {
+        const subItem = main.sub.find(s => {
+          const sName = typeof s === 'object' ? s.name : s;
+          return sName === subName;
+        });
+        if (subItem) {
+          if (typeof subItem === 'object' && subItem.code) {
+            return `${subItem.name} (${subItem.code})`;
+          }
+          return typeof subItem === 'object' ? subItem.name : subItem;
+        }
+      }
+      return subName; // fallback
     }
-    return r.main || "";
+    // Main item
+    const r = arr.find(x => String(x.id) === String(id));
+    return r ? (r.main || "") : "";
   }
   function getPlaceNameById(id) {
     if (!id) return "";
     const arr = loadKeyPlaces();
-    const r = arr.find(x => String(x.id) === String(id));
-    if (!r) return "";
-    // Check if it's a main item or sub-item (format: mainId:subName)
+    // Check if it's a sub-item (format: mainId:subName)
     if (id.includes(':')) {
       const [mainId, subName] = id.split(':');
       const main = arr.find(x => String(x.id) === String(mainId));
-      return main ? subName : "";
+      if (main && main.sub && Array.isArray(main.sub)) {
+        const subItem = main.sub.find(s => {
+          const sName = typeof s === 'object' ? s.name : s;
+          return sName === subName;
+        });
+        if (subItem) {
+          if (typeof subItem === 'object' && subItem.code) {
+            return `${subItem.name} (${subItem.code})`;
+          }
+          return typeof subItem === 'object' ? subItem.name : subItem;
+        }
+      }
+      return subName; // fallback
     }
-    return r.main || "";
+    // Main item
+    const r = arr.find(x => String(x.id) === String(id));
+    return r ? (r.main || "") : "";
   }
   function getHolidayNameById(id) {
     if (!id) return "";
@@ -121,14 +145,14 @@
     @media print {
       /* === TABLE HEADER (දිනය, පෙරවරු, පස්වරු) === */
       .monthlySchedule-template table th {
-        font-size: 15px !important;
+        font-size: 12px !important;
         font-weight: 600 !important;
       }
       
       /* === NORMAL USER INPUT (Role - Place) === */
       .monthlySchedule-template .print-cell-content,
       .monthlySchedule-template .user-input {
-        font-size: 15px !important;
+        font-size: 12px !important;
         line-height: 1.3 !important;
         font-weight: 700 !important; /* NEW: Bold for user input */
         color: #0b5cff !important; /* Pen-like blue color */
@@ -706,17 +730,23 @@
           const spaceBelow = viewportHeight - btnRect.bottom;
           const spaceAbove = btnRect.top;
           
-          // If not enough space below (estimate 300px for menu), show above
-          if (spaceBelow < 300 && spaceAbove > spaceBelow) {
+          // Determine if we should show menu above or below
+          // On mobile or when space is limited, prefer showing where there's more space
+          const menuEstimatedHeight = 250; // estimated menu height
+          const shouldShowAbove = spaceBelow < menuEstimatedHeight && spaceAbove > spaceBelow && spaceAbove > 100;
+          
+          if (shouldShowAbove) {
             menu.style.top = "auto";
             menu.style.bottom = "100%";
             menu.style.marginTop = "0";
             menu.style.marginBottom = "4px";
+            menu.style.maxHeight = `${Math.min(400, spaceAbove - 50)}px`;
           } else {
             menu.style.top = "100%";
             menu.style.bottom = "auto";
             menu.style.marginTop = "4px";
             menu.style.marginBottom = "0";
+            menu.style.maxHeight = `${Math.min(400, spaceBelow - 50)}px`;
           }
           menu.style.display = "block";
         } else {
@@ -726,6 +756,19 @@
       
       wrapper.appendChild(btn);
       wrapper.appendChild(menu);
+      
+      // Add change event listener to highlight cell when selection is made
+      btn.addEventListener('change', () => {
+        // Find the parent td element
+        let td = btn.closest('td');
+        if (td && btn.dataset.value) {
+          // Apply green background when selection is made
+          td.style.backgroundColor = '#58b467'; // Light green
+        } else if (td) {
+          // Remove background if no selection
+          td.style.backgroundColor = '';
+        }
+      });
       
       return wrapper;
     }
@@ -750,6 +793,16 @@
       wrap.appendChild(roleMenu);
       wrap.appendChild(dash);
       wrap.appendChild(placeMenu);
+      
+      // Check if there's already a selection and highlight accordingly
+      setTimeout(() => {
+        const roleBtn = roleMenu.querySelector('button');
+        const placeBtn = placeMenu.querySelector('button');
+        const td = wrap.closest('td');
+        if (td && ((roleBtn && roleBtn.dataset.value) || (placeBtn && placeBtn.dataset.value))) {
+          td.style.backgroundColor = '#58b467'; // Light green
+        }
+      }, 0);
       
       return wrap;
     }
@@ -1551,13 +1604,17 @@
 
         // extract selections/datasets for normal rendering
         const origMorning = (function () {
-          const mRole = (orig.querySelector(".tpl-morning-role") || { value: "" }).value || orig.dataset.morningRole || "";
-          const mPlace = (orig.querySelector(".tpl-morning-place") || { value: "" }).value || orig.dataset.morningPlace || "";
+          const mRoleBtn = orig.querySelector(".tpl-morning-role");
+          const mPlaceBtn = orig.querySelector(".tpl-morning-place");
+          const mRole = (mRoleBtn && mRoleBtn.dataset ? mRoleBtn.dataset.value : "") || orig.dataset.morningRole || "";
+          const mPlace = (mPlaceBtn && mPlaceBtn.dataset ? mPlaceBtn.dataset.value : "") || orig.dataset.morningPlace || "";
           return (mRole || mPlace) ? { role: mRole, place: mPlace } : "";
         })();
         const origAfternoon = (function () {
-          const aRole = (orig.querySelector(".tpl-afternoon-role") || { value: "" }).value || orig.dataset.afternoonRole || "";
-          const aPlace = (orig.querySelector(".tpl-afternoon-place") || { value: "" }).value || orig.dataset.afternoonPlace || "";
+          const aRoleBtn = orig.querySelector(".tpl-afternoon-role");
+          const aPlaceBtn = orig.querySelector(".tpl-afternoon-place");
+          const aRole = (aRoleBtn && aRoleBtn.dataset ? aRoleBtn.dataset.value : "") || orig.dataset.afternoonRole || "";
+          const aPlace = (aPlaceBtn && aPlaceBtn.dataset ? aPlaceBtn.dataset.value : "") || orig.dataset.afternoonPlace || "";
           return (aRole || aPlace) ? { role: aRole, place: aPlace } : "";
         })();
 
@@ -1743,7 +1800,7 @@
         justify-content: center;
         height: 100%;
         width: 100%;
-        font-size: 15px !important; /* Consistent font size */
+        font-size: 12px !important; /* Consistent font size */
         line-height: 1.1;
         word-wrap: break-word;
         overflow: hidden;
@@ -1756,7 +1813,7 @@
         color: #b71c1c !important;
         font-weight: 700;
         background: #ffebee !important;
-        font-size: 15px !important; /* Same font size as table headers */
+        font-size: 12px !important; /* Same font size as user input */
       }
       
       .ms-locked {
@@ -1848,13 +1905,17 @@
 
         // extract selections/datasets for normal rendering
         const origMorning = (function () {
-          const mRole = (orig.querySelector(".tpl-morning-role") || { value: "" }).value || orig.dataset.morningRole || "";
-          const mPlace = (orig.querySelector(".tpl-morning-place") || { value: "" }).value || orig.dataset.morningPlace || "";
+          const mRoleBtn = orig.querySelector(".tpl-morning-role");
+          const mPlaceBtn = orig.querySelector(".tpl-morning-place");
+          const mRole = (mRoleBtn && mRoleBtn.dataset ? mRoleBtn.dataset.value : "") || orig.dataset.morningRole || "";
+          const mPlace = (mPlaceBtn && mPlaceBtn.dataset ? mPlaceBtn.dataset.value : "") || orig.dataset.morningPlace || "";
           return (mRole || mPlace) ? { role: mRole, place: mPlace } : "";
         })();
         const origAfternoon = (function () {
-          const aRole = (orig.querySelector(".tpl-afternoon-role") || { value: "" }).value || orig.dataset.afternoonRole || "";
-          const aPlace = (orig.querySelector(".tpl-afternoon-place") || { value: "" }).value || orig.dataset.afternoonPlace || "";
+          const aRoleBtn = orig.querySelector(".tpl-afternoon-role");
+          const aPlaceBtn = orig.querySelector(".tpl-afternoon-place");
+          const aRole = (aRoleBtn && aRoleBtn.dataset ? aRoleBtn.dataset.value : "") || orig.dataset.afternoonRole || "";
+          const aPlace = (aPlaceBtn && aPlaceBtn.dataset ? aPlaceBtn.dataset.value : "") || orig.dataset.afternoonPlace || "";
           return (aRole || aPlace) ? { role: aRole, place: aPlace } : "";
         })();
 
