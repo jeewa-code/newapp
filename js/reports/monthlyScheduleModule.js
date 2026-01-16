@@ -56,21 +56,22 @@
             text: title || "මාසික ඉදිරි කාලසටහන"
         }));
 
-        // Back button (for use inside sub-views)
+        // Back button to Reports
+        const reportsBackBtn = el("button", {
+            id: "ms_reports_back_btn",
+            style: "padding:8px 16px;border-radius:8px;border:none;background:var(--primary);color:white;cursor:pointer;font-weight:600;",
+            html: '<i class="fas fa-arrow-left"></i> Reports වෙත'
+        });
+        reportsBackBtn.onclick = () => window.showContent && window.showContent('Reports', null);
+
+        // Back button (for use inside sub-views to return to cards)
         const backBtn = el("button", {
             id: "ms_back_btn",
             style: "display:none;padding:8px 16px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:14px;",
-            html: '<i class="fas fa-arrow-left"></i> Back to Menu'
+            html: '<i class="fas fa-arrow-left"></i> Back '
         });
 
-        // Main back button to Reports cards
-        const mainBackBtn = el("button", {
-            style: "padding:8px 16px;border-radius:8px;border:none;background:var(--primary);color:white;cursor:pointer;font-weight:600;",
-            html: '<i class="fas fa-arrow-left"></i> Reports වෙත ආපසු'
-        });
-        mainBackBtn.onclick = () => showContent('Reports', null);
-
-        header.appendChild(mainBackBtn);
+        header.appendChild(reportsBackBtn);
         header.appendChild(backBtn);
         realContent.appendChild(header);
 
@@ -185,6 +186,7 @@
             cardsContainer.style.display = "grid";
             contentArea.style.display = "none";
             backBtn.style.display = "none";
+            reportsBackBtn.style.display = "block";
             currentView = null;
 
             // Update header title
@@ -197,6 +199,7 @@
             cardsContainer.style.display = "none";
             contentArea.style.display = "block";
             backBtn.style.display = "block";
+            reportsBackBtn.style.display = "none";
             currentView = viewType;
 
             // Update header title based on view
@@ -316,6 +319,11 @@
             event: "monthlyScheduleSaved",
             handler: handleScheduleSaved
         });
+
+        // Expose function to directly open editor (for external calls like from Key Map)
+        window.openMonthlyScheduleEditor = function() {
+            loadEditor();
+        };
 
         // Return cleanup function
         return cleanup;

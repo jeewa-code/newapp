@@ -539,7 +539,12 @@
 
     container.innerHTML = `
       <div class="glass" style="padding:20px;padding:clamp(10px,3vw,20px);">
-        <h3 style="color:#0b5ea8;margin-bottom:12px;font-size:clamp(16px,4vw,24px);">Key Map</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+          <h3 style="color:#0b5ea8;margin:0;font-size:clamp(16px,4vw,24px);">Key Map</h3>
+          <button id="h510Btn" style="background:#0b5ea8;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;">
+            H 510
+          </button>
+        </div>
 
         <select id="kmSelect" style="padding:8px;margin-bottom:16px;width:100%;max-width:300px;font-size:14px;">
           <option value="role">රාජකාරිය</option>
@@ -551,6 +556,19 @@
         <div id="kmBody"></div>
       </div>
     `;
+
+    // H 510 button click handler - opens Monthly Schedule Editor
+    $("h510Btn").addEventListener("click", () => {
+      if (window.openReport) {
+        window.openReport('මාසික ඉදිරි කාලසටහන');
+        // Wait for the module to load, then open editor directly
+        setTimeout(() => {
+          if (window.openMonthlyScheduleEditor) {
+            window.openMonthlyScheduleEditor();
+          }
+        }, 200);
+      }
+    });
 
     $("kmSelect").addEventListener("change", () => { activeEdit = null; renderSection(); });
     renderSection();

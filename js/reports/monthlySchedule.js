@@ -141,6 +141,198 @@
       box-sizing: border-box !important;
     }
     
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+      .monthly-schedule-controls {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr auto !important;
+        grid-template-rows: auto auto !important;
+        gap: 6px !important;
+        margin-bottom: 8px !important;
+        align-items: start !important;
+      }
+      
+      .monthly-schedule-controls button:nth-child(1) {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        padding: 10px 8px !important;
+        font-size: 12px !important;
+      }
+      
+      .monthly-schedule-controls button:nth-child(2) {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        padding: 10px 8px !important;
+        font-size: 12px !important;
+      }
+      
+      .language-switch-container {
+        grid-column: 3 !important;
+        grid-row: 1 !important;
+        padding: 2px !important;
+        background: #f0f0f0 !important;
+        border-radius: 6px !important;
+      }
+      
+      .language-switch-container button {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+      }
+      
+      .keymap-btn {
+        grid-column: 3 !important;
+        grid-row: 2 !important;
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+        white-space: nowrap !important;
+      }
+      
+      .monthly-schedule-meta {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+      
+      .month-input-wrapper,
+      .designation-input-wrapper {
+        display: flex !important;
+        gap: 8px !important;
+        align-items: center !important;
+        width: 100% !important;
+      }
+      
+      .month-label,
+      .designation-label {
+        flex-shrink: 0 !important;
+      }
+      
+      .month-input-wrapper input[type="month"],
+      .designation-input-wrapper select {
+        flex: 1 !important;
+        font-size: 13px !important;
+        padding: 8px !important;
+      }
+      
+      .monthlySchedule-template {
+        padding: 4px !important;
+        font-size: 10px !important;
+        border-radius: 4px !important;
+        overflow-x: auto !important;
+      }
+      
+      .monthlySchedule-template header {
+        margin-left: 0 !important;
+        font-size: 7px !important;
+      }
+      
+      .monthlySchedule-template .header-large {
+        font-size: 12px !important;
+      }
+      
+      .monthlySchedule-template .header-xlarge {
+        font-size: 18px !important;
+      }
+      
+      .monthlySchedule-template table {
+        font-size: 9px !important;
+        min-width: 100% !important;
+      }
+      
+      .monthlySchedule-template table th,
+      .monthlySchedule-template table td {
+        padding: 2px !important;
+        font-size: 9px !important;
+      }
+      
+      .monthlySchedule-template table col:nth-child(1) {
+        width: 40px !important;
+      }
+      
+      .monthlySchedule-template table col:nth-child(2),
+      .monthlySchedule-template table col:nth-child(3) {
+        width: calc(50% - 20px) !important;
+      }
+      
+      .monthlySchedule-template textarea,
+      .monthlySchedule-template .footer-notes {
+        font-size: 9px !important;
+        padding: 4px !important;
+        width: 100% !important;
+        margin-left: 0 !important;
+      }
+      
+      /* Dropdown buttons on mobile */
+      .monthlySchedule-template button[class*="tpl-"] {
+        font-size: 9px !important;
+        padding: 2px 4px !important;
+        min-height: 24px !important;
+      }
+      
+      /* Dropdown menus on mobile */
+      div[id$="-menu"] {
+        font-size: 10px !important;
+        max-height: 250px !important;
+      }
+      
+      .dropdown-main-item,
+      .dropdown-sub-item {
+        padding: 6px 8px !important;
+        font-size: 10px !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .monthly-schedule-controls button:nth-child(1),
+      .monthly-schedule-controls button:nth-child(2) {
+        padding: 8px 6px !important;
+        font-size: 11px !important;
+      }
+      
+      .language-switch-container button {
+        padding: 5px 8px !important;
+        font-size: 10px !important;
+      }
+      
+      .keymap-btn {
+        padding: 5px 8px !important;
+        font-size: 10px !important;
+      }
+      
+      .month-label strong,
+      .designation-label strong {
+        font-size: 11px !important;
+        padding: 3px 6px !important;
+      }
+      
+      .monthlySchedule-template {
+        font-size: 8px !important;
+      }
+      
+      .monthlySchedule-template table th,
+      .monthlySchedule-template table td {
+        font-size: 8px !important;
+        padding: 1px !important;
+      }
+      
+      .monthlySchedule-template table col:nth-child(1) {
+        width: 35px !important;
+      }
+      
+      .monthlySchedule-template button[class*="tpl-"] {
+        font-size: 8px !important;
+        padding: 2px !important;
+        min-height: 20px !important;
+      }
+      
+      .monthlySchedule-template .header-large {
+        font-size: 10px !important;
+      }
+      
+      .monthlySchedule-template .header-xlarge {
+        font-size: 14px !important;
+      }
+    }
+    
     @page { margin:12pt; }
     @media print {
       /* === TABLE HEADER (දිනය, පෙරවරු, පස්වරු) === */
@@ -202,6 +394,27 @@
       "10": "ඔක්තෝබර්",
       "11": "නොවැම්බර්",
       "12": "දෙසැම්බර්"
+    };
+    return map[m] || "";
+  }
+  
+  // --- English month mapping ---
+  function getEnglishMonthName(monthStr) {
+    if (!monthStr) return "";
+    const m = (monthStr.split("-")[1] || "").padStart(2, "0");
+    const map = {
+      "01": "January",
+      "02": "February",
+      "03": "March",
+      "04": "April",
+      "05": "May",
+      "06": "June",
+      "07": "July",
+      "08": "August",
+      "09": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
     };
     return map[m] || "";
   }
@@ -405,30 +618,147 @@
 
     // REMOVED: const backBtn = el("button",{type:"button",style:"padding:8px 12px;border-radius:8px;cursor:pointer;background:#e0e0e0;border:1px solid #bdbdbd"}); backBtn.textContent = "Reports වෙත";
 
-    const printBtn = el("button", { type: "button", style: "padding:8px 12px;border-radius:8px;border:1px solid #bdbdbd;cursor:pointer;background:#e8e8e8" }); printBtn.textContent = "Print";
-    const pdfBtn = el("button", { type: "button", style: "padding:8px 12px;border-radius:8px;border:1px solid #bdbdbd;cursor:pointer;background:#f3e5f5" }); pdfBtn.textContent = "Download PDF";
-
-    // Size selector - UPDATED: A4 option changed to 100% scale
-    const sizeSel = el("select", {
-      style: "padding:8px;border-radius:6px;border:1px solid #bbb;"
-    });
-    sizeSel.innerHTML = `
-      <option value="legal">Legal (8.5×14)</option>
-      <option value="a4">A4 (100% Scale)</option>  <!-- Changed from 83% to 100% -->
-    `;
+    const pdfBtn = el("button", { type: "button", style: "padding:8px 12px;border-radius:8px;border:1px solid #bdbdbd;cursor:pointer;background:#f3e5f5" }); pdfBtn.textContent = "Download";
 
     const saveBtn = el("button", { type: "button", style: "padding:8px 12px;border-radius:8px;border:1px solid #2b7;color:#fff;background:#2b7" }); saveBtn.textContent = "Save";
-
-    // Append only the remaining buttons (removed backBtn)
-    ctrl.append(printBtn, pdfBtn, sizeSel, saveBtn);
 
     // meta inputs
     const meta = el("div", {
       class: "monthly-schedule-meta",
       style: "display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap"
     });
+    
+    // Language switch
+    let currentLanguage = "si"; // default to Sinhala
+    const languageSwitch = el("div", {
+      class: "language-switch-container",
+      style: "display:flex;align-items:center;gap:8px;background:#f0f0f0;padding:4px;border-radius:6px;"
+    });
+    const siBtn = el("button", {
+      html: "සිං",
+      style: "padding:6px 12px;border:none;border-radius:4px;cursor:pointer;background:#0b5ea8;color:#fff;font-weight:bold"
+    });
+    const enBtn = el("button", {
+      html: "En",
+      style: "padding:6px 12px;border:none;border-radius:4px;cursor:pointer;background:#ddd;color:#333"
+    });
+    languageSwitch.append(siBtn, enBtn);
+    
+    // Key Map button (will be in controls on mobile)
+    const keyMapBtn = el("button", {
+      type: "button",
+      class: "keymap-btn",
+      style: "padding:8px 12px;border-radius:6px;border:1px solid #0b5ea8;background:#e3f2fd;color:#0b5ea8;cursor:pointer;font-weight:600;"
+    });
+    keyMapBtn.innerHTML = "<i class='fas fa' style='margin-right:6px;'></i>Key Map";
+    keyMapBtn.onclick = () => {
+      if (window.showContent) {
+        // Navigate to PHI Area (PHI Profile)
+        window.showContent('phiArea', null);
+        
+        // Use requestAnimationFrame to ensure DOM is updated, then poll for tab
+        requestAnimationFrame(() => {
+          let attempts = 0;
+          const maxAttempts = 30; // 3 seconds max
+          const checkInterval = setInterval(() => {
+            attempts++;
+            const keyMapTab = document.getElementById('tab_phi_keymap');
+            
+            if (keyMapTab) {
+              clearInterval(checkInterval);
+              keyMapTab.click();
+            } else if (attempts >= maxAttempts) {
+              clearInterval(checkInterval);
+            }
+          }, 100);
+        });
+      }
+    };
+    
+    // Append buttons, language switch, and key map to controls
+    ctrl.append(pdfBtn, saveBtn, languageSwitch, keyMapBtn);
+    
     const monthInput = el("input", { type: "month", style: "padding:8px;border-radius:6px;border:1px solid #ddd;color:#000" });
-    meta.append(el("div", { html: "<strong style='color:#fff;background:#0b5ea8;padding:4px 8px;border-radius:4px;'>Month</strong>" }), monthInput);
+    
+    // Month names mapping
+    const sinhalaMonths = ["ජනවාරි", "පෙබරවාරි", "මාර්තු", "අප්‍රේල්", "මැයි", "ජූනි", "ජූලි", "අගෝස්තු", "සැප්තැම්බර්", "ඔක්තෝබර්", "නොවැම්බර්", "දෙසැම්බර්"];
+    const englishMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    
+    // Designation mapping
+    const designationMapping = {
+      "si": {
+        "මහජන සෞඛ්‍ය පරීක්ෂක": "මහජන සෞඛ්‍ය පරීක්ෂක",
+        "පවුල් සෞඛ්‍ය සේවා නිලධාරිනි": "පවුල් සෞඛ්‍ය සේවා නිලධාරිනි",
+        "සෞඛ්‍ය වෛද්‍ය නිලධාරී": "සෞඛ්‍ය වෛද්‍ය නිලධාරී",
+        "වෛද්‍ය නිලධාරී": "වෛද්‍ය නිලධාරී",
+        "Public Health Inspector": "මහජන සෞඛ්‍ය පරීක්ෂක",
+        "Public Health Midwife": "පවුල් සෞඛ්‍ය සේවා නිලධාරිනි",
+        "Medical Officer of Health": "සෞඛ්‍ය වෛද්‍ය නිලධාරී",
+        "Medical Officer": "වෛද්‍ය නිලධාරී"
+      },
+      "en": {
+        "මහජන සෞඛ්‍ය පරීක්ෂක": "Public Health Inspector",
+        "පවුල් සෞඛ්‍ය සේවා නිලධාරිනි": "Public Health Midwife",
+        "සෞඛ්‍ය වෛද්‍ය නිලධාරී": "Medical Officer of Health",
+        "වෛද්‍ය නිලධාරී": "Medical Officer",
+        "Public Health Inspector": "Public Health Inspector",
+        "Public Health Midwife": "Public Health Midwife",
+        "Medical Officer of Health": "Medical Officer of Health",
+        "Medical Officer": "Medical Officer"
+      }
+    };
+    
+    // Designation selector
+    const designationSelect = el("select", { style: "padding:8px;border-radius:6px;border:1px solid #ddd;color:#000;min-width:250px" });
+    
+    // Function to update designation options based on language
+    function updateDesignationOptions() {
+      if (currentLanguage === "si") {
+        designationSelect.innerHTML = `
+          <option value="මහජන සෞඛ්‍ය පරීක්ෂක">මහජන සෞඛ්‍ය පරීක්ෂක</option>
+          <option value="පවුල් සෞඛ්‍ය සේවා නිලධාරිනි">පවුල් සෞඛ්‍ය සේවා නිලධාරිනි</option>
+          <option value="සෞඛ්‍ය වෛද්‍ය නිලධාරී">සෞඛ්‍ය වෛද්‍ය නිලධාරී</option>
+          <option value="වෛද්‍ය නිලධාරී">වෛද්‍ය නිලධාරී</option>
+        `;
+      } else {
+        designationSelect.innerHTML = `
+          <option value="Public Health Inspector">Public Health Inspector</option>
+          <option value="Public Health Midwife">Public Health Midwife</option>
+          <option value="Medical Officer of Health">Medical Officer of Health</option>
+          <option value="Medical Officer">Medical Officer</option>
+        `;
+      }
+    }
+    
+    // Initialize with Sinhala options
+    updateDesignationOptions();
+    
+    // Month label and input wrapper
+    const monthLabel = el("div", { 
+      class: "month-label",
+      html: "<strong style='color:#fff;background:#0b5ea8;padding:4px 8px;border-radius:4px;'>Month</strong>" 
+    });
+    const monthWrapper = el("div", {
+      class: "month-input-wrapper",
+      style: "display:flex;gap:8px;align-items:center;"
+    });
+    monthWrapper.append(monthLabel, monthInput);
+    
+    // Designation label and input wrapper
+    const designationLabel = el("div", { 
+      class: "designation-label",
+      html: "<strong style='color:#fff;background:#0b5ea8;padding:4px 8px;border-radius:4px;'>තනතුර</strong>" 
+    });
+    const designationWrapper = el("div", {
+      class: "designation-input-wrapper",
+      style: "display:flex;gap:8px;align-items:center;"
+    });
+    designationWrapper.append(designationLabel, designationSelect);
+    
+    meta.append(
+      monthWrapper,
+      designationWrapper
+    );
     // size mapping: legal content area (for visual sizing)
     const LEGAL_PT = { w: 612, h: 1008 };
     const MARGIN_PT = 12;
@@ -440,10 +770,9 @@
     // wrapper template
     const templateWrap = el("div", {
       class: "monthlySchedule-template monthly-schedule-template-wrapper",
-      style: "background:#fff;border-radius:6px;border:1px solid #ddd;box-shadow:0 4px 10px rgba(0,0,0,0.04);color:#000;overflow:visible;"
+      style: "background:#fff;border-radius:6px;border:1px solid #ddd;box-shadow:0 4px 10px rgba(0,0,0,0.04);color:#000;overflow:visible;width:100%;box-sizing:border-box;"
     });
-    // we'll set scale via applySizeScale()
-    templateWrap.style.transformOrigin = "top left";
+    // No scaling - use full width
     templateWrap.style.padding = "8px";
 
     // header HTML with inspector display placeholder (tpl_inspector_display) and tpl_month_display
@@ -531,9 +860,10 @@
       const menuId = `${namePrefix}-${type}-menu`;
 
       const items = type === 'role' ? loadKeyRoles() : loadKeyPlaces();
+      const placeholderText = currentLanguage === 'en' ? '-- Select --' : '-- තෝරන්න --';
       const displayText = preservedValue ?
         (type === 'role' ? getRoleNameById(preservedValue) : getPlaceNameById(preservedValue)) :
-        `-- තෝරන්න --`;
+        placeholderText;
 
       const wrapper = el("div", {
         style: "position:relative;flex:1;min-width:0;width:100%"
@@ -556,13 +886,20 @@
       const textSpan = el("span", {
         style: "flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
       });
-      textSpan.textContent = displayText || "-- තෝරන්න --";
+      const placeholderFallback = currentLanguage === 'en' ? '-- Select --' : '-- තෝරන්න --';
+      textSpan.textContent = displayText || placeholderFallback;
 
       const arrow = el("span", { style: "margin-left:4px;color:#666;font-size:10px;transition:transform 0.2s;" });
       arrow.textContent = "▼";
 
       btn.appendChild(textSpan);
       btn.appendChild(arrow);
+
+      // Apply the correct background color based on whether there's a preserved value
+      if (preservedValue && !disabled) {
+        btn.style.backgroundColor = 'rgb(104, 216, 216)';
+        btn.style.borderColor = '#000000ff';
+      }
 
       // Create dropdown
       const menu = el("div", {
@@ -778,7 +1115,7 @@
       // Add change event listener to update button style
       btn.addEventListener('change', () => {
         if (btn.dataset.value) {
-          btn.style.backgroundColor = '#207733ff'; // Blue background when selected
+          btn.style.backgroundColor = 'rgb(92, 227, 245)'; // Blue background when selected
           btn.style.color = '#000';
           btn.style.borderColor = '#000000ff';
         } else {
@@ -909,20 +1246,136 @@
     }
 
     // ---------- Functions: inspector display & meta ----------
+    
+    // Update month display based on language
+    function updateMonthDisplay() {
+      // Month input stays visible, just language context changes
+      // The actual month value display is handled by the browser's month picker
+    }
+    
+    // Function to update only Sunday and holiday rows when language changes
+    function updateSundayAndHolidayLanguage() {
+      const tbody = templateWrap.querySelector("tbody");
+      if (!tbody) return;
+      
+      const sundayTextSi = "ඉරිදා දිනයකි";
+      const sundayTextEn = "Sunday";
+      const currentSundayText = currentLanguage === 'en' ? sundayTextEn : sundayTextSi;
+      
+      const rows = tbody.querySelectorAll("tr");
+      rows.forEach((tr, idx) => {
+        const day = idx + 1;
+        const tdM = tr.children[1];
+        const tdA = tr.children[2];
+        
+        // Update Sunday rows
+        if (tr.classList.contains("ms-sunday-row")) {
+          const lockedDivM = tdM.querySelector(".ms-locked");
+          const lockedDivA = tdA.querySelector(".ms-locked");
+          if (lockedDivM) lockedDivM.textContent = currentSundayText;
+          if (lockedDivA) lockedDivA.textContent = currentSundayText;
+        }
+        
+        // Update government holiday rows
+        if (tr.classList.contains("ms-holiday-row") && !tr.dataset.manualHoliday) {
+          // This is a government holiday, get the name in current language
+          const monthValue = monthInput.value;
+          if (monthValue) {
+            const [year, month] = monthValue.split("-");
+            const govHolidayName = isGovernmentHoliday(parseInt(year), parseInt(month), day, currentLanguage);
+            
+            if (govHolidayName) {
+              const holidayDivM = tdM.querySelector(".ms-holiday");
+              const holidayDivA = tdA.querySelector(".ms-holiday");
+              if (holidayDivM) holidayDivM.textContent = govHolidayName;
+              if (holidayDivA) holidayDivA.textContent = govHolidayName;
+              tr.dataset.holidayName = govHolidayName;
+            }
+          }
+        }
+        
+        // Update placeholder text in dropdown buttons that haven't been selected
+        const buttons = tr.querySelectorAll('button[class*="tpl-"]');
+        buttons.forEach(btn => {
+          if (!btn.dataset.value) {
+            const textSpan = btn.querySelector('span');
+            if (textSpan) {
+              const placeholderText = currentLanguage === 'en' ? '-- Select --' : '-- තෝරන්න --';
+              textSpan.textContent = placeholderText;
+            }
+          }
+        });
+      });
+    }
+    
+    // Language switch handlers
+    siBtn.addEventListener("click", () => {
+      currentLanguage = "si";
+      siBtn.style.background = "#0b5ea8";
+      siBtn.style.color = "#fff";
+      enBtn.style.background = "#ddd";
+      enBtn.style.color = "#333";
+      
+      // Switch designation to Sinhala
+      const currentDesignation = designationSelect.value;
+      const sinhalaDesignation = designationMapping.si[currentDesignation];
+      
+      // Update dropdown options first
+      updateDesignationOptions();
+      
+      // Then set the value
+      if (sinhalaDesignation) {
+        designationSelect.value = sinhalaDesignation;
+      }
+      
+      applyMetaDisplays(); // Update month display
+      refreshInspectorDisplay();
+      
+      // Update only Sunday and holiday rows, not all rows
+      updateSundayAndHolidayLanguage();
+    });
+    
+    enBtn.addEventListener("click", () => {
+      currentLanguage = "en";
+      enBtn.style.background = "#0b5ea8";
+      enBtn.style.color = "#fff";
+      siBtn.style.background = "#ddd";
+      siBtn.style.color = "#333";
+      
+      // Switch designation to English
+      const currentDesignation = designationSelect.value;
+      const englishDesignation = designationMapping.en[currentDesignation];
+      
+      // Update dropdown options first
+      updateDesignationOptions();
+      
+      // Then set the value
+      if (englishDesignation) {
+        designationSelect.value = englishDesignation;
+      }
+      
+      applyMetaDisplays(); // Update month display
+      refreshInspectorDisplay();
+      
+      // Update only Sunday and holiday rows, not all rows
+      updateSundayAndHolidayLanguage();
+    });
+    
     function refreshInspectorDisplayFromState(state) {
       const elTpl = templateWrap.querySelector("#tpl_inspector_display");
       if (!elTpl) return;
       const inspector = (state && state.inspector) ? state.inspector : "";
       const area = (state && state.area) ? state.area : "";
+      const designation = designationSelect.value || "මහජන සෞඛ්‍ය පරීක්ෂක";
 
       if (inspector && area) {
-        elTpl.textContent = `${inspector} - මහජන සෞඛ්‍ය පරීක්ෂක  ${area}`;
+        elTpl.textContent = `${inspector} - ${designation}  ${area}`;
       } else if (inspector) {
-        elTpl.textContent = `${inspector} - මහජන සෞඛ්‍ය පරීක්ෂක`;
+        elTpl.textContent = `${inspector} - ${designation}`;
       } else if (area) {
-        elTpl.textContent = `මහජන සෞඛ්‍ය පරීක්ෂක ${area}`;
+        elTpl.textContent = `${designation} ${area}`;
       } else {
-        elTpl.textContent = "";
+        elTpl.textContent = designation;
       }
     }
 
@@ -936,7 +1389,12 @@
       const tplYearDisplay = templateWrap.querySelector("#tpl_year_display");
       if (tplMonthDisplay) {
         if (monthInput.value) {
-          tplMonthDisplay.textContent = getSinhalaMonthName(monthInput.value);
+          // Use current language to determine month display
+          if (currentLanguage === "si") {
+            tplMonthDisplay.textContent = getSinhalaMonthName(monthInput.value);
+          } else {
+            tplMonthDisplay.textContent = getEnglishMonthName(monthInput.value);
+          }
           const parts = (monthInput.value || "").split("-");
           tplYearDisplay.textContent = parts[0] ? parts[0].slice(2) : "";
         } else { tplMonthDisplay.textContent = ""; tplYearDisplay.textContent = ""; }
@@ -964,6 +1422,11 @@
       applyMonthConstraints(monthInput.value);
       // NEW: Auto-fill from fixed dates when month changes
       autoFillScheduleFromFixedDates(monthInput.value);
+    });
+    
+    // Designation change listener
+    designationSelect.addEventListener("change", function () {
+      refreshInspectorDisplay();
     });
 
     // populate select options from KeyMap (no longer needed with cascading menus, but keep for compatibility)
@@ -1021,7 +1484,36 @@
             day: i + 1,
             morning: { role: "", place: "", holiday: holidayName },
             afternoon: { role: "", place: "", holiday: holidayName },
-            isHoliday: true
+            isHoliday: true,
+            holidayName: holidayName
+          };
+        }
+
+        // Check if this is a Sunday (locked row with Sunday text)
+        const lockedNode = tr.querySelector(".ms-locked");
+        const isSundayRow = lockedNode && lockedNode.textContent.trim() === "ඉරිදා දිනයකි";
+        
+        if (isSundayRow) {
+          return {
+            day: i + 1,
+            morning: "",
+            afternoon: "",
+            isSunday: true,
+            isHoliday: false,
+            isInvalidDay: false
+          };
+        }
+
+        // Check if this is an invalid day (month-locked row)
+        const isMonthLocked = tr.dataset.monthLocked === "1";
+        if (isMonthLocked) {
+          return {
+            day: i + 1,
+            morning: "",
+            afternoon: "",
+            isSunday: false,
+            isHoliday: false,
+            isInvalidDay: true
           };
         }
 
@@ -1056,7 +1548,7 @@
           afternoonVal = (ar || ap) ? { role: ar, place: ap } : "";
         }
 
-        return { day: i + 1, morning: morningVal, afternoon: afternoonVal, isHoliday: false };
+        return { day: i + 1, morning: morningVal, afternoon: afternoonVal, isHoliday: false, isSunday: false, isInvalidDay: false };
       });
       const curPhi = (function () { try { return readPhiShortKeys().inspector || ""; } catch (e) { return ""; } })();
       return {
@@ -1126,7 +1618,7 @@
     }
 
     // NEW: Function to mark a row as holiday
-    function markRowAsHoliday(row, holidayName) {
+    function markRowAsHoliday(row, holidayName, isManual = false) {
       const tdM = row.children[1];
       const tdA = row.children[2];
 
@@ -1149,6 +1641,13 @@
 
       row.classList.add("ms-holiday-row");
       row.dataset.holidayName = holidayName;
+      
+      // Mark if manually set by user
+      if (isManual) {
+        row.dataset.manualHoliday = "1";
+      } else {
+        delete row.dataset.manualHoliday;
+      }
     }
 
     // NEW: Function to unmark a row as holiday (restore normal selects)
@@ -1168,6 +1667,7 @@
 
       row.classList.remove("ms-holiday-row");
       delete row.dataset.holidayName;
+      delete row.dataset.manualHoliday;
 
       // Refresh options
       refreshKeyMapOptions();
@@ -1231,22 +1731,12 @@
     // backBtn.onclick = ()=> window.showContent && window.showContent('Reports', null);
 
     // ------- Size/Scale control implementation -------
-    // UPDATED: A4 scale changed from 0.83 to 1.0 (100%)
+    // No scaling - form fills full width
     function applySizeScale() {
-      let scale = 1.0;
-
-      if (sizeSel.value === "a4") {
-        scale = 1.0;   // Changed from 0.83 to 1.0 - 100% scale
-      } else {
-        scale = 0.88;   // Legal default (visual)
-      }
-
-      templateWrap.style.transform = `scale(${scale})`;
-      templateWrap.style.transformOrigin = "top left";
-      templateWrap.style.width = (contentWpx / scale) + "px";
-      templateWrap.style.minHeight = (contentHpx / scale) + "px";
+      // Remove any transform
+      templateWrap.style.transform = "none";
+      templateWrap.style.width = "100%";
     }
-    sizeSel.addEventListener("change", applySizeScale);
     applySizeScale();
 
     // ---------- Month constraints and Sunday handling ----------
@@ -1305,12 +1795,32 @@
         if (dayOfWeek === 0) sundaySet.add(d);
       }
 
+      // Get government holidays for this month with current language
+      const monthHolidays = getGovernmentHolidaysForMonth(monthValue, currentLanguage);
+
       // iterate rows 1..31
       const rows = tbody.querySelectorAll("tr");
       rows.forEach((tr, idx) => {
         const day = idx + 1;
         const tdM = tr.children[1];
         const tdA = tr.children[2];
+        
+        // Check if this day is a government holiday
+        const govHolidayName = monthHolidays[day];
+        
+        // Preserve manualHoliday flag before clearing
+        const wasManuallyDisabled = tr.dataset.manualHoliday === "1";
+        
+        // First, clear any existing holiday marking (to prevent carry-over from previous month)
+        // Only clear if it's not manually set by user AND not a government holiday for current month
+        if (tr.classList.contains("ms-holiday-row") && !tr.dataset.manualHoliday) {
+          unmarkRowAsHoliday(tr);
+        }
+        
+        // Restore manualHoliday flag if it was set (user manually disabled government holiday)
+        if (wasManuallyDisabled && govHolidayName) {
+          tr.dataset.manualHoliday = "1";
+        }
 
         // If day > last => lock and show preserved uneditable
         if (day > last) {
@@ -1343,33 +1853,45 @@
           delete tr.dataset.sundayLocked;
           return;
         } else {
-          // day is within month => ensure selects exist and are enabled (unless previously user-locked Sunday)
-          // if currently locked because of prior month selection, restore selects with preserved values
-          if (!tdM.querySelector("select")) {
-            const preservedRole = tr.dataset.morningRole || "";
-            const preservedPlace = tr.dataset.morningPlace || "";
+          // day is within month
+          // govHolidayName was already fetched at the start of the loop
+          
+          if (govHolidayName && tr.dataset.manualHoliday !== "1") {
+            // This is a government holiday and not manually disabled
+            // Clear any existing selects - will be marked as holiday below
             tdM.innerHTML = "";
-            tdM.appendChild(createSelectCell("tpl-morning", preservedRole, preservedPlace, false));
-          } else {
-            // ensure enabled
-            const sel = tdM.querySelector("select");
-            if (sel) sel.disabled = false;
-          }
-
-          if (!tdA.querySelector("select")) {
-            const preservedRole = tr.dataset.afternoonRole || "";
-            const preservedPlace = tr.dataset.afternoonPlace || "";
             tdA.innerHTML = "";
-            tdA.appendChild(createSelectCell("tpl-afternoon", preservedRole, preservedPlace, false));
+            delete tr.dataset.monthLocked;
           } else {
-            const sel = tdA.querySelector("select");
-            if (sel) sel.disabled = false;
+            // Normal day or manually disabled government holiday
+            // Ensure selects exist and are enabled (unless previously user-locked Sunday)
+            // if currently locked because of prior month selection, restore selects with preserved values
+            if (!tdM.querySelector("select")) {
+              const preservedRole = tr.dataset.morningRole || "";
+              const preservedPlace = tr.dataset.morningPlace || "";
+              tdM.innerHTML = "";
+              tdM.appendChild(createSelectCell("tpl-morning", preservedRole, preservedPlace, false));
+            } else {
+              // ensure enabled
+              const sel = tdM.querySelector("select");
+              if (sel) sel.disabled = false;
+            }
+
+            if (!tdA.querySelector("select")) {
+              const preservedRole = tr.dataset.afternoonRole || "";
+              const preservedPlace = tr.dataset.afternoonPlace || "";
+              tdA.innerHTML = "";
+              tdA.appendChild(createSelectCell("tpl-afternoon", preservedRole, preservedPlace, false));
+            } else {
+              const sel = tdA.querySelector("select");
+              if (sel) sel.disabled = false;
+            }
+            delete tr.dataset.monthLocked;
           }
-          delete tr.dataset.monthLocked;
         }
 
-        // SUNDAY HANDLING
-        if (sundaySet.has(day)) {
+        // SUNDAY HANDLING (skip if government holiday)
+        if (sundaySet.has(day) && !(govHolidayName && tr.dataset.manualHoliday !== "1")) {
           // helper to render locked Sunday note
           const makeLockedSunday = () => {
             // preserve any selects values first
@@ -1470,7 +1992,16 @@
           tr._ms_sunday_dbl_handler = dblHandler;
 
         } else {
-          // NOT SUNDAY - Add holiday selection on double click
+          // NOT SUNDAY - Check for government holidays first
+          // holidayName was already fetched at the start of the loop as govHolidayName
+          
+          if (govHolidayName && tr.dataset.manualHoliday !== "1") {
+            // This day is a government holiday and not manually disabled
+            // Automatically mark it (not manual)
+            markRowAsHoliday(tr, govHolidayName, false);
+          }
+          
+          // Add holiday selection on double click
           // Remove any previous dblclick handler to avoid duplicate bindings
           if (tr._ms_holiday_dbl_handler) {
             tr.removeEventListener("dblclick", tr._ms_holiday_dbl_handler);
@@ -1481,13 +2012,50 @@
           const holidayDblHandler = function (ev) {
             ev.stopPropagation();
 
-            // If already a holiday, remove holiday status
+            // If already a holiday, toggle back to normal day
             if (tr.classList.contains("ms-holiday-row")) {
-              unmarkRowAsHoliday(tr);
+              // Check if this is a government holiday for this day
+              const govHolidayName = monthHolidays[day];
+              
+              if (govHolidayName) {
+                // This is a government holiday - toggle it to normal day
+                // Set flag to indicate user manually disabled this government holiday
+                tr.dataset.manualHoliday = "1";
+                unmarkRowAsHoliday(tr);
+                
+                // Now restore the select dropdowns since we're converting to normal day
+                const preservedMRole = tr.dataset.morningRole || "";
+                const preservedMPlace = tr.dataset.morningPlace || "";
+                const preservedARole = tr.dataset.afternoonRole || "";
+                const preservedAPlace = tr.dataset.afternoonPlace || "";
+                
+                const tdM = tr.children[1];
+                const tdA = tr.children[2];
+                
+                tdM.innerHTML = "";
+                tdA.innerHTML = "";
+                tdM.appendChild(createSelectCell("tpl-morning", preservedMRole, preservedMPlace, false));
+                tdA.appendChild(createSelectCell("tpl-afternoon", preservedARole, preservedAPlace, false));
+                
+                refreshKeyMapOptions();
+              } else {
+                // Manual holiday - just remove it
+                unmarkRowAsHoliday(tr);
+              }
               return;
             }
 
-            // Show holiday selection dialog
+            // Not currently a holiday - check if this day has a government holiday
+            const govHolidayName = monthHolidays[day];
+            if (govHolidayName) {
+              // This day has a government holiday - restore it
+              // Clear the manual flag to allow it to show
+              delete tr.dataset.manualHoliday;
+              markRowAsHoliday(tr, govHolidayName, false);
+              return;
+            }
+
+            // No government holiday - show manual holiday selection dialog
             const holidays = loadHolidays();
             if (holidays.length === 0) {
               showWarning("No holiday types available. Please add holiday types in Key Map first.");
@@ -1553,7 +2121,7 @@
               }
 
               if (holidayName) {
-                markRowAsHoliday(tr, holidayName);
+                markRowAsHoliday(tr, holidayName, true); // Mark as manual
                 cleanup();
               } else {
                 showWarning("Please select a holiday type or enter a custom holiday name.");
@@ -1570,511 +2138,85 @@
           tr._ms_holiday_dbl_handler = holidayDblHandler;
 
           // ensure selects exist and enabled - check for buttons instead of selects
-          if (!tdM.querySelector(".tpl-morning-role")) tdM.appendChild(createSelectCell("tpl-morning", tr.dataset.morningRole || "", tr.dataset.morningPlace || "", false));
-          if (!tdA.querySelector(".tpl-afternoon-role")) tdA.appendChild(createSelectCell("tpl-afternoon", tr.dataset.afternoonRole || "", tr.dataset.afternoonPlace || "", false));
+          // But NOT for government holidays (unless manually disabled)
+          if (!(govHolidayName && tr.dataset.manualHoliday !== "1")) {
+            if (!tdM.querySelector(".tpl-morning-role")) tdM.appendChild(createSelectCell("tpl-morning", tr.dataset.morningRole || "", tr.dataset.morningPlace || "", false));
+            if (!tdA.querySelector(".tpl-afternoon-role")) tdA.appendChild(createSelectCell("tpl-afternoon", tr.dataset.afternoonRole || "", tr.dataset.afternoonPlace || "", false));
+          }
           tr.classList.remove("ms-sunday-row");
         }
       });
     }
 
-    // Printing / PDF helpers (modified to accept sizeType)
-    // --- updatePrintableCloneAndOpen and downloadPDFForWrapper are kept mostly same as earlier, but accept sizeType param.
-    // js/reports/monthlySchedule.js - UPDATED: Fixed row heights for print/PDF
-
-    // ... existing code above ...
-
-    function updatePrintableCloneAndOpen(wrapper, monthValue, origTbody, sizeType) {
-      const printable = wrapper.cloneNode(true);
-      // ensure header month/year
-      const tplMonth = printable.querySelector("#tpl_month_display");
-      const tplYear = printable.querySelector("#tpl_year_display");
-      if (tplMonth) tplMonth.textContent = getSinhalaMonthName(monthValue) || "";
-      if (tplYear) {
-        const p = (monthValue || "").split("-");
-        tplYear.textContent = p[0] ? p[0].slice(2) : "";
-      }
-
-      const printableRows = printable.querySelectorAll("tbody tr");
-      const origRows = origTbody.querySelectorAll("tr");
-
-      printableRows.forEach((tr, i) => {
-        const orig = origRows[i];
-        if (!orig) return;
-
-        // detect locked node(s)
-        const origLockedNode = orig.querySelector(".ms-locked");
-        const lockedText = origLockedNode && typeof origLockedNode.textContent === "string"
-          ? origLockedNode.textContent.trim()
-          : "";
-
-        // is this the special default Sunday locked note?
-        const isDefaultSunday = lockedText === "ඉරිදා දිනයකි";
-
-        // Check if this is a holiday row
-        const isHolidayRow = orig.classList.contains("ms-holiday-row");
-        const holidayName = orig.dataset.holidayName || "";
-
-        // determine whether this row is a "locked row" (uneditable) that should print as a single red rule.
-        // We treat as locked row if:
-        //  - it has a .ms-locked element (but not the default Sunday text), OR
-        //  - dataset.monthLocked === "1" on the original row (older code sets this for days beyond month)
-        const isLockedRow = (!isDefaultSunday && (origLockedNode !== null || orig.dataset && orig.dataset.monthLocked === "1"));
-
-        // extract selections/datasets for normal rendering
-        const origMorning = (function () {
-          const mRoleBtn = orig.querySelector(".tpl-morning-role");
-          const mPlaceBtn = orig.querySelector(".tpl-morning-place");
-          const mRole = (mRoleBtn && mRoleBtn.dataset ? mRoleBtn.dataset.value : "") || orig.dataset.morningRole || "";
-          const mPlace = (mPlaceBtn && mPlaceBtn.dataset ? mPlaceBtn.dataset.value : "") || orig.dataset.morningPlace || "";
-          return (mRole || mPlace) ? { role: mRole, place: mPlace } : "";
-        })();
-        const origAfternoon = (function () {
-          const aRoleBtn = orig.querySelector(".tpl-afternoon-role");
-          const aPlaceBtn = orig.querySelector(".tpl-afternoon-place");
-          const aRole = (aRoleBtn && aRoleBtn.dataset ? aRoleBtn.dataset.value : "") || orig.dataset.afternoonRole || "";
-          const aPlace = (aPlaceBtn && aPlaceBtn.dataset ? aPlaceBtn.dataset.value : "") || orig.dataset.afternoonPlace || "";
-          return (aRole || aPlace) ? { role: aRole, place: aPlace } : "";
-        })();
-
-        const morningText = escapeHtml(formatEntryForPrint(origMorning));
-        const afternoonText = escapeHtml(formatEntryForPrint(origAfternoon));
-
-        const tds = tr.querySelectorAll("td");
-        if (tds && tds.length >= 3) {
-
-          // always render the date (leftmost cell) as the numeric day from the original clone's first cell
-          // Try to preserve the original date number text if present
-          const originalDateText = (orig.querySelectorAll("td")[0] && orig.querySelectorAll("td")[0].textContent) ? orig.querySelectorAll("td")[0].textContent.trim() : (i + 1).toString();
-          tds[0].innerHTML = `<div style="font-weight:700;color:#000;text-align:center;display:flex;align-items:center;justify-content:center;height:100%;">${escapeHtml(originalDateText)}</div>`;
-
-          if (isHolidayRow && holidayName) {
-            // Holiday row -> centered RED text across both columns
-            const holidayHtml = `<div class="print-cell-content ms-holiday">${escapeHtml(holidayName)}</div>`;
-
-            tds[1].innerHTML = holidayHtml;
-            tds[2].innerHTML = holidayHtml;
-
-          } else if (isDefaultSunday) {
-            // Default Sunday -> centered RED text across both columns
-            const sundayHtml = `<div class="print-cell-content ms-locked">ඉරිදා දිනයකි</div>`;
-
-            tds[1].innerHTML = sundayHtml;
-            tds[2].innerHTML = sundayHtml;
-
-          } else if (isLockedRow) {
-            // Locked row (non-Sunday) -> show a single red horizontal rule across the whole row
-            const lineHtml = `<div class="print-cell-content" style="display:flex;align-items:center;justify-content:center;height:100%;"><div style="width:80%;height:2px;background:#b71c1c;border-radius:1px"></div></div>`;
-
-            tds[1].innerHTML = lineHtml;
-            tds[2].innerHTML = lineHtml;
-
-          } else {
-            // Normal (editable / user data) day -> render morning/afternoon values in bold blue (as before)
-            tds[1].innerHTML = `<div class="print-cell-content user-input" style="font-weight:700 !important;color:#0b5cff !important;">${morningText}</div>`;
-            tds[2].innerHTML = `<div class="print-cell-content user-input" style="font-weight:700 !important;color:#0b5cff !important;">${afternoonText}</div>`;
-          }
-
-        } else {
-          // fallback: if structure differs (e.g., textareas), handle similarly for their parents
-          const mta = tr.querySelector("textarea.tpl-morning");
-          const ata = tr.querySelector("textarea.tpl-afternoon");
-
-          if (isHolidayRow && holidayName) {
-            const holidayHtml = `<div class="print-cell-content ms-holiday">${escapeHtml(holidayName)}</div>`;
-            if (mta) mta.parentElement.innerHTML = holidayHtml;
-            if (ata) ata.parentElement.innerHTML = holidayHtml;
-          } else if (isDefaultSunday) {
-            const sundayHtml = `<div class="print-cell-content ms-locked">ඉරිදා දිනයකි</div>`;
-            if (mta) mta.parentElement.innerHTML = sundayHtml;
-            if (ata) ata.parentElement.innerHTML = sundayHtml;
-          } else if (isLockedRow) {
-            const lineHtml = `<div class="print-cell-content" style="display:flex;align-items:center;justify-content:center;height:100%;"><div style="width:80%;height:2px;background:#b71c1c;border-radius:1px"></div></div>`;
-            if (mta) mta.parentElement.innerHTML = lineHtml;
-            if (ata) ata.parentElement.innerHTML = lineHtml;
-          } else {
-            if (mta) mta.parentElement.innerHTML = `<div class="print-cell-content user-input" style="font-weight:700 !important;color:#0b5cff !important;">${morningText}</div>`;
-            if (ata) ata.parentElement.innerHTML = `<div class="print-cell-content user-input" style="font-weight:700 !important;color:#0b5cff !important;">${afternoonText}</div>`;
-          }
-        }
-      });
-      // copy footer content but ensure it won't be clipped or pushed off by scaling
-      const origFooter = wrapper.querySelector(".footer-notes");
-      if (origFooter) {
-        const cloneFooter = printable.querySelector(".footer-notes");
-        if (cloneFooter) {
-          const v = origFooter.value || "";
-          const parent = cloneFooter.parentElement || cloneFooter;
-          parent.innerHTML = `
-                  <span style="font-size:11px;display:block;margin-bottom:6px;">
-                      වෙනත් කරුණු / குறிப்பு:
-                  </span>
-                  <div class="user-input" style="
-                      white-space:pre-wrap;
-                      word-break:break-word;
-                      color:#0b5cff;
-                      font-size:12px;
-                      font-weight:700; /* NEW: Added bold */
-                      padding:0;
-                      margin-top:4px;
-                      line-height:1.4;
-                  ">
-                      ${escapeHtml(v)}
-                  </div>
-              `;
-        }
-      }
-
-      // Replace any remaining form controls (inputs/selects/textareas) inside printable
-      (function replaceControlsWithText(root) {
-        const controls = root.querySelectorAll("input, select, textarea");
-        controls.forEach(ctrl => {
-          // skip if already replaced
-          if (ctrl.classList && ctrl.classList.contains("replaced-for-print")) return;
-          const val = (ctrl.tagName.toLowerCase() === "select")
-            ? (ctrl.options && ctrl.selectedIndex >= 0 ? (ctrl.options[ctrl.selectedIndex].text || ctrl.value) : ctrl.value)
-            : (ctrl.value || "");
-          const div = document.createElement("div");
-          div.className = "user-input replaced-for-print print-cell-content";
-          div.style.whiteSpace = "pre-wrap";
-          div.style.wordBreak = "break-word";
-          div.style.color = "#0b5cff"; // Pen-like blue color
-          div.style.fontWeight = "700"; // NEW: Added bold
-          div.style.fontSize = "15px";
-          div.style.padding = "0";
-          div.innerHTML = escapeHtml(val);
-          ctrl.parentNode && ctrl.parentNode.replaceChild(div, ctrl);
-        });
-      })(printable);
-
-      // remove any transform/scale on clone so it prints in full
-      printable.style.transform = "none";
-      printable.style.width = "100%";
-      printable.style.minHeight = "auto";
-      printable.style.boxSizing = "border-box";
-
-      // prepare page CSS based on sizeType
-      let pageCSS = "";
-      if (sizeType === "a4") {
-        pageCSS = "@page { size: A4 portrait; margin: 10mm; }";
-      } else {
-        pageCSS = "@page { size: Legal portrait; margin: 12pt; }";
-      }
-
-      // open new window and inject safe CSS that prevents clipping and enforces blue for user-input
-      const w = window.open("", "_blank", "width=1000,height=800");
-      w.document.write(`<html><head><title>Print - Monthly Schedule</title>
-    <meta charset="utf-8">
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala&display=swap');
-      body{font-family:"Noto Sans Sinhala","Noto Sans",Arial,Helvetica,sans-serif;margin:0;padding:12px;color:#000}
-      table{width:100%;border-collapse:collapse;table-layout:fixed}
-      
-      /* Table headers - consistent font size */
-      th,td{
-        padding:4px;
-        border:1px solid #929292ff;
-        vertical-align:middle;
-        text-align:center;
-        color:#000;
-        font-size:15px !important; /* Uniform font size */
-        height:25px;
-        line-height:1.2;
-      }
-      
-      th{
-        background:#f6f6f6;
-        font-size:15px !important;
-        font-weight:600 !important;
-      }
-      
-      tr { 
-        height:25px;
-        page-break-inside: avoid;
-        break-inside: avoid;
-        -webkit-column-break-inside: avoid;
-      }
-      
-      .monthlySchedule-template { 
-        transform:none !important; 
-        width:100% !important; 
-        min-height:auto !important; 
-        margin:0; 
-        padding:8px; 
-        box-sizing:border-box; 
-        overflow:visible !important; 
-      }
-      
-      /* ensure user input text shows in bold blue with consistent font size */
-      .monthlySchedule-template .user-input { 
-        color:#0b5cff !important; 
-        font-size:15px !important;
-        font-weight:700 !important; /* NEW: Bold for user input */
-      }
-      
-      /* Cell content styling for consistent height and centering */
-      .print-cell-content {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        width: 100%;
-        font-size: 12px !important; /* Consistent font size */
-        line-height: 1.1;
-        word-wrap: break-word;
-        overflow: hidden;
-        text-align: center;
-        padding: 2px;
-      }
-      
-      /* Sunday styling - consistent font size */
-      .ms-holiday, .ms-locked {
-        color: #b71c1c !important;
-        font-weight: 700;
-        background: #ffebee !important;
-        font-size: 12px !important; /* Same font size as user input */
-      }
-      
-      .ms-locked {
-        background: transparent !important;
-      }
-      
-      /* make footer avoid page-breaks and ensure it prints fully */
-      .monthlySchedule-template .user-input[style] { 
-        page-break-inside: avoid; 
-        -webkit-column-break-inside: avoid; 
-        break-inside: avoid; 
-      }
-      
-      table tbody tr { 
-        page-break-inside: avoid; 
-        break-inside: avoid; 
-        -webkit-column-break-inside: avoid; 
-      }
-      
-      ${pageCSS}
-      
-      @media print { 
-        body{padding:6mm;} 
-        th,td{
-          height:25px !important;
-          font-size:15px !important; /* Ensure font size in print */
-        }
-        tr{height:25px !important;}
-        
-        /* Force all text in table to same font size */
-        table * {
-          font-size:15px !important;
-        }
-        
-        /* User input in bold blue for print */
-        .print-cell-content.user-input {
-          font-weight:700 !important;
-          color:#0b5cff !important;
-          font-size:15px !important;
-        }
-        
-        .print-cell-content, .user-input, .ms-locked, .ms-holiday {
-          font-size:15px !important;
-        }
-      }
-    </style></head><body></body></html>`);
-      w.document.body.appendChild(printable);
-
-      // give the browser a moment
-      setTimeout(() => {
-        try { w.focus(); w.print(); } catch (e) { console.error(e); }
-      }, 350);
-    }
-
-    // UPDATED: downloadPDFForWrapper function to download PDF directly based on selected format
+    // PDF helper function
+    // UPDATED: downloadPDFForWrapper function - Opens new window similar to otVoucherPrint.js
     function downloadPDFForWrapper(wrapper, monthValue, origTbody, sizeType) {
-      // Create a printable version
-      const printableWrapper = wrapper.cloneNode(true);
-      const tplMonth = printableWrapper.querySelector("#tpl_month_display");
-      const tplYear = printableWrapper.querySelector("#tpl_year_display");
-      if (tplMonth) tplMonth.textContent = getSinhalaMonthName(monthValue) || "";
-      if (tplYear) {
-        const p = (monthValue || "").split("-");
-        tplYear.textContent = p[0] ? p[0].slice(2) : "";
+      if (!monthValue) {
+        Swal.fire({ icon: "warning", title: "මාසය තෝරන්න", text: "කරුණාකර මුලින්ම මාසයක් තෝරන්න", confirmButtonColor: "#3085d6" });
+        return;
       }
 
-      const printableRows = printableWrapper.querySelectorAll("tbody tr");
-      const origRows = origTbody.querySelectorAll("tr");
+      const payload = collectPayload();
+      const phiInfo = readPhiShortKeys();
+      const parts = monthValue.split("-");
+      const year = parts[0] || "";
+      
+      // Use current language for month display
+      const monthName = currentLanguage === "si" ? getSinhalaMonthName(monthValue) || "" : getEnglishMonthName(monthValue) || "";
+      const sundayText = currentLanguage === "si" ? "ඉරිදා දිනයකි" : "Sunday";
+      
+      const w = window.open("", "_blank");
+      if (!w) {
+        Swal.fire({ icon: "error", title: "දෝෂයක්", text: "කරුණාකර popup blocker එක අක්‍රිය කරන්න", confirmButtonColor: "#d33" });
+        return;
+      }
 
-      printableRows.forEach((tr, i) => {
-        const orig = origRows[i];
-        if (!orig) return;
-
-        // Check if this is a holiday row
-        const isHolidayRow = orig.classList.contains("ms-holiday-row");
-        const holidayName = orig.dataset.holidayName || "";
-
-        // detect locked node(s)
-        const origLockedNode = orig.querySelector(".ms-locked");
-        const lockedText = origLockedNode && typeof origLockedNode.textContent === "string"
-          ? origLockedNode.textContent.trim()
-          : "";
-
-        // is this the special default Sunday locked note?
-        const isDefaultSunday = lockedText === "ඉරිදා දිනයකි";
-
-        // determine whether this row is a "locked row" (uneditable) that should print as a single red rule.
-        const isLockedRow = (!isDefaultSunday && (origLockedNode !== null || orig.dataset && orig.dataset.monthLocked === "1"));
-
-        // extract selections/datasets for normal rendering
-        const origMorning = (function () {
-          const mRoleBtn = orig.querySelector(".tpl-morning-role");
-          const mPlaceBtn = orig.querySelector(".tpl-morning-place");
-          const mRole = (mRoleBtn && mRoleBtn.dataset ? mRoleBtn.dataset.value : "") || orig.dataset.morningRole || "";
-          const mPlace = (mPlaceBtn && mPlaceBtn.dataset ? mPlaceBtn.dataset.value : "") || orig.dataset.morningPlace || "";
-          return (mRole || mPlace) ? { role: mRole, place: mPlace } : "";
-        })();
-        const origAfternoon = (function () {
-          const aRoleBtn = orig.querySelector(".tpl-afternoon-role");
-          const aPlaceBtn = orig.querySelector(".tpl-afternoon-place");
-          const aRole = (aRoleBtn && aRoleBtn.dataset ? aRoleBtn.dataset.value : "") || orig.dataset.afternoonRole || "";
-          const aPlace = (aPlaceBtn && aPlaceBtn.dataset ? aPlaceBtn.dataset.value : "") || orig.dataset.afternoonPlace || "";
-          return (aRole || aPlace) ? { role: aRole, place: aPlace } : "";
-        })();
-
-        const morningText = escapeHtml(formatEntryForPrint(origMorning));
-        const afternoonText = escapeHtml(formatEntryForPrint(origAfternoon));
-
-        const tds = tr.querySelectorAll("td");
-        if (tds && tds.length >= 3) {
-
-          // always render the date (leftmost cell) as the numeric day from the original clone's first cell
-          const originalDateText = (orig.querySelectorAll("td")[0] && orig.querySelectorAll("td")[0].textContent) ? orig.querySelectorAll("td")[0].textContent.trim() : (i + 1).toString();
-          tds[0].innerHTML = `<div style="font-weight:700;color:#000;text-align:center;display:flex;align-items:center;justify-content:center;height:100%;">${escapeHtml(originalDateText)}</div>`;
-
-          if (isHolidayRow && holidayName) {
-            // Holiday row -> centered RED text across both columns
-            const holidayHtml = `<div class="print-cell-content ms-holiday">${escapeHtml(holidayName)}</div>`;
-
-            tds[1].innerHTML = holidayHtml;
-            tds[2].innerHTML = holidayHtml;
-
-          } else if (isDefaultSunday) {
-            // Default Sunday -> centered RED text across both columns
-            const sundayHtml = `<div class="print-cell-content ms-locked">ඉරිදා දිනයකි</div>`;
-
-            tds[1].innerHTML = sundayHtml;
-            tds[2].innerHTML = sundayHtml;
-
-          } else if (isLockedRow) {
-            // Locked row (non-Sunday) -> show a single red horizontal rule across the whole row
-            const lineHtml = `<div class="print-cell-content" style="display:flex;align-items:center;justify-content:center;height:100%;"><div style="width:80%;height:2px;background:#b71c1c;border-radius:1px"></div></div>`;
-
-            tds[1].innerHTML = lineHtml;
-            tds[2].innerHTML = lineHtml;
-
-          } else {
-            // Normal (editable / user data) day -> render morning/afternoon values in bold blue
-            tds[1].innerHTML = `<div class="print-cell-content user-input" style="font-weight:700 !important;color:#0b5cff !important;">${morningText}</div>`;
-            tds[2].innerHTML = `<div class="print-cell-content user-input" style="font-weight:700 !important;color:#0b5cff !important;">${afternoonText}</div>`;
-          }
+      let tableRowsHTML = "";
+      const rows = payload.entries || payload.rows || [];
+      rows.forEach((row, idx) => {
+        const TABLE_START_TOP = 300;
+        const ROW_HEIGHT = 27.5;
+        const top = TABLE_START_TOP + (idx * ROW_HEIGHT);
+        
+        if (row.isSunday) {
+          // Show Sunday text in both morning and afternoon columns
+          tableRowsHTML += '<div class="field row-morning ms-sunday" style="top:' + top + 'px;left:110px;">' + escapeHtml(sundayText) + '</div>';
+          tableRowsHTML += '<div class="field row-afternoon ms-sunday" style="top:' + top + 'px;left:450px;">' + escapeHtml(sundayText) + '</div>';
+        } else if (row.isHoliday) {
+          // Show holiday text in both morning and afternoon columns
+          tableRowsHTML += '<div class="field row-morning ms-holiday" style="top:' + top + 'px;left:110px;">' + escapeHtml(row.holidayName || "නිවාඩු දිනයකි") + '</div>';
+          tableRowsHTML += '<div class="field row-afternoon ms-holiday" style="top:' + top + 'px;left:450px;">' + escapeHtml(row.holidayName || "නිවාඩු දිනයකි") + '</div>';
+        } else if (row.isInvalidDay) {
+          // Show horizontal line for invalid days (days beyond month)
+          tableRowsHTML += '<div class="field" style="top:' + (top + 5) + 'px;left:110px;width:320px;height:2px;background:#b71c1c;white-space:normal;"></div>';
+          tableRowsHTML += '<div class="field" style="top:' + (top + 5) + 'px;left:450px;width:320px;height:2px;background:#b71c1c;white-space:normal;"></div>';
+        } else {
+          const mText = formatEntryForPrint(row.morning);
+          const aText = formatEntryForPrint(row.afternoon);
+          if (mText) tableRowsHTML += '<div class="field row-morning" style="top:' + top + 'px;">' + escapeHtml(mText) + '</div>';
+          if (aText) tableRowsHTML += '<div class="field row-afternoon" style="top:' + top + 'px;">' + escapeHtml(aText) + '</div>';
         }
       });
 
-      const origFooter = wrapper.querySelector(".footer-notes");
-      if (origFooter) {
-        const cloneFooter = printableWrapper.querySelector(".footer-notes");
-        if (cloneFooter) {
-          const v = origFooter.value || "";
-          const parent = cloneFooter.parentElement || cloneFooter;
-          parent.innerHTML = `
-            <span style="font-size:11px;display:block;margin-bottom:6px;">
-                වෙනත් කරුණු / குறிப்பு:
-            </span>
-            <div class="user-input" style="
-                white-space:pre-wrap;
-                word-break:break-word;
-                color:#0b5cff;
-                font-size:12px;
-                font-weight:700; /* NEW: Added bold */
-                padding:0;
-                margin-top:4px;
-                line-height:1.4;
-            ">
-                ${escapeHtml(v)}
-            </div>
-          `;
-        }
-      }
+      const designation = designationSelect.value || "මහජන සෞඛ්‍ය පරීක්ෂක";
+      const phiHTML = phiInfo.inspector ? escapeHtml(phiInfo.inspector) + " - " + escapeHtml(designation) + " " + (phiInfo.area ? escapeHtml(phiInfo.area) : "") : escapeHtml(designation);
+      const footerHTML = payload.footerNotes ? '<div class="field" style="top:1190px;left:100px;width:700px;font-size:12px;white-space:pre-wrap;">' + escapeHtml(payload.footerNotes) + '</div>' : "";
 
-      // Replace any remaining form controls inside printableWrapper
-      (function replaceControlsWithText(root) {
-        const controls = root.querySelectorAll("input, select, textarea");
-        controls.forEach(ctrl => {
-          if (ctrl.classList && ctrl.classList.contains("replaced-for-print")) return;
-          const val = (ctrl.tagName.toLowerCase() === "select")
-            ? (ctrl.options && ctrl.selectedIndex >= 0 ? (ctrl.options[ctrl.selectedIndex].text || ctrl.value) : ctrl.value)
-            : (ctrl.value || "");
-          const div = document.createElement("div");
-          div.className = "user-input replaced-for-print print-cell-content";
-          div.style.whiteSpace = "pre-wrap";
-          div.style.wordBreak = "break-word";
-          div.style.color = "#0b5cff"; // Pen-like blue color
-          div.style.fontWeight = "700"; // NEW: Added bold
-          div.style.fontSize = "15px";
-          div.style.padding = "0";
-          div.innerHTML = escapeHtml(val);
-          ctrl.parentNode && ctrl.parentNode.replaceChild(div, ctrl);
-        });
-      })(printableWrapper);
-
-      printableWrapper.style.transform = "none";
-      printableWrapper.style.width = "100%";
-      printableWrapper.style.minHeight = "auto";
-      printableWrapper.style.boxSizing = "border-box";
-
-      // Set page size based on selected format
-      const pageSize = sizeType === "a4" ? "a4" : "legal";
-      const margin = sizeType === "a4" ? "10mm" : "12pt";
-
-      // Create filename based on month and format
-      const fileName = `monthly_schedule_${monthValue || 'unspecified'}_${pageSize}.pdf`;
-
-      // Use html2pdf to generate and download PDF
-      const opt = {
-        margin: [10, 10],
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          // Ensure font rendering
-          onclone: function (clonedDoc) {
-            // Apply consistent font sizes to cloned document
-            const allCells = clonedDoc.querySelectorAll('th, td, .print-cell-content, .user-input, .ms-locked, .ms-holiday');
-            allCells.forEach(cell => {
-              cell.style.fontSize = '15px';
-              // Apply bold to user input cells
-              if (cell.classList.contains('user-input')) {
-                cell.style.fontWeight = '700';
-                cell.style.color = '#0b5cff';
-              }
-            });
-          }
-        },
-        jsPDF: { unit: 'mm', format: pageSize, orientation: 'portrait' }
-      };
-
-      // Check if html2pdf is available
-      if (typeof html2pdf !== 'undefined') {
-        html2pdf().set(opt).from(printableWrapper).save();
-      } else {
-        // Fallback: open in new window for printing if html2pdf not available
-        showWarning("PDF download functionality requires html2pdf library. Opening print preview instead.");
-        updatePrintableCloneAndOpen(wrapper, monthValue, origTbody, sizeType);
-      }
+      w.document.write('<!DOCTYPE html><html lang="si"><head><meta charset="UTF-8"><title>මාසික ඉදිරි කාලසටහන - ' + monthName + ' ' + year + '</title>');
+      w.document.write('<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600&display=swap" rel="stylesheet">');
+      w.document.write('<style>@page{size:legal portrait;margin:0}html,body{margin:0;padding:0;width:816px;height:1344px}.page{position:relative;width:816px;height:1344px;font-family:"Noto Sans Sinhala","Noto Sans Tamil",Arial,sans-serif}.bg-image{position:absolute;top:0;left:0;width:816px;height:1344px;z-index:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.field{position:absolute;color:#0b5cff;font-weight:900;font-family:"Times New Roman","Noto Sans Sinhala","Liberation Serif",Georgia,serif;font-style:normal;z-index:1;white-space:nowrap;letter-spacing:0.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}#phi-name{top:85px;left:250px;font-size:14px;width:500px;letter-spacing:0.5px}#month-field{top:145px;left:365px;font-size:15px;letter-spacing:0.5px}#year-field{top:145px;left:575px;font-size:15px;letter-spacing:0.5px}.row-morning{left:110px;width:310px;font-size:12px;font-weight:900;text-align:center;letter-spacing:0.5px}.row-afternoon{left:450px;width:310px;font-size:12px;font-weight:900;text-align:center;letter-spacing:0.5px}.ms-sunday{color:#b71c1c;font-weight:900;letter-spacing:0.5px}.ms-holiday{color:#b71c1c;font-weight:900;letter-spacing:0.5px}@media print{html,body,.page{width:816px!important;height:1344px!important;overflow:hidden!important}}</style></head><body>');
+      w.document.write('<div class="page"><img src="assets/advance program.jpg" class="bg-image" alt="Monthly Schedule Background">');
+      w.document.write('<div id="phi-name" class="field">' + phiHTML + '</div>');
+      w.document.write('<div id="month-field" class="field">' + escapeHtml(monthName) + '</div>');
+      w.document.write('<div id="year-field" class="field">' + (year && year.length >= 2 ? escapeHtml(year.substring(2)) : "") + '</div>');
+      w.document.write(tableRowsHTML);
+      w.document.write(footerHTML);
+      w.document.write('</div><script>window.onload=function(){setTimeout(function(){window.print()},150)}<\/script></body></html>');
+      w.document.close();
     }
 
-    // ... existing code below ...
-
-    // assign print/pdf handlers
-    printBtn.onclick = function () { updatePrintableCloneAndOpen(templateWrap, monthInput.value, tbody, sizeSel.value); };
-    pdfBtn.onclick = function () { downloadPDFForWrapper(templateWrap, monthInput.value, tbody, sizeSel.value); };
+    // assign print/pdf handlers (always use legal size)
+    pdfBtn.onclick = function () { downloadPDFForWrapper(templateWrap, monthInput.value, tbody, "legal"); };
 
   }; // end openMonthlyScheduleReport
 
