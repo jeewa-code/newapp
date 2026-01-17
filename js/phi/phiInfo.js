@@ -7,6 +7,52 @@
   const SHORT_KEY_PHOTO = "phi_info_photo";
   const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
+  const PROVINCES = [
+    "Western", "Central", "Southern", "Northern", "Eastern",
+    "North Western", "North Central", "Uva", "Sabaragamuwa"
+  ];
+  
+  const RDHS_MAP = {
+    "Western": ["Colombo", "Gampaha", "Kalutara"],
+    "Central": ["Kandy", "Matale", "Nuwara Eliya"],
+    "Southern": ["Galle", "Matara", "Hambantota"],
+    "Northern": ["Jaffna", "Kilinochchi", "Mannar", "Vavuniya", "Mullaitivu"],
+    "Eastern": ["Batticaloa", "Ampara", "Trincomalee", "Kalmunai"],
+    "North Western": ["Kurunegala", "Puttalam"],
+    "North Central": ["Anuradhapura", "Polonnaruwa"],
+    "Uva": ["Badulla", "Monaragala"],
+    "Sabaragamuwa": ["Ratnapura", "Kegalle"]
+  };
+
+  const MOH_MAP = {
+    "Colombo": ["Colombo Municipal Council", "Dehiwala", "Ratmalana", "Moratuwa", "Kotte", "Battaramulla", "Nugegoda", "Maharagama", "Homagama", "Padukka", "Hanwella", "Kolonnawa", "Kaduwela", "Piliyandala", "Kahathuduwa"],
+    "Gampaha": ["Gampaha", "Negombo", "Wattala", "Ja-Ela", "Kelaniya", "Mahara", "Biyagama", "Dompe", "Attanagalla", "Mirigama", "Minuwangoda", "Katana", "Divulapitiya", "Seeduwa"],
+    "Kalutara": ["Wadduwa", "Panadura", "Bandaragama", "Horana", "Bulathsinhala", "Madurawala", "Millaniya", "Ingiriya", "Matugama", "Dodangoda",  "Walallawita", "Agalawatta", "Palindanuwara"],
+    "Kandy": ["Kandy Municipal Council", "Gangawatakorale", "Yatinuwara", "Udunuwara", "Doluwa", "Pathadumbara", "Panvila", "Udadumbara", "Kundasale", "Pujapitiya", "Hatharaliyadda", "Akurana", "Harispattuwa", "Galagedara", "Gampola", "Udapalatha", "Ganga Ihala Korale", "Pasbage Korale", "Medadumbara", "Minipe"],
+    "Matale": ["Matale", "Yatawatta", "Rattota", "Ukuwela", "Ambanganga Korale", "Laggala-Pallegama", "Wilgamuwa", "Naula", "Pallepola", "Galewela", "Dambulla"],
+    "Nuwara Eliya": ["Nuwara Eliya", "Ragala", "Walapane", "Hanguranketha", "Kothmale", "Hatton", "Ambagamuwa", "Maskeliya", "Lindula", "Talawakelle"],
+    "Galle": ["Galle Municipal Council", "Akmeemana", "Ambalangoda", "Balapitiya", "Bope-Poddala", "Elpitiya", "Gonapinuwala", "Habaraduwa", "Hikkaduwa", "Imaduwa", "Karandeniya", "Nagoda", "Neluwa", "Niyagama", "Rathgama", "Thawalama", "Welivitiya-Divithura", "Yakkalamulla", "Baddegama"],
+    "Matara": ["Matara Municipal Council", "Akuressa", "Athuraliya", "Devinuwara", "Dickwella", "Hakmana", "Kamburupitiya", "Kirinda Puhulwella", "Kotapola", "Malimbada", "Mulatiyana", "Pasgoda", "Pitabeddara", "Thihagoda", "Weligama", "Welipitiya"],
+    "Hambantota": ["Hambantota", "Ambalantota", "Angunukolapelessa", "Beliatta", "Katuwana", "Lunugamvehera", "Okewela", "Sooriyawewa", "Tangalle", "Thissamaharama", "Walasmulla", "Weeraketiya"],
+    "Jaffna": ["Jaffna Municipal Council", "Nallur", "Chankanai", "Sandilipay", "Tellippalai", "Uduvil", "Kopay", "Karaveddy", "Point Pedro", "Chavakachcheri", "Karainagar", "Kayts", "Velanai", "Delft"],
+    "Kilinochchi": ["Karachchi", "Kandavalai", "Poonakary", "Pachchilaipallai"],
+    "Mannar": ["Mannar", "Mantai West", "Nanaddan", "Musali", "Madhu"],
+    "Vavuniya": ["Vavuniya", "Vavuniya North", "Vavuniya South", "Vengalacheddikulam"],
+    "Mullaitivu": ["Maritimepattu", "Puthukudiyiruppu", "Oddusuddan", "Thunukkai", "Manthai East", "Welioya"],
+    "Batticaloa": ["Batticaloa", "Kattankudy", "Eravur", "Koralai Pattu (Valaichchenai)", "Manmunai North", "Porativu Pattu"],
+    "Ampara": ["Ampara", "Dehiattakandiya", "Damana", "Uhana", "Maha Oya", "Padiyatalawa", "Lahugala"],
+    "Trincomalee": ["Trincomalee", "Uppuveli", "Kuchchaveli", "Thampalakamam", "Kantale", "Kinniya", "Muttur", "Seruvila", "Gomarankadawala", "Morawewa", "Padavi Sri Pura"],
+    "Kalmunai": ["Kalmunai North", "Kalmunai South", "Sainthamaruthu", "Karaitivu", "Nintavur", "Addalaichenai", "Akkaraipattu", "Alayadivembu", "Thirukkovil", "Pottuvil", "Sammanthurai", "Irakkamam", "Navithanveli"],
+    "Kurunegala": ["Kurunegala Municipal Council", "Kurunegala", "Mawathagama", "Polgahawela", "Alawwa", "Narammala", "Wariyapola", "Nikaweratiya", "Mahawa", "Galgamuwa", "Yapahuwa", "Bingiriya", "Panduwasnuwara", "Kuliyapitiya", "Pannala", "Ridigama", "Ibbagamuwa"],
+    "Puttalam": ["Puttalam", "Kalpitiya", "Mundel", "Mahakumbukkadawala", "Anamaduwa", "Pallama", "Wanathavilluwa", "Karuwalagaswewa", "Nawagattegama", "Chilaw", "Arachchikattuwa", "Madampe", "Mahawewa", "Nattandiya", "Wennappuwa", "Dankotuwa"],
+    "Anuradhapura": ["Anuradhapura Municipal Council", "Nuwaragam Palatha Central", "Nuwaragam Palatha East", "Medawachchiya", "Rambewa", "Kebithigollewa", "Padaviya", "Horowpothana", "Kahatagasdigiliya", "Mihintale", "Nachchaduwa", "Nochchiyagama", "Rajanganaya", "Tambuttegama", "Thalawa", "Thirappane", "Galenbindunuwewa", "Palagala", "Ipalogama", "Kekirawa", "Palugaswewa"],
+    "Polonnaruwa": ["Polonnaruwa", "Tamankaduwa", "Dimbulagala", "Hingurakgoda", "Medirigiriya", "Welikanda", "Lankapura", "Elahera"],
+    "Badulla": ["Badulla", "Hali-Ela", "Uva Paranagama", "Welimada", "Bandarawela", "Ella", "Haputale", "Haldummulla", "Mahiyanganaya", "Rideemaliyadda", "Passara", "Soranathota", "Kandaketiya", "Meegahakiula", "Lunugala"],
+    "Monaragala": ["Monaragala", "Siyambalanduwa", "Buttala", "Wellawaya", "Katharagama", "Thanamalwila", "Badalkumbura", "Bibile", "Madulla", "Medagama", "Sevanagala"],
+    "Ratnapura": ["Ratnapura", "Kuruwita", "Eheliyagoda", "Pelmadulla", "Nivithigala", "Elapatha", "Ayagama", "Imbulpe", "Balangoda", "Opanayake", "Weligepola", "Embilipitiya", "Godakawela", "Kahawatta", "Rakwana", "Kolonna", "Kaltota"],
+    "Kegalle": ["Kegalle", "Galigamuwa", "Warakapola", "Ruwanwella", "Yatiyanthota", "Deraniyagala", "Dehiowita", "Mawanella", "Aranayaka", "Rambukkana", "Bulathkohupitiya"]
+  };
+
   // --- storage helpers ---
   function loadAll() {
     try {
@@ -165,26 +211,112 @@
 
           <div>
             <div class="phi-info-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              
+              <!-- 1. Inspector Name -->
               <div>
                 <label for="phi_name" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">පරීක්ෂකගේ නම</label>
                 <input id="phi_name" style="${baseInputStyle}" value="${latest ? esc(latest.name) : ''}" />
               </div>
+
+              <!-- 1.1 Province -->
+              <div>
+                <label for="phi_province" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">පළාත</label>
+                <select id="phi_province" style="${baseInputStyle}">
+                  ${PROVINCES.map(p => `<option value="${p}">${p}</option>`).join("")}
+                </select>
+              </div>
+
+              <!-- 1.2 Authority Type -->
+              <div>
+                <label for="phi_auth_type" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">ආයතන වර්ගය</label>
+                <select id="phi_auth_type" style="${baseInputStyle}">
+                  <option value="RDHS">RDHS</option>
+                  <option value="NIHS">NIHS</option>
+                  <option value="Local">පළාත් පාලන</option>
+                </select>
+              </div>
+
+              <!-- 1.3 Authority Detail -->
+              <div>
+                <label style="font-weight:600;display:block;margin-bottom:6px;color:#000;">ආයතනය / කාර්යාලය</label>
+                
+                <div id="container_rdhs">
+                   <select id="phi_rdhs_select" style="${baseInputStyle}"></select>
+                </div>
+
+                <div id="container_nihs" style="display:none;">
+                   <input value="NIHS Kalutara" disabled style="${baseInputStyle};background:#f5f5f5;color:#666;" />
+                </div>
+
+                <div id="container_local" style="display:none;">
+                   <input id="phi_local_input" placeholder="පළාත් පාලන ආයතනයේ නම" style="${baseInputStyle}" />
+                </div>
+              </div>
+
+               <!-- 2. MOH Office -->
+              <div>
+                <label style="font-weight:600;display:block;margin-bottom:6px;color:#000;">සෞඛ්‍ය වෛද්‍ය නිලධාරි කාර්යාලය</label>
+                
+                <div id="container_moh_select" style="display:none;">
+                   <select id="phi_moh_select" style="${baseInputStyle}"></select>
+                </div>
+
+                <div id="container_moh_input">
+                   <input id="phi_moh_input" style="${baseInputStyle}" value="${latest ? esc(latest.moh) : ''}" />
+                </div>
+              </div>
+
+               <!-- 3. Area -->
               <div>
                 <label for="phi_area" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">ක්ෂේත්‍රය</label>
                 <input id="phi_area" style="${baseInputStyle}" value="${latest ? esc(latest.area) : ''}" />
               </div>
+
+               <!-- 4. Basic Salary -->
               <div>
-                <label for="phi_short" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">කෙටි යෙදුම</label>
-                <input id="phi_short" style="${baseInputStyle}" value="${latest ? esc(latest.short) : ''}" />
+                <label for="phi_salary" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">මුලික වැටුප</label>
+                <input id="phi_salary" type="number" step="0.01" style="${baseInputStyle}" value="${latest ? esc(latest.salary) : ''}" />
               </div>
+
+              <!-- 5. OT Rate -->
               <div>
-                <label for="phi_phone" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">දුරකථන</label>
+                <label for="phi_ot_rate" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">OT Rate</label>
+                <input id="phi_ot_rate" type="number" step="0.01" style="${baseInputStyle}" value="${latest ? esc(latest.ot_rate) : ''}" />
+              </div>
+
+              <!-- 6. Vehicle Type -->
+              <div>
+                <label for="phi_vehicle_type" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">වාහන වර්ගය</label>
+                <select id="phi_vehicle_type" style="${baseInputStyle}">
+                  <option value="motor_bicycle" ${latest && latest.vehicle_type === 'motor_bicycle' ? 'selected' : ''}>මෝටර් බයිසිකල්</option>
+                  <option value="motor_car" ${latest && latest.vehicle_type === 'motor_car' ? 'selected' : ''}>මෝටර් රථ</option>
+                </select>
+              </div>
+
+              <!-- 7. Registered Number -->
+              <div>
+                <label for="phi_vehicle_reg" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">Registered Number</label>
+                <input id="phi_vehicle_reg" style="${baseInputStyle}" value="${latest ? esc(latest.vehicle_reg) : ''}" />
+              </div>
+
+               <!-- 8. Phone Number -->
+              <div>
+                <label for="phi_phone" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">දුරකථන අංකය</label>
                 <input id="phi_phone" style="${baseInputStyle}" value="${latest ? esc(latest.phone) : ''}" />
               </div>
-              <div style="grid-column:1 / -1;">
-                <label for="phi_date" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">භාරගත් දිනය</label>
+
+               <!-- 9. Date -->
+              <div>
+                <label for="phi_date" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">වැඩ භාරගත් දිනය</label>
                 <input id="phi_date" type="date" style="${baseInputStyle}" value="${latest ? esc(latest.date) : ''}" />
               </div>
+
+               <!-- 10. Short Code -->
+              <div>
+                <label for="phi_short" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">ක්ෂේත්‍ර කෙටි යෙදුම</label>
+                <input id="phi_short" style="${baseInputStyle}" value="${latest ? esc(latest.short) : ''}" />
+              </div>
+
             </div>
             <div style="margin-top:12px;display:flex;gap:8px;">
               <button id="phi_save" style="background:#0b74d1;color:#fff;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Save</button>
@@ -194,10 +326,54 @@
         </div>
 
         <div class="phi-info-table-wrapper" style="margin-top:12px;overflow:auto;">
-          <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead><tr style="text-align:left"><th style="width:48px;padding:8px">#</th><th style="padding:8px">Name</th><th style="padding:8px">Area</th><th style="padding:8px">Short</th><th style="padding:8px">Phone</th><th style="padding:8px">Date</th><th style="padding:8px">Photo</th><th style="width:140px;padding:8px">Actions</th></tr></thead>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap;">
+            <thead>
+                <tr style="text-align:left;background:#f5f5f5;border-bottom:1px solid #ddd;">
+                    <th style="padding:8px;">#</th>
+                    <th style="padding:8px;">Inspector Name</th>
+                    <th style="padding:8px;">Province</th>
+                    <th style="padding:8px;">Auth Type</th>
+                    <th style="padding:8px;">Auth Name</th>
+                    <th style="padding:8px;">MOH Office</th>
+                    <th style="padding:8px;">Area</th>
+                    <th style="padding:8px;">Salary</th>
+                    <th style="padding:8px;">OT Rate</th>
+                    <th style="padding:8px;">Vehicle</th>
+                    <th style="padding:8px;">Reg No</th>
+                    <th style="padding:8px;">Phone</th>
+                    <th style="padding:8px;">Date</th>
+                    <th style="padding:8px;">Short</th>
+                    <th style="padding:8px;">Photo</th>
+                    <th style="padding:8px;">Actions</th>
+                </tr>
+            </thead>
             <tbody id="phi_info_body">
-              ${all.length ? all.map((p, i) => `<tr data-id="${esc(p.id)}"><td style="padding:8px;vertical-align:middle">${i + 1}</td><td style="padding:8px;vertical-align:middle">${esc(p.name)}</td><td style="padding:8px;vertical-align:middle">${esc(p.area)}</td><td style="padding:8px;vertical-align:middle">${esc(p.short)}</td><td style="padding:8px;vertical-align:middle">${esc(p.phone)}</td><td style="padding:8px;vertical-align:middle">${esc(p.date)}</td><td style="padding:8px;vertical-align:middle">${p.photo ? `<img src="${p.photo}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;">` : '—'}</td><td style="padding:8px;vertical-align:middle"><button class="phi_edit" data-id="${esc(p.id)}" style="margin-right:6px;padding:6px 8px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer">Edit</button><button class="phi_del" data-id="${esc(p.id)}" style="padding:6px 8px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer">Delete</button></td></tr>`).join("") : `<tr><td colspan="8" style="padding:10px;color:#666;">No records</td></tr>`}
+              ${all.length ? all.map((p, i) => `
+                <tr data-id="${esc(p.id)}" style="border-bottom:1px solid #eee;">
+                    <td style="padding:8px;vertical-align:middle">${i + 1}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.name)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.province)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.auth_type)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.auth_name)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.moh)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.area)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.salary)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.ot_rate)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.vehicle_type)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.vehicle_reg)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.phone)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.date)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.short)}</td>
+                    <td style="padding:8px;vertical-align:middle">
+                        ${p.photo ? `<img src="${p.photo}" style="width:36px;height:36px;border-radius:4px;object-fit:cover;">` : '—'}
+                    </td>
+                    <td style="padding:8px;vertical-align:middle">
+                        <button class="phi_edit" data-id="${esc(p.id)}" style="margin-right:4px;padding:4px 8px;border-radius:4px;border:1px solid #ccc;background:#f0f0f0;cursor:pointer">Edit</button>
+                        <button class="phi_del" data-id="${esc(p.id)}" style="padding:4px 8px;border-radius:4px;border:1px solid #ffdddd;background:#fff0f0;cursor:pointer;color:#d00;">Del</button>
+                    </td>
+                </tr>`).join("") : 
+                `<tr><td colspan="16" style="padding:10px;text-align:center;color:#666;">No records</td></tr>`
+              }
             </tbody>
           </table>
         </div>
@@ -207,8 +383,146 @@
     // --- element refs and handlers ---
     const photoInput = container.querySelector("#phi_photo_input");
     const preview = container.querySelector("#phi_avatar_preview");
+    
+    // New Refs
+    const provSelect = container.querySelector("#phi_province");
+    const authTypeSelect = container.querySelector("#phi_auth_type");
+    const rdhsContainer = container.querySelector("#container_rdhs");
+    const rdhsSelect = container.querySelector("#phi_rdhs_select");
+    const nihsContainer = container.querySelector("#container_nihs");
+    const localContainer = container.querySelector("#container_local");
+    const localInput = container.querySelector("#phi_local_input");
+
+    // NEW REFS for MOH
+    const mohSelectContainer = container.querySelector("#container_moh_select");
+    const mohInputContainer = container.querySelector("#container_moh_input");
+    const mohSelect = container.querySelector("#phi_moh_select");
+    const mohInput = container.querySelector("#phi_moh_input");
+
     let editId = null;
     let currentPhotoData = latest ? latest.photo : null;
+    const NIHS_MOH_LIST = ["කලුතර", "බේරුවල", "පයාගය"];
+
+    // --- Dynamic Logic ---
+    function updateAuthOptions() {
+        const prov = provSelect.value;
+        const current = authTypeSelect.value;
+        
+        let html = '<option value="RDHS">RDHS</option>';
+        if (prov === "Western") {
+            html += '<option value="NIHS">NIHS</option>';
+        }
+        html += '<option value="Local">පළාත් පාලන</option>';
+        
+        authTypeSelect.innerHTML = html;
+        
+        // Restore selection if valid
+        if (current === "NIHS" && prov !== "Western") {
+            authTypeSelect.value = "RDHS";
+        } else {
+             const exists = Array.from(authTypeSelect.options).some(o => o.value === current);
+             authTypeSelect.value = exists ? current : "RDHS";
+        }
+    }
+
+    function populateRdhs(prov) {
+        const list = RDHS_MAP[prov] || [];
+        rdhsSelect.innerHTML = list.map(x => `<option value="${x}">${x}</option>`).join("");
+    }
+
+    function populateMoh(source, explicitList = null) {
+        if (explicitList) {
+             mohSelect.innerHTML = explicitList.map(x => `<option value="${x}">${x}</option>`).join("");
+             return;
+        }
+        const list = MOH_MAP[source] || [];
+        mohSelect.innerHTML = list.map(x => `<option value="${x}">${x}</option>`).join("");
+    }
+
+    function updateAuthUI() {
+        const type = authTypeSelect.value;
+        rdhsContainer.style.display = "none";
+        nihsContainer.style.display = "none";
+        localContainer.style.display = "none";
+
+        if (type === "RDHS") {
+            rdhsContainer.style.display = "block";
+            if (rdhsSelect.options.length === 0) populateRdhs(provSelect.value);
+            
+            mohSelectContainer.style.display = "block";
+            mohInputContainer.style.display = "none";
+            
+            // Populate MOH logic for RDHS
+            // Only repopulate if list is empty or context changed?
+            // Safer to just repopulate based on current RDHS selection
+            populateMoh(rdhsSelect.value);
+
+        } else if (type === "NIHS") {
+            nihsContainer.style.display = "block";
+            
+            // Logic for NIHS: Show MOH Dropdown with Specific List
+            mohSelectContainer.style.display = "block";
+            mohInputContainer.style.display = "none";
+            
+            populateMoh(null, NIHS_MOH_LIST);
+
+        } else if (type === "Local") {
+            localContainer.style.display = "block";
+            mohSelectContainer.style.display = "none";
+            mohInputContainer.style.display = "block";
+        }
+    }
+
+    // Init state based on latest or default
+    if (latest) {
+        if (latest.province) provSelect.value = latest.province;
+        updateAuthOptions(); // ensure NIHS option availability based on prov
+        
+        populateRdhs(provSelect.value);
+        
+        if (latest.auth_type) {
+             // Check if auth_type is valid (e.g. NIHS but prov changed?)
+             // updateAuthOptions already handles validation/fallback
+             const hasOpt = Array.from(authTypeSelect.options).some(o => o.value === latest.auth_type);
+             if (hasOpt) authTypeSelect.value = latest.auth_type;
+        }
+
+        if (latest.auth_type === 'RDHS' || !latest.auth_type) {
+             if (latest.auth_name) rdhsSelect.value = latest.auth_name;
+        } else if (latest.auth_type === 'Local' && latest.auth_name) {
+             localInput.value = latest.auth_name;
+        }
+
+        // Run UI update to show correct fields and populate MOH defaults
+        updateAuthUI(); 
+
+        // Restore MOH Value
+        if (authTypeSelect.value === 'RDHS' || authTypeSelect.value === 'NIHS') {
+             if (latest.moh) mohSelect.value = latest.moh;
+        } else {
+             if (latest.moh) mohInput.value = latest.moh;
+        }
+
+    } else {
+        // Defaults
+        provSelect.value = "Western"; 
+        updateAuthOptions();
+        updateAuthUI();
+    }
+
+    // Event Listeners
+    provSelect.addEventListener("change", () => {
+        updateAuthOptions();
+        populateRdhs(provSelect.value);
+        updateAuthUI();
+    });
+
+    rdhsSelect.addEventListener("change", () => {
+        populateMoh(rdhsSelect.value);
+    });
+
+    authTypeSelect.addEventListener("change", updateAuthUI);
+
 
     photoInput.addEventListener("change", function (e) {
       const file = e.target.files && e.target.files[0];
@@ -229,52 +543,77 @@
 
     container.querySelector("#phi_save").addEventListener("click", function () {
       const name = container.querySelector("#phi_name").value.trim();
+      
+      // Determine MOH based on Auth Type
+      let moh = "";
+      const atype = authTypeSelect.value;
+      if (atype === "RDHS" || atype === "NIHS") {
+          moh = mohSelect.value;
+      } else {
+          moh = mohInput.value.trim();
+      }
+
       const area = container.querySelector("#phi_area").value.trim();
-      const short = container.querySelector("#phi_short").value.trim();
+      const salary = container.querySelector("#phi_salary").value.trim();
+      const ot_rate = container.querySelector("#phi_ot_rate").value.trim();
+      const vehicle_type = container.querySelector("#phi_vehicle_type").value;
+      const vehicle_reg = container.querySelector("#phi_vehicle_reg").value.trim();
       const phone = container.querySelector("#phi_phone").value.trim();
       const date = container.querySelector("#phi_date").value || "";
+      const short = container.querySelector("#phi_short").value.trim();
 
-      if (!name || !area) {
-        alert("Name and Area are required.");
+      // New fields
+      const province = provSelect.value;
+      const auth_type = authTypeSelect.value;
+      let auth_name = "";
+      
+      if (auth_type === "RDHS") auth_name = rdhsSelect.value;
+      else if (auth_type === "NIHS") auth_name = "Kalutara"; // Fixed
+      else if (auth_type === "Local") auth_name = localInput.value.trim();
+
+      if (!name || !moh || !area) {
+         if (window.showWarning) {
+            showWarning("පරීක්ෂකගේ නම, සෞඛ්‍ය වෛද්‍ය නිලධාරි කාර්යාලය සහ  ක්ෂේත්‍රය ඇතුළත් කිරීම අනිවාර්ය වේ!\nPlease enter Inspector Name, MOH Office and Area!");
+         } else {
+             alert("පරීක්ෂකගේ නම, සෞඛ්‍ය වෛද්‍ය නිලධාරි කාර්යාලය සහ  ක්ෂේත්‍රය ඇතුළත් කිරීම අනිවාර්ය වේ!\nPlease enter Inspector Name, MOH Office and Area!");
+         }
         return;
       }
 
       function persist() {
         const arr = loadAll();
+        const newObj = {
+          name,
+          province,
+          auth_type,
+          auth_name,
+          moh,
+          area,
+          salary,
+          ot_rate,
+          vehicle_type,
+          vehicle_reg,
+          phone,
+          date,
+          short,
+          photo: currentPhotoData
+        };
+
         if (editId == null) {
           // New record
-          arr.unshift({
-            id: uid(),
-            name,
-            area,
-            short,
-            phone,
-            date,
-            photo: currentPhotoData
-          });
+          newObj.id = uid();
+          arr.unshift(newObj);
         } else {
           // Edit existing record
           const idx = arr.findIndex(x => String(x.id) === String(editId));
           if (idx >= 0) {
-            arr[idx] = {
-              id: editId,
-              name,
-              area,
-              short,
-              phone,
-              date,
-              photo: currentPhotoData !== null ? currentPhotoData : arr[idx].photo
-            };
+            newObj.id = editId;
+            // Preserve photo if not changed
+            if (currentPhotoData === null) newObj.photo = arr[idx].photo;
+            arr[idx] = newObj;
           } else {
-            arr.unshift({
-              id: editId,
-              name,
-              area,
-              short,
-              phone,
-              date,
-              photo: currentPhotoData
-            });
+            newObj.id = editId;
+            arr.unshift(newObj);
           }
         }
 
@@ -289,12 +628,22 @@
     container.querySelector("#phi_clear").addEventListener("click", function () {
       editId = null;
       currentPhotoData = null;
-      ["#phi_name", "#phi_area", "#phi_short", "#phi_phone", "#phi_date"].forEach(s => {
+      // Removed #phi_moh, Added #phi_moh_input
+      ["#phi_name", "#phi_moh_input", "#phi_area", "#phi_salary", "#phi_ot_rate", "#phi_vehicle_reg", "#phi_phone", "#phi_date", "#phi_short", "#phi_local_input"].forEach(s => {
         const el = container.querySelector(s);
         if (el) el.value = "";
       });
+      container.querySelector("#phi_vehicle_type").value = "motor_bicycle";
       photoInput.value = "";
       preview.innerHTML = `<div style="font-weight:700;font-size:28px;color:#666;">P</div>`;
+      
+      // Reset new fields default
+      provSelect.value = "Western";
+      populateRdhs("Western");
+      authTypeSelect.value = "RDHS";
+      updateAuthUI();
+      // Reset MOH list
+      populateMoh(rdhsSelect.value);
     });
 
     // actions: edit / delete
@@ -319,10 +668,41 @@
         currentPhotoData = rec.photo || null;
 
         container.querySelector("#phi_name").value = rec.name || "";
+        
+        // Populate new fields
+        provSelect.value = rec.province || "Western";
+        populateRdhs(provSelect.value); // refresh RDHS list for this prov
+        
+        authTypeSelect.value = rec.auth_type || "RDHS";
+        updateAuthUI(); // Show correct box
+
+        // Set value for specific types
+        if (rec.auth_type === 'RDHS' || !rec.auth_type) {
+             rdhsSelect.value = rec.auth_name || "";
+             // Ensure MOH list is populated for the selected RDHS
+             populateMoh(rdhsSelect.value); 
+             if (rec.moh) mohSelect.value = rec.moh;
+
+        } else if (rec.auth_type === 'NIHS') {
+             // NIHS uses dropdown now
+             if (rec.moh) mohSelect.value = rec.moh;
+
+        } else if (rec.auth_type === 'Local') {
+             localInput.value = rec.auth_name || "";
+             if (rec.moh) mohInput.value = rec.moh;
+        } else {
+             // Fallback
+             if (rec.moh) mohInput.value = rec.moh;
+        }
+
         container.querySelector("#phi_area").value = rec.area || "";
-        container.querySelector("#phi_short").value = rec.short || "";
+        container.querySelector("#phi_salary").value = rec.salary || "";
+        container.querySelector("#phi_ot_rate").value = rec.ot_rate || "";
+        container.querySelector("#phi_vehicle_type").value = rec.vehicle_type || "motor_bicycle";
+        container.querySelector("#phi_vehicle_reg").value = rec.vehicle_reg || "";
         container.querySelector("#phi_phone").value = rec.phone || "";
         container.querySelector("#phi_date").value = rec.date || "";
+        container.querySelector("#phi_short").value = rec.short || "";
 
         if (rec.photo) {
           preview.innerHTML = `<img src="${rec.photo}" style="width:100%;height:100%;object-fit:cover;">`;

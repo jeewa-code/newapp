@@ -499,7 +499,32 @@ console.log("[otReport] loaded", new Date().toISOString());
     `;
 
     /* -------- defaults -------- */
-    document.getElementById("applicantName").value = getInspectorName();
+    // Helper to get full PHI info
+    let phi = {};
+    try {
+        const stored = JSON.parse(localStorage.getItem("phi_info_v1") || "[]");
+        if (stored.length) phi = stored[0];
+    } catch(e) {}
+
+    // Name
+    document.getElementById("applicantName").value = phi.name || getInspectorName();
+
+    // Duty Station: "MOH Office - [MOH]"
+    if (phi.moh) {
+        document.getElementById("dutyStation").value = "MOH Office - " + phi.moh;
+    }
+
+    // Paying Branch
+    const pBranch = document.getElementById("payingBranch");
+    if (phi.auth_type === "NIHS") {
+        pBranch.value = "Account Branch - NIHS Kalutara";
+    } else if (phi.auth_type === "RDHS" && phi.auth_name) {
+        pBranch.value = "Account Branch - RDHS " + phi.auth_name;
+    }
+
+    // Salary & Rate
+    if (phi.salary) document.getElementById("monthlySalary").value = phi.salary;
+    if (phi.ot_rate) document.getElementById("otRate").value = phi.ot_rate;
 
     const ySel = document.getElementById("otYear");
     const mSel = document.getElementById("otMonth");

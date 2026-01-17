@@ -159,10 +159,20 @@ html, body {
 }
 
 @media print {
-  html, body, .page {
+  html, body {
+    width: 816px !important;
+    height: 100% !important;
+    overflow: visible !important;
+  }
+  .page {
+    page-break-after: always;
     width: 816px !important;
     height: 1344px !important;
-    overflow: hidden !important;
+    position: relative;
+    overflow: hidden;
+  }
+  .page:last-child {
+      page-break-after: auto;
   }
 }
 </style>
@@ -215,6 +225,11 @@ html, body {
       : ""
   }
 
+</div>
+
+<!-- PAGE 2: OT2.jpg -->
+<div class="page">
+    <img src="assets/OT2.jpg" class="bg-image" alt="OT Voucher Page 2">
 </div>
 
 <script>

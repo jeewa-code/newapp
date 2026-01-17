@@ -2,7 +2,7 @@
   "use strict";
 
   // Add mobile responsive styles for Key Map
-  if (!document.getElementById("phiKeyMap-mobile-styles")) {
+  if (false) {
     const styleEl = document.createElement("style");
     styleEl.id = "phiKeyMap-mobile-styles";
     styleEl.innerHTML = `
@@ -245,6 +245,86 @@
         
         td > div[style*="position:relative"] {
           min-width: 120px !important;
+        }
+      }
+    `;
+    document.head.appendChild(styleEl);
+  }
+
+  // New responsive styles (v2) - Fix scrolling issues
+  if (!document.getElementById("phiKeyMap-mobile-styles-v2")) {
+    const styleEl = document.createElement("style");
+    styleEl.id = "phiKeyMap-mobile-styles-v2";
+    styleEl.innerHTML = `
+      @media (max-width: 768px) {
+        #kmSelect {
+          font-size: 14px !important;
+          padding: 10px !important;
+          max-width: 100% !important;
+        }
+        #h510Btn {
+          padding: 10px 14px !important;
+          font-size: 14px !important;
+          width: auto !important;
+        }
+        
+        /* Better scrolling container */
+        div[style*="overflow-x:auto"] {
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          margin-bottom: 10px;
+          -webkit-overflow-scrolling: touch;
+          display: block; 
+          width: 100%;
+          overflow-x: auto !important; /* Force auto */
+        }
+
+        /* Force scrollbars to be visible on mobile if possible, or just style them */
+        div[style*="overflow-x:auto"]::-webkit-scrollbar {
+          height: 8px;
+          width: 8px;
+          display: block; /* Force display */
+          background: #f5f5f5;
+        }
+        
+        div[style*="overflow-x:auto"]::-webkit-scrollbar-track {
+          background: #f1f1f1; 
+        }
+        
+        div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb {
+          background: #ccc; 
+          border-radius: 4px;
+        }
+        
+        div[style*="overflow-x:auto"]::-webkit-scrollbar-thumb:hover {
+          background: #999; 
+        }
+
+        /* Table styles to ensure scrolling works */
+        table {
+          width: max-content !important; /* This forces the table to be as wide as its content */
+          min-width: 100% !important;
+          table-layout: auto !important;
+        }
+        
+        table th, table td {
+          padding: 8px 6px !important;
+          font-size: 13px !important;
+          vertical-align: middle !important;
+          white-space: nowrap !important;
+        }
+
+        /* Make inputs/buttons touch-friendly */
+        table input, table select, table button {
+          min-height: 36px !important;
+          font-size: 14px !important;
+          padding: 4px !important;
+        }
+        
+        /* Adjust specific columns if needed, but not rigidly */
+        table th:first-child, table td:first-child {
+          text-align: center !important;
+          width: 40px !important;
         }
       }
     `;
@@ -864,56 +944,56 @@
         </button>
       </div>
 
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-      <table style="width:100%;background:#fff;border-collapse:collapse;min-width:600px;">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch; background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); width: 100%; padding-bottom: 5px;">
+      <table style="width:100%;background:#fff;border-collapse:collapse;min-width:750px;font-size:clamp(11px, 2.5vw, 14px); white-space: nowrap;">
         <thead>
-          <tr style="background:#0b5ea8;color:#fff">
-            <th style="padding:10px">No</th>
-            <th style="padding:10px">Main</th>
-            <th style="padding:10px">Sub Name</th>
-            <th style="padding:10px">Sub Code</th>
-            <th style="padding:10px">Actions</th>
+          <tr style="background:#0b5ea8;color:#fff;text-align:left;">
+            <th style="padding:clamp(8px,1.5vw,12px); width:50px; white-space:nowrap;">No</th>
+            <th style="padding:clamp(8px,1.5vw,12px); min-width:200px;">Main</th>
+            <th style="padding:clamp(8px,1.5vw,12px); min-width:200px;">Sub Name</th>
+            <th style="padding:clamp(8px,1.5vw,12px); width:120px; white-space:nowrap;">Sub Code</th>
+            <th style="padding:clamp(8px,1.5vw,12px); width:120px; white-space:nowrap;">Actions</th>
           </tr>
         </thead>
         <tbody>
           ${data.map((r, i) => `
             <tr style="border-bottom:1px solid #eee">
-              <td style="padding:10px;vertical-align:top" rowspan="${Math.max(r.sub.length + 1, 2)}">${i + 1}</td>
+              <td style="padding:clamp(6px,1.5vw,10px);vertical-align:top" rowspan="${Math.max(r.sub.length + 1, 2)}">${i + 1}</td>
 
-              <td style="padding:10px;vertical-align:top" rowspan="${Math.max(r.sub.length + 1, 2)}">
+              <td style="padding:clamp(6px,1.5vw,10px);vertical-align:top" rowspan="${Math.max(r.sub.length + 1, 2)}">
                 ${renderMainCell(type, key, r)}
               </td>
 
               ${r.sub.length > 0 ? `
-                <td style="padding:10px">${renderSubName(type, r, 0)}</td>
-                <td style="padding:10px">${renderSubCode(type, r, 0)}</td>
-                <td style="padding:10px">${renderSubActions(type, r.id, 0)}</td>
+                <td style="padding:clamp(6px,1.5vw,10px)">${renderSubName(type, r, 0)}</td>
+                <td style="padding:clamp(6px,1.5vw,10px)">${renderSubCode(type, r, 0)}</td>
+                <td style="padding:clamp(6px,1.5vw,10px)">${renderSubActions(type, r.id, 0)}</td>
               </tr>
               ${r.sub.slice(1).map((s, si) => `
                 <tr style="border-bottom:1px solid #eee">
-                  <td style="padding:10px">${renderSubName(type, r, si + 1)}</td>
-                  <td style="padding:10px">${renderSubCode(type, r, si + 1)}</td>
-                  <td style="padding:10px">${renderSubActions(type, r.id, si + 1)}</td>
+                  <td style="padding:clamp(6px,1.5vw,10px)">${renderSubName(type, r, si + 1)}</td>
+                  <td style="padding:clamp(6px,1.5vw,10px)">${renderSubCode(type, r, si + 1)}</td>
+                  <td style="padding:clamp(6px,1.5vw,10px)">${renderSubActions(type, r.id, si + 1)}</td>
                 </tr>
               `).join("")}
               ` : `
-                <td colspan="3" style="padding:10px">
+                <td colspan="3" style="padding:clamp(6px,1.5vw,10px)">
                   <div style="color:#999;font-style:italic">No sub items</div>
                 </td>
               </tr>
               `}
-              <tr style="border-bottom:1px solid #eee">
-                <td style="padding:10px">
+              <tr style="border-bottom:1px solid #eee; background-color: #f8f9fa;">
+                <td style="padding:clamp(6px,1.5vw,10px)">
                   <input id="subName_${r.id}" placeholder="Sub name"
-                         style="width:100%;padding:6px">
+                         style="width:100%;padding:6px; border:1px solid #ddd; border-radius:4px;">
                 </td>
-                <td style="padding:10px">
+                <td style="padding:clamp(6px,1.5vw,10px)">
                   <input id="subCode_${r.id}" placeholder="Code"
-                         style="width:100%;padding:6px">
+                         style="width:100%;padding:6px; border:1px solid #ddd; border-radius:4px;">
                 </td>
-                <td style="padding:10px">
+                <td style="padding:clamp(6px,1.5vw,10px)">
                   <button onclick="addSub('${type}','${r.id}')"
-                          style="background:#28a745;color:#fff;border:none;padding:6px 10px;border-radius:4px;width:100%">
+                          style="background:#28a745;color:#fff;border:none;padding:6px 12px;border-radius:4px;width:100%; cursor:pointer;">
                     Add
                   </button>
                 </td>
@@ -928,25 +1008,27 @@
   function renderMainCell(type, key, r) {
     if (activeEdit && activeEdit.type === type && activeEdit.id === r.id && activeEdit.subIndex == null) {
       return `
-        <div style="display:flex;gap:6px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <input id="editMain_${r.id}" value="${esc(r.main)}"
-                 style="flex:1;padding:6px">
+                 style="flex:1;min-width:120px;padding:6px;border:1px solid #ddd;border-radius:4px;">
           <button onclick="saveMain('${type}','${r.id}')"
-                  style="background:#28a745;color:#fff;border:none;padding:6px 10px">Save</button>
+                  style="background:#28a745;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;">Save</button>
           <button onclick="cancelEdit()"
-                  style="background:#6c757d;color:#fff;border:none;padding:6px 10px">Cancel</button>
+                  style="background:#6c757d;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;">Cancel</button>
         </div>
       `;
     }
 
     return `
-      <div ondblclick="editMainStart('${type}','${r.id}')"
-           style="cursor:pointer;padding:6px;border-radius:4px"
-           onmouseover="this.style.background='#f8f9fa'"
-           onmouseout="this.style.background='transparent'">
-        ${esc(r.main)}
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <span ondblclick="editMainStart('${type}','${r.id}')"
+             style="cursor:pointer;padding:4px;border-radius:4px;flex:1;"
+             onmouseover="this.style.background='#f8f9fa'"
+             onmouseout="this.style.background='transparent'">
+          ${esc(r.main)}
+        </span>
         <button onclick="deleteMain('${type}','${r.id}')"
-                style="margin-left:8px;background:#dc3545;color:#fff;border:none;padding:4px 8px;border-radius:4px">
+                style="background:#dc3545;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">
           Delete
         </button>
       </div>
@@ -1131,16 +1213,16 @@
     $("kmBody").innerHTML = `
       <h4 style="margin:0 0 12px 0; color: #0b5ea8;font-size:clamp(14px,3.5vw,18px);">රාජකාරි සදහා නියත දිනයන් ලබා දීම</h4>
       <div style="background:#fff;padding:clamp(8px,2vw,12px);border-radius:8px;overflow:visible;position:relative;">
-        <div style="overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;">
-          <table style="width:100%;border-collapse:collapse;font-size:clamp(11px,2.5vw,13px); text-align: left;overflow:visible;min-width:800px;">
+        <div style="overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;width:100%;padding-bottom:5px;">
+          <table style="width:100%;border-collapse:collapse;font-size:clamp(11px,2.5vw,13px); text-align: left;overflow:visible;min-width:900px; white-space:nowrap;">
             <thead style="overflow:visible;">
               <tr style="text-align:left; background: #f0f7ff;overflow:visible;">
                 <th style="width:40px; padding:clamp(6px,1.5vw,8px);white-space:nowrap;">#</th>
                 <th style="padding:clamp(6px,1.5vw,8px); min-width:200px;white-space:nowrap;">රාජකාරියේ නම</th>
                 <th style="padding:clamp(6px,1.5vw,8px); min-width:200px;white-space:nowrap;">ස්ථානය</th>
-                <th style="padding:clamp(6px,1.5vw,8px);white-space:nowrap;">දවස</th>
-                <th style="padding:clamp(6px,1.5vw,8px);white-space:nowrap;">කී වෙනි දිනද ?</th>
-                <th style="padding:clamp(6px,1.5vw,8px);white-space:nowrap;">වෙලාව</th>
+                <th style="padding:clamp(6px,1.5vw,8px);white-space:nowrap;min-width:100px;">දවස</th>
+                <th style="padding:clamp(6px,1.5vw,8px);white-space:nowrap;min-width:100px;">කී වෙනි දිනද ?</th>
+                <th style="padding:clamp(6px,1.5vw,8px);white-space:nowrap;min-width:100px;">වෙලාව</th>
                 <th style="width:140px; padding:clamp(6px,1.5vw,8px);white-space:nowrap;">Actions</th>
               </tr>
             </thead>
