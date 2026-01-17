@@ -1,6 +1,256 @@
 (function () {
   "use strict";
 
+  // Add mobile responsive styles for Key Map
+  if (!document.getElementById("phiKeyMap-mobile-styles")) {
+    const styleEl = document.createElement("style");
+    styleEl.id = "phiKeyMap-mobile-styles";
+    styleEl.innerHTML = `
+      /* Key Map Mobile Responsive Styles */
+      @media (max-width: 768px) {
+        #kmSelect {
+          font-size: 14px !important;
+          padding: 10px !important;
+          max-width: 100% !important;
+        }
+        
+        #h510Btn {
+          padding: 10px 14px !important;
+          font-size: 14px !important;
+          width: auto !important;
+        }
+        
+        /* Table container improvements */
+        .glass {
+          padding: 10px !important;
+        }
+        
+        /* Better table scrolling on mobile */
+        div[style*="overflow-x:auto"] {
+          border: 1px solid #e0e0e0 !important;
+          border-radius: 8px !important;
+          margin-bottom: 10px !important;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+          max-width: 100% !important;
+        }
+        
+        table {
+          min-width: 600px !important;
+          width: 100% !important;
+          table-layout: fixed !important; 
+          border-collapse: collapse !important;
+        }
+        
+        table th,
+        table td {
+          font-size: 11px !important;
+          padding: 6px 4px !important;
+          vertical-align: top !important;
+          word-wrap: break-word !important; 
+        }
+        
+        /* First column (number) */
+        table th:first-child,
+        table td:first-child {
+          width: 40px !important;
+          min-width: 40px !important;
+          padding: 6px 2px !important;
+          text-align: center !important;
+        }
+        
+        /* Main column */
+        table th:nth-child(2),
+        table td:nth-child(2) {
+          min-width: 150px !important;
+          width: 30% !important;
+        }
+        
+        /* Sub Name column */
+        table th:nth-child(3),
+        table td:nth-child(3) {
+          min-width: 150px !important;
+          width: 30% !important;
+        }
+        
+        /* Sub Code column */
+        table th:nth-child(4),
+        table td:nth-child(4) {
+          min-width: 80px !important;
+          width: 15% !important;
+        }
+        
+        table td:nth-child(4) input {
+          width: 100% !important;
+        }
+        
+        /* Actions column */
+        table th:nth-child(5),
+        table td:nth-child(5) {
+          min-width: 80px !important;
+          width: 15% !important;
+          padding: 6px 4px !important;
+        }
+        
+        table td:nth-child(5) button {
+          width: 100% !important;
+          display: block !important;
+        }
+        
+        /* Input and select fields in tables */
+        table input {
+          font-size: 11px !important;
+          padding: 5px 4px !important;
+          min-height: 28px !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        
+        table select {
+          font-size: 11px !important;
+          padding: 5px 4px !important;
+          min-height: 28px !important;
+          width: 100% !important;
+        }
+        
+        table button {
+          padding: 6px 8px !important;
+          font-size: 11px !important;
+          white-space: nowrap !important;
+          min-height: 30px !important;
+          width: 100% !important;
+          display: block !important;
+          box-sizing: border-box !important;
+        }
+        
+        /* Add Sub button specific */
+        button[onclick*="addSub"] {
+          background: #28a745 !important;
+          color: #fff !important;
+          border: none !important;
+          border-radius: 4px !important;
+          cursor: pointer !important;
+          font-weight: 600 !important;
+        }
+        
+        /* Dropdown selects in Fixed Dates table */
+        .fd-role-cell,
+        .fd-place-cell {
+          min-width: 140px !important;
+        }
+        
+        /* Improve dropdown visibility in table cells */
+        td > div[style*="position:relative"] {
+          min-width: 140px !important;
+        }
+        
+        /* Better rowspan handling */
+        td[rowspan] {
+          vertical-align: top !important;
+        }
+        
+        /* Add button in input row */
+        input#roleMainInput,
+        input#placeMainInput {
+          font-size: 13px !important;
+          padding: 8px !important;
+        }
+        
+        /* Top add button */
+        button[onclick*="addMain"] {
+          font-size: 12px !important;
+          padding: 8px 12px !important;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        table {
+          min-width: 380px !important; 
+        }
+        
+        table th,
+        table td {
+          font-size: 10px !important;
+          padding: 4px 2px !important;
+        }
+        
+        table th:first-child,
+        table td:first-child {
+          width: 30px !important;
+          min-width: 30px !important;
+        }
+        
+        /* Main column */
+        table th:nth-child(2),
+        table td:nth-child(2) {
+          min-width: 110px !important;
+          width: 30% !important;
+        }
+        
+        /* Sub Name column */
+        table th:nth-child(3),
+        table td:nth-child(3) {
+          min-width: 110px !important;
+          width: 30% !important;
+        }
+
+        /* Sub Code column */
+        table th:nth-child(4),
+        table td:nth-child(4) {
+          min-width: 60px !important;
+          width: 15% !important;
+        }
+        
+        table td:nth-child(4) input {
+          width: 100% !important;
+        }
+        
+        /* Actions column */
+        table th:nth-child(5),
+        table td:nth-child(5) {
+          min-width: 70px !important;
+          width: 18% !important;
+        table td:nth-child(5) button {
+          width: 100% !important;
+          display: block !important;
+        }
+        
+        table input {
+          font-size: 10px !important;
+          padding: 4px 3px !important;
+          min-height: 26px !important;
+        }
+        
+        table select {
+          font-size: 10px !important;
+          padding: 4px 3px !important;
+          min-height: 26px !important;
+        }
+        
+        table button {
+          font-size: 10px !important;
+          padding: 5px 4px !important;
+          min-height: 28px !important;
+          width: 100% !important;
+        }
+        
+        button[onclick*="addSub"] {
+          font-size: 9px !important;
+          padding: 5px 3px !important;
+        }
+        
+        .fd-role-cell,
+        .fd-place-cell {
+          min-width: 120px !important;
+        }
+        
+        td > div[style*="position:relative"] {
+          min-width: 120px !important;
+        }
+      }
+    `;
+    document.head.appendChild(styleEl);
+  }
+
   /* ================= STORAGE ================= */
   const ROLE_KEY = "phi_roles_tree_final";
   const PLACE_KEY = "phi_places_tree_final";
@@ -600,10 +850,10 @@
       <table style="width:100%;background:#fff;border-collapse:collapse;min-width:600px;">
         <thead>
           <tr style="background:#0b5ea8;color:#fff">
-            <th style="padding:10px;width:60px">No</th>
-            <th style="padding:10px;width:25%">Main</th>
-            <th style="padding:10px;width:30%">Sub Name</th>
-            <th style="padding:10px;width:20%">Sub Code</th>
+            <th style="padding:10px">No</th>
+            <th style="padding:10px">Main</th>
+            <th style="padding:10px">Sub Name</th>
+            <th style="padding:10px">Sub Code</th>
             <th style="padding:10px">Actions</th>
           </tr>
         </thead>
@@ -635,7 +885,7 @@
               </tr>
               `}
               <tr style="border-bottom:1px solid #eee">
-                <td colspan="2" style="padding:10px">
+                <td style="padding:10px">
                   <input id="subName_${r.id}" placeholder="Sub name"
                          style="width:100%;padding:6px">
                 </td>
@@ -649,7 +899,7 @@
                     Add
                   </button>
                 </td>
-            </tr>
+              </tr>
           `).join("")}
         </tbody>
       </table>

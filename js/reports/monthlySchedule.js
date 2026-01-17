@@ -218,6 +218,17 @@
         font-size: 10px !important;
         border-radius: 4px !important;
         overflow-x: auto !important;
+        overflow-y: visible !important;
+      }
+      
+      .monthlySchedule-template table {
+        overflow: visible !important;
+      }
+      
+      .monthlySchedule-template tbody,
+      .monthlySchedule-template tr,
+      .monthlySchedule-template td {
+        overflow: visible !important;
       }
       
       .monthlySchedule-template header {
@@ -270,14 +281,24 @@
       
       /* Dropdown menus on mobile */
       div[id$="-menu"] {
-        font-size: 10px !important;
+        font-size: 11px !important;
         max-height: 250px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+        border: 2px solid #0b5ea8 !important;
       }
       
       .dropdown-main-item,
       .dropdown-sub-item {
-        padding: 6px 8px !important;
-        font-size: 10px !important;
+        padding: 8px 10px !important;
+        font-size: 11px !important;
+      }
+      
+      .sub-items-container {
+        max-height: 200px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
       }
     }
     
@@ -856,8 +877,10 @@
 
     // Helper function to create cascading menu button (Improved Accordion Style)
     function createCascadingMenuButton(namePrefix, type, preservedValue, disabled) {
-      const btnId = `${namePrefix}-${type}-btn`;
-      const menuId = `${namePrefix}-${type}-menu`;
+      // Generate unique ID to prevent duplicates in the loop
+      const uniqueSuffix = Math.random().toString(36).substr(2, 9);
+      const btnId = `${namePrefix}-${type}-btn-${uniqueSuffix}`;
+      const menuId = `${namePrefix}-${type}-menu-${uniqueSuffix}`;
 
       const items = type === 'role' ? loadKeyRoles() : loadKeyPlaces();
       const placeholderText = currentLanguage === 'en' ? '-- Select --' : '-- තෝරන්න --';
@@ -904,6 +927,8 @@
       // Create dropdown
       const menu = el("div", {
         id: menuId,
+        class: "ms-dropdown-menu",
+        "data-trigger-id": btnId,
         style: `position:absolute;bottom:100%;left:0;width:100%;background:#eef6fc;
           border:1px solid #d0d6db;border-radius:4px;box-shadow:0 4px 8px rgba(0,0,0,0.15);
           max-height:300px;overflow-y:auto;z-index:9999;display:none;margin-bottom:2px;
@@ -1028,20 +1053,94 @@
         }
       });
 
+      // Function to position the dropdown menu
+      const positionMenu = () => {
+        if (menu.style.display !== "block") return;
+
+        const rect = btn.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        
+        // On mobile, use smaller threshold and adjust max-height
+        const isMobile = viewportWidth <= 768;
+        const minSpaceNeeded = isMobile ? 100 : 250;
+        
+        // Calculate available space more carefully
+        const availableBelow = Math.max(0, spaceBelow - 10);
+        const availableAbove = Math.max(0, spaceAbove - 10);
+        const maxMenuHeight = isMobile 
+          ? Math.min(250, Math.max(availableBelow, availableAbove))
+          : 300;
+
+        menu.style.position = "fixed";
+        menu.style.width = isMobile ? rect.width + "px" : Math.max(rect.width, 220) + "px";
+        menu.style.maxHeight = maxMenuHeight + "px";
+        menu.style.overflowY = "auto";
+        menu.style.left = rect.left + "px";
+        menu.style.zIndex = "10000";
+        menu.style.margin = "0";
+
+        // Decide direction based on available space
+        const openUpward = availableAbove > availableBelow || spaceBelow < minSpaceNeeded;
+        
+        if (openUpward) {
+          // Open upwards
+          menu.style.bottom = (viewportHeight - rect.top + 2) + "px";
+          menu.style.top = "auto";
+          menu.style.maxHeight = Math.min(maxMenuHeight, availableAbove) + "px";
+        } else {
+          // Open downwards
+          menu.style.top = (rect.bottom + 2) + "px";
+          menu.style.bottom = "auto";
+          menu.style.maxHeight = Math.min(maxMenuHeight, availableBelow) + "px";
+        }
+
+        // Adjust horizontal position if goes offscreen
+        setTimeout(() => {
+          const menuRect = menu.getBoundingClientRect();
+          if (menuRect.right > viewportWidth) {
+            menu.style.left = Math.max(5, viewportWidth - menuRect.width - 5) + "px";
+          }
+          if (menuRect.left < 0) {
+            menu.style.left = "5px";
+            menu.style.width = (viewportWidth - 10) + "px";
+          }
+        }, 0);
+      };
+
+      // Scroll handler to reposition dropdown
+      const scrollHandler = () => {
+        if (menu.style.display === "block") {
+          positionMenu();
+        }
+      };
+
       // Display button click handler
       if (!disabled) {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
           const isOpen = menu.style.display === "block";
 
-          // Close all other menus (checking id suffix)
-          document.querySelectorAll('[id$="-menu"]').forEach(m => {
+          // Close all other menus (checking class)
+          document.querySelectorAll('.ms-dropdown-menu').forEach(m => {
             if (m !== menu && m.style.display === "block") {
               m.style.display = "none";
-              // Move back to wrapper if necessary.
-              // For safety, we can't easily find the wrapper of 'm' here without extra data.
-              // But the 'click outside' listener on document handles most cleanup.
-              // Force hiding is better than overlapping.
+              
+              // Reset other buttons' style using data-trigger-id
+              if (m.dataset.triggerId) {
+                const otherBtn = document.getElementById(m.dataset.triggerId);
+                if (otherBtn) {
+                   if (otherBtn.dataset.value) {
+                     otherBtn.style.backgroundColor = 'rgb(92, 227, 245)';
+                     otherBtn.style.borderColor = '#000000ff';
+                   } else {
+                     otherBtn.style.backgroundColor = '#9e9e9eff';
+                     otherBtn.style.borderColor = '#d0d6db';
+                   }
+                }
+              }
             }
           });
 
@@ -1051,40 +1150,31 @@
             if (menu.parentElement === document.body) {
               wrapper.appendChild(menu);
             }
+            // Remove scroll listener when menu is closed
+            window.removeEventListener("scroll", scrollHandler, true);
+            window.removeEventListener("resize", scrollHandler);
+
+            // Restore button style
+            updateButtonStyle();
           } else {
             // Move to body to avoid overflow clipping
             document.body.appendChild(menu);
             menu.style.display = "block";
             arrow.style.transform = "rotate(180deg)";
+            
+            // Set button color to GREEN when open
+            btn.style.backgroundColor = '#90ee90'; 
+            btn.style.borderColor = '#006400';
 
-            // Fixed positioning calculations
-            const rect = btn.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            const spaceBelow = viewportHeight - rect.bottom;
+            // Force reflow before calculating position
+            menu.offsetHeight;
 
-            menu.style.position = "fixed";
-            menu.style.width = Math.max(rect.width, 220) + "px";
+            // Position the menu
+            positionMenu();
 
-            menu.style.left = rect.left + "px";
-            menu.style.zIndex = "10000";
-            menu.style.margin = "0";
-
-            // Check if there is enough space below (e.g., 250px)
-            if (spaceBelow >= 250) {
-              // Open downwards
-              menu.style.top = (rect.bottom + 2) + "px";
-              menu.style.bottom = "auto";
-            } else {
-              // Open upwards
-              menu.style.bottom = (viewportHeight - rect.top + 2) + "px";
-              menu.style.top = "auto";
-            }
-
-            // Adjust left if goes offscreen?
-            const menuRect = menu.getBoundingClientRect();
-            if (menuRect.right > window.innerWidth) {
-              menu.style.left = (window.innerWidth - menuRect.width - 20) + "px";
-            }
+            // Add scroll and resize listeners to reposition menu
+            window.addEventListener("scroll", scrollHandler, true);
+            window.addEventListener("resize", scrollHandler);
           }
         });
 
@@ -1097,12 +1187,18 @@
               if (menu.parentElement === document.body) {
                 wrapper.appendChild(menu);
               }
+              // Remove scroll listeners
+              window.removeEventListener("scroll", scrollHandler, true);
+              window.removeEventListener("resize", scrollHandler);
               // Collapse sub-items
               menu.querySelectorAll(".sub-items-container").forEach(container => {
                 container.style.display = "none";
                 const icon = container.previousElementSibling?.querySelector(".expand-icon");
                 if (icon) icon.style.transform = "rotate(0deg)";
               });
+
+              // Restore button style
+              updateButtonStyle();
             }
           }
         };
@@ -1112,8 +1208,8 @@
       wrapper.appendChild(btn);
       wrapper.appendChild(menu);
 
-      // Add change event listener to update button style
-      btn.addEventListener('change', () => {
+      // Helper to update button style
+      const updateButtonStyle = () => {
         if (btn.dataset.value) {
           btn.style.backgroundColor = 'rgb(92, 227, 245)'; // Blue background when selected
           btn.style.color = '#000';
@@ -1123,7 +1219,10 @@
           btn.style.color = '#000';
           btn.style.borderColor = '#d0d6db';
         }
-      });
+      };
+
+      // Add change event listener to update button style
+      btn.addEventListener('change', updateButtonStyle);
 
       return wrapper;
     }
