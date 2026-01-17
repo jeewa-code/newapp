@@ -60,25 +60,33 @@
     if (event && event.currentTarget) event.currentTarget.classList.add("active");
 
 
-    if (section === "Dashboard") {
+    if (section === "Home") {
       content.innerHTML = `
-        <h2>Dashboard</h2>
-        <div class="cards" id="dashboardCards">
-          <div class="card">
-            <i class="fa-solid fa-syringe fa-2x"></i>
-            <h3 id="hpv1Count">0</h3><p>Total HPV-1</p>
-          </div>
-          <div class="card">
-            <i class="fa-solid fa-syringe fa-2x"></i>
-            <h3 id="hpv2Count">0</h3><p>Total HPV-2</p>
-          </div>
-          <div class="card">
-            <i class="fa-solid fa-syringe fa-2x"></i>
-            <h3 id="aTdCount">0</h3><p>Total aTd</p>
-          </div>
-          <div class="card">
-            <i class="fa-solid fa-users fa-2x"></i>
-            <h3 id="overallCount">0</h3><p>Overall Vaccines</p>
+        <div style="max-width:800px;margin:20px auto;background:rgba(9, 8, 92, 0.2);backdrop-filter:blur(10px);border:1px solid rgba(255, 255, 255, 0.3);padding:30px;border-radius:12px;box-shadow:0 8px 32px 0 rgba(31, 38, 135, 0.1);line-height:1.8;color:#000 !important;font-size:16px;font-weight:600;">
+          <h2 style="margin-top:0;color:#000 !important;border-bottom:2px solid #ffffff;padding-bottom:10px;">ආයුබෝවන්!</h2>
+          
+          <p style="color:#ffffff !important;">මෙය මහජන සෞඛ්‍ය පරීක්ෂකවරුන්ගේ කාර්යාල කටයුතු පහසු කිරීම වෙනුවෙන් නිර්මාණය කරන ලද Web Application එකකි.</p>
+
+          <p style="color:#ffffff !important;">තවමත් මෙය නිර්මාණ කටයුතු කරගෙන යන බැවින් මෙහි ඇතුලත් කරන කිසිඳු දත්තයක් save කිරීම සිදු නොවේ. නමුත් මෙය open කරන web browser එකේ පමණක් ඔබ ඇතුලත් කරන දත්තයන් save වීම සිදු වේ.</p>
+
+          <p style="color:#ed6f6f !important;">දැනට ඕනෑම කෙනෙක්ට <strong>ඉදිරි කාලසටහන (Advance Program)</strong> මෙය මගින් නිර්මාණය කර ගැනීමේ පහසුව ලබා දී ඇත.</p>
+
+          <p style="color:#ffffff !important;">මහජන සෞඛ්‍ය පරීක්ෂක වරුන්ට <strong>Books</strong> යටතේ ඇති <strong>Pocket Note Book</strong> සම්පුර්ණ කිරීම මගින් පහත දැක්වෙන දෑ  ස්වයංක්‍රියව නිර්මාණය කර ගැනීමට පහසුකම ලබා ගත හැක:</p>
+          <ul style="list-style-type:none;margin-left:0;padding-left:20px;margin-bottom:20px;color:#000 !important;">
+             <li style="margin-bottom:6px;"><i class="fa-solid fa-circle-check" style="color:green;margin-right:10px;"></i>Summary of Activities</li>
+             <li style="margin-bottom:6px;"><i class="fa-solid fa-circle-xmark" style="color:red;margin-right:10px;"></i>Monthly Report</li>
+             <li style="margin-bottom:6px;"><i class="fa-solid fa-circle-check" style="color:#f39c12;margin-right:10px;"></i>OT</li>
+             <li style="margin-bottom:6px;"><i class="fa-solid fa-circle-check" style="color:#f39c12;margin-right:10px;"></i>Claims</li>
+          </ul>
+
+          <p style="color:#ffffff !important;">ඉදිරියේදී සියලු registers update කිරීම මගින් අවශ්‍ය ඕනෑම වාර්තාවක් නිර්මාණය කර ගැනීමේ පහසුව ලබා දීමට බලාපොරොත්තු වෙමි.</p>
+
+          <div style="background:#8c9abf;border-left:5px solid #fd1c1c;padding:20px;margin-top:30px;font-size:15px;color:#000 !important;">
+            <p style="margin:0 0 10px 0;color:#000 !important;">මෙය භාවිතයේදී යම් ගැටළුවක් ඇත්නම් එය නිවැරදි කිරීම සඳහා මා දැනුවත් කරන ලෙස කාරුණිකව ඉල්ලා සිටිමි.</p>
+            <p style="margin:0;font-weight:bold;font-size:16px;color:#000 !important;">ඩබ්.ජේ.කේ.අල්විස්<br>
+            මහජන සෞඛ්‍ය පරීක්ෂක - නෑහින්න<br>
+            සෞඛ්‍ය වෛද්‍ය නිලධාරි කාර්යාල - දොඩන්ගොඩ<br>
+            0715925055</p>
           </div>
         </div>
       `;
@@ -595,13 +603,13 @@
     }
   };
 
-  // Initial mount: open dashboard
+  // Initial mount: open Home
   document.addEventListener("DOMContentLoaded", function () {
     // initial active on sidebar
     setTimeout(() => {
       const first = document.querySelector(".sidebar ul li.active");
       if (first) first.classList.add("active");
-      showContent('Dashboard', null);
+      showContent('Home', null);
       initScrollToTop();
     }, 40);
 
@@ -683,6 +691,9 @@
   // Call on page load
   document.addEventListener('DOMContentLoaded', function () {
     updateSidebarPhiInfo();
+    
+    // Default to HOME
+    showContent('Home', { currentTarget: document.querySelector("li.active") });
 
     // Listen for storage events (when PHI info is updated in another tab)
     window.addEventListener('storage', function (e) {

@@ -625,6 +625,18 @@
   }
 
   window.openMonthlyScheduleReport = function (title = "මාසික ඉදිරි කාලසටහන (Exact)") {
+    // Check for PHI Info
+    const pName = localStorage.getItem("phi_info_inspector");
+    const pArea = localStorage.getItem("phi_info_area");
+    if (!pName || !pArea) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'PHI Info Missing',
+        text: 'කරුණාකර පලමුව "PHI Profile" යටතේ ඇති "PHI Info" යාවත්කාලීන කරන්න.',
+        confirmButtonColor: '#d33'
+      });
+    }
+
     ensureGlobalBlackStyle();
 
     const content = document.getElementById("contentArea");
@@ -875,6 +887,31 @@
   </thead>`;
     const tbody = el("tbody");
 
+    // NEW: Add click listener to warn if month not selected
+    tbody.addEventListener("click", function(e) {
+      if (!monthInput.value) {
+        // Warning if clicking a disabled interactivity wrapper or button
+        // The structure is td -> div(wrapper) -> button
+        // Or if clicking the td itself
+        const target = e.target;
+        const button = target.closest("button[class*='tpl-']");
+        const wrapper = target.closest("div[style*='display:flex']");
+        const td = target.closest("td");
+        
+        // Check if we are in the data columns (not date column)
+        const isDataColumn = td && (td.cellIndex === 1 || td.cellIndex === 2);
+        
+        if (isDataColumn) {
+           Swal.fire({
+             icon: 'warning',
+             title: 'මාසය තෝරන්න',
+             text: 'කරුණාකර පළමුව මාසය තෝරන්න (Please select a month first)',
+             confirmButtonColor: '#0b5ea8'
+           });
+        }
+      }
+    });
+
     // Helper function to create cascading menu button (Improved Accordion Style)
     function createCascadingMenuButton(namePrefix, type, preservedValue, disabled) {
       // Generate unique ID to prevent duplicates in the loop
@@ -901,7 +938,7 @@
           color:${preservedValue ? '#000' : '#000'};
           text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
           font-size:11px;min-height:28px;
-          ${disabled ? 'opacity:0.6;cursor:not-allowed;background:#f5f5f5;' : ''}`
+          ${disabled ? 'opacity:0.6;cursor:not-allowed;background:#f5f5f5;pointer-events:none;' : ''}`
       });
       btn.disabled = disabled;
       btn.dataset.value = preservedValue || "";
@@ -1121,6 +1158,20 @@
       if (!disabled) {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
+
+          // Check if items array is empty (NEW)
+          if (!items || items.length === 0) {
+            Swal.fire({
+              icon: 'info',
+              title: currentLanguage === 'en' ? 'Key Map Empty' : 'Key Map Empty',
+              text: currentLanguage === 'en' 
+                ? `Please update the Key Map first (${type === 'role' ? 'Roles' : 'Places'}).`
+                : `කරුණාකර පළමුව Key Map යාවත්කාලීන කරන්න. (${type === 'role' ? 'රාජකාරි' : 'ස්ථාන'})`,
+              confirmButtonColor: '#0b5ea8'
+            });
+            return;
+          }
+
           const isOpen = menu.style.display === "block";
 
           // Close all other menus (checking class)
@@ -1280,10 +1331,10 @@
       tdDay.textContent = d;
 
       const tdM = el("td", { style: "padding:4px;border:1px solid #ccc;vertical-align:top;color:#000" }, []);
-      tdM.appendChild(createSelectCell("tpl-morning", "", "", false));
+      tdM.appendChild(createSelectCell("tpl-morning", "", "", true));
 
       const tdA = el("td", { style: "padding:4px;border:1px solid #ccc;vertical-align:top;color:#000" }, []);
-      tdA.appendChild(createSelectCell("tpl-afternoon", "", "", false));
+      tdA.appendChild(createSelectCell("tpl-afternoon", "", "", true));
 
       tr.appendChild(tdDay); tr.appendChild(tdM); tr.appendChild(tdA);
       tbody.appendChild(tr);
@@ -1963,27 +2014,29 @@
             delete tr.dataset.monthLocked;
           } else {
             // Normal day or manually disabled government holiday
-            // Ensure selects exist and are enabled (unless previously user-locked Sunday)
+            // Ensure selects/buttons exist and are enabled (unless previously user-locked Sunday)
             // if currently locked because of prior month selection, restore selects with preserved values
-            if (!tdM.querySelector("select")) {
+            
+            // Fix: Check for buttons too since we use custom dropdowns now
+            const morningInputs = tdM.querySelectorAll("select, button[class*='tpl-']");
+            // Check disabled state specifically to force re-render if needed (fixes styling)
+            const isMorningDisabled = morningInputs.length > 0 && morningInputs[0].disabled;
+
+            if (morningInputs.length === 0 || isMorningDisabled) {
               const preservedRole = tr.dataset.morningRole || "";
               const preservedPlace = tr.dataset.morningPlace || "";
               tdM.innerHTML = "";
               tdM.appendChild(createSelectCell("tpl-morning", preservedRole, preservedPlace, false));
-            } else {
-              // ensure enabled
-              const sel = tdM.querySelector("select");
-              if (sel) sel.disabled = false;
             }
 
-            if (!tdA.querySelector("select")) {
+            const afternoonInputs = tdA.querySelectorAll("select, button[class*='tpl-']");
+            const isAfternoonDisabled = afternoonInputs.length > 0 && afternoonInputs[0].disabled;
+
+            if (afternoonInputs.length === 0 || isAfternoonDisabled) {
               const preservedRole = tr.dataset.afternoonRole || "";
               const preservedPlace = tr.dataset.afternoonPlace || "";
               tdA.innerHTML = "";
               tdA.appendChild(createSelectCell("tpl-afternoon", preservedRole, preservedPlace, false));
-            } else {
-              const sel = tdA.querySelector("select");
-              if (sel) sel.disabled = false;
             }
             delete tr.dataset.monthLocked;
           }
