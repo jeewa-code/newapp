@@ -427,6 +427,30 @@
       }
     });
 
+    // Helper to update position on scroll/resize
+    const updatePosition = () => {
+      if (dropdown.style.display !== "block") {
+        window.removeEventListener("scroll", updatePosition, true);
+        window.removeEventListener("resize", updatePosition);
+        return;
+      }
+
+      const rect = displayBtn.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const isUp = dropdown.dataset.opensUp === "true";
+
+      dropdown.style.width = rect.width + "px";
+      dropdown.style.left = rect.left + "px";
+
+      if (isUp) {
+        dropdown.style.bottom = (viewportHeight - rect.top + 2) + "px";
+        dropdown.style.top = "auto";
+      } else {
+        dropdown.style.top = (rect.bottom + 2) + "px";
+        dropdown.style.bottom = "auto";
+      }
+    };
+
     // Display button click handler
     if (!disabled) {
       displayBtn.addEventListener("click", (e) => {
@@ -437,17 +461,6 @@
         document.querySelectorAll('[class*="-dropdown"]').forEach(dd => {
           if (dd !== dropdown && dd.style.display === "block") {
             dd.style.display = "none";
-            // If it was moved to body, we can't easily find its original wrapper here without extra tracking.
-            // But since we use the document click listener to close & restore, this might leave orphans if we aren't careful.
-            // ideally we trigger a click on document?? No.
-            // Let's just hide it. The orphan issue is minor if they are few. 
-            // Better: Dispatch a custom event or let the individual document listeners handle it?
-            // Actually, the individual document listeners will handle "clicking outside" for other dropdowns.
-            // So we might not need to manually force close others here if the click logic is robust?
-            // But this click is "inside" THIS wrapper, so it might not trigger "outside" for OTHERS if we aren't careful.
-            // However, appending to body makes them siblings.
-            // Let's stick to hiding them.
-            dd.style.display = "none";
           }
         });
 
@@ -457,6 +470,8 @@
           if (dropdown.parentElement === document.body) {
             wrapper.appendChild(dropdown);
           }
+          window.removeEventListener("scroll", updatePosition, true);
+          window.removeEventListener("resize", updatePosition);
         } else {
           // Move to body to avoid overflow clipping
           document.body.appendChild(dropdown);
@@ -469,27 +484,26 @@
           const spaceBelow = viewportHeight - rect.bottom;
 
           dropdown.style.position = "fixed";
-          dropdown.style.width = rect.width + "px";
-          dropdown.style.left = rect.left + "px";
           dropdown.style.zIndex = "10000";
-          dropdown.style.margin = "0"; // reset margin
+          dropdown.style.margin = "0";
 
-          // Check if there is enough space below (e.g., 250px)
-          if (spaceBelow >= 250) {
-            // Open downwards
-            dropdown.style.top = (rect.bottom + 2) + "px";
-            dropdown.style.bottom = "auto";
-          } else {
-            // Open upwards
-            dropdown.style.bottom = (viewportHeight - rect.top + 2) + "px";
-            dropdown.style.top = "auto";
-          }
+          // Decide direction once
+          const opensUp = spaceBelow < 250;
+          dropdown.dataset.opensUp = opensUp;
+
+          // Apply initial position
+          updatePosition();
+
+          // Add listeners
+          window.addEventListener("scroll", updatePosition, true);
+          window.addEventListener("resize", updatePosition);
         }
       });
 
       // Close dropdown when clicking outside
       const closeHandler = (e) => {
         // Check if click is outside wrapper AND outside dropdown
+        // Note: wrapper contains displayBtn.
         if (!wrapper.contains(e.target) && !dropdown.contains(e.target)) {
           if (dropdown.style.display === "block") {
             dropdown.style.display = "none";
@@ -497,6 +511,10 @@
             if (dropdown.parentElement === document.body) {
               wrapper.appendChild(dropdown);
             }
+
+            window.removeEventListener("scroll", updatePosition, true);
+            window.removeEventListener("resize", updatePosition);
+
             // Collapse sub-items
             dropdown.querySelectorAll(".sub-items-container").forEach(container => {
               container.style.display = "none";
