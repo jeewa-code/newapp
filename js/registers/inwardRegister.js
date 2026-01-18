@@ -11,8 +11,8 @@
   function writeEntries(arr) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
   }
-  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
-  function escapeHtml(s) { return (s+"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function escapeHtml(s) { return (s + "").replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
   // Build UI with single full-width entry form in first tab, view records in second tab
   function buildUI() {
@@ -146,12 +146,12 @@
     document.getElementById("inward_export").addEventListener("click", () => {
       const rows = getFilteredEntries();
       if (!rows.length) return alert("No records to export.");
-      const headers = ["Date","To","Subject","ReplyDate","ActionRequired","FileName"];
+      const headers = ["Date", "To", "Subject", "ReplyDate", "ActionRequired", "FileName"];
       const csvRows = [headers.join(",")].concat(rows.map(r => {
         return [r.date, r.to, r.subject, r.replyDate, r.actionRequired, r.fileName]
-          .map(c => `"${(c||"").toString().replace(/"/g,'""')}"`).join(",");
+          .map(c => `"${(c || "").toString().replace(/"/g, '""')}"`).join(",");
       }));
-      const blob = new Blob([csvRows.join("\r\n")], {type:"text/csv"});
+      const blob = new Blob([csvRows.join("\r\n")], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -201,7 +201,7 @@
     });
 
     // view filter wiring
-    ['filter_search','filter_reply','filter_from','filter_to','filter_action'].forEach(id => {
+    ['filter_search', 'filter_reply', 'filter_from', 'filter_to', 'filter_action'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', () => { /* no immediate action; use refresh */ });
     });
@@ -258,10 +258,10 @@
       return `<tr data-id="${escapeHtml(r.id)}">
         <td>${escapeHtml(r.date)}</td>
         <td>${escapeHtml(r.to)}</td>
-        <td>${escapeHtml(r.subject||"")}</td>
-        <td>${escapeHtml(r.replyDate||"")}</td>
-        <td>${escapeHtml(r.actionRequired||"")}</td>
-        <td>${escapeHtml(r.fileName||"")}</td>
+        <td>${escapeHtml(r.subject || "")}</td>
+        <td>${escapeHtml(r.replyDate || "")}</td>
+        <td>${escapeHtml(r.actionRequired || "")}</td>
+        <td>${escapeHtml(r.fileName || "")}</td>
         <td class="actions">
           <button class="btn small edit" data-id="${escapeHtml(r.id)}">Edit</button>
           <button class="btn small danger del" data-id="${escapeHtml(r.id)}">Delete</button>
@@ -291,7 +291,7 @@
     });
 
     tbody.querySelectorAll("button.del").forEach(b => {
-      b.addEventListener("click", (ev) => {
+      b.addEventListener("click", async (ev) => {
         const id = ev.currentTarget.dataset.id;
         if (!await showConfirm("Delete this record?")) return;
         const filteredOut = readEntries().filter(x => x.id !== id);

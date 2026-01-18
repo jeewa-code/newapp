@@ -260,38 +260,38 @@
         return `
           <tr data-id="${ins.id}">
             <td style="padding:8px;vertical-align:top;">
-              <input type="date" data-field="date" value="${esc(ins.date||"")}" style="width:140px;padding:6px;border:1px solid #ccc;border-radius:6px;">
+              <input type="date" data-field="date" value="${esc(ins.date || "")}" style="width:140px;padding:6px;border:1px solid #ccc;border-radius:6px;">
             </td>
             <td style="padding:8px;vertical-align:top;">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                <input data-sub="environment.lightingAir" placeholder="ආලෝකය/වාතය" value="${esc(ins.environment.lightingAir||"")}">
-                <input data-sub="environment.heat" placeholder="තාපය" value="${esc(ins.environment.heat||"")}">
-                <input data-sub="environment.noise" placeholder="ශබ්ධය" value="${esc(ins.environment.noise||"")}">
-                <input data-sub="environment.temperature" placeholder="උෂ්ණත්වය" value="${esc(ins.environment.temperature||"")}">
-                <input data-sub="environment.radiation" placeholder="විකිරණ" value="${esc(ins.environment.radiation||"")}">
-                <input data-sub="environment.ventilation" placeholder="විමෝචනය" value="${esc(ins.environment.ventilation||"")}">
+                <input data-sub="environment.lightingAir" placeholder="ආලෝකය/වාතය" value="${esc(ins.environment.lightingAir || "")}">
+                <input data-sub="environment.heat" placeholder="තාපය" value="${esc(ins.environment.heat || "")}">
+                <input data-sub="environment.noise" placeholder="ශබ්ධය" value="${esc(ins.environment.noise || "")}">
+                <input data-sub="environment.temperature" placeholder="උෂ්ණත්වය" value="${esc(ins.environment.temperature || "")}">
+                <input data-sub="environment.radiation" placeholder="විකිරණ" value="${esc(ins.environment.radiation || "")}">
+                <input data-sub="environment.ventilation" placeholder="විමෝචනය" value="${esc(ins.environment.ventilation || "")}">
               </div>
             </td>
             <td style="padding:8px;vertical-align:top;">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                <input data-sub="sanitation.drinkingWater" placeholder="පානිය ජලය" value="${esc(ins.sanitation.drinkingWater||"")}">
-                <input data-sub="sanitation.toilets" placeholder="වැසිකිලි" value="${esc(ins.sanitation.toilets||"")}">
-                <input data-sub="sanitation.foodRoom" placeholder="කෑම කාමරය" value="${esc(ins.sanitation.foodRoom||"")}">
-                <input data-sub="sanitation.firstAid" placeholder="ප්‍රථමාධාර" value="${esc(ins.sanitation.firstAid||"")}">
-                <input data-sub="sanitation.ppe" placeholder="PPE" value="${esc(ins.sanitation.ppe||"")}">
-                <input data-sub="sanitation.restRoom" placeholder="විවේක කාමරය" value="${esc(ins.sanitation.restRoom||"")}">
+                <input data-sub="sanitation.drinkingWater" placeholder="පානිය ජලය" value="${esc(ins.sanitation.drinkingWater || "")}">
+                <input data-sub="sanitation.toilets" placeholder="වැසිකිලි" value="${esc(ins.sanitation.toilets || "")}">
+                <input data-sub="sanitation.foodRoom" placeholder="කෑම කාමරය" value="${esc(ins.sanitation.foodRoom || "")}">
+                <input data-sub="sanitation.firstAid" placeholder="ප්‍රථමාධාර" value="${esc(ins.sanitation.firstAid || "")}">
+                <input data-sub="sanitation.ppe" placeholder="PPE" value="${esc(ins.sanitation.ppe || "")}">
+                <input data-sub="sanitation.restRoom" placeholder="විවේක කාමරය" value="${esc(ins.sanitation.restRoom || "")}">
               </div>
             </td>
             <td style="padding:8px;vertical-align:top;">
               <div style="display:grid;gap:6px;">
-                <input data-sub="waste.solid" placeholder="ඝණ" value="${esc(ins.waste.solid||"")}">
-                <input data-sub="waste.liquid" placeholder="ද්‍රව" value="${esc(ins.waste.liquid||"")}">
-                <input data-sub="waste.gas" placeholder="වායු/වාෂ්ප/දුවිලි" value="${esc(ins.waste.gas||"")}">
+                <input data-sub="waste.solid" placeholder="ඝණ" value="${esc(ins.waste.solid || "")}">
+                <input data-sub="waste.liquid" placeholder="ද්‍රව" value="${esc(ins.waste.liquid || "")}">
+                <input data-sub="waste.gas" placeholder="වායු/වාෂ්ප/දුවිලි" value="${esc(ins.waste.gas || "")}">
               </div>
             </td>
             <td style="padding:8px;vertical-align:top;">
-              <textarea data-field="actionsTaken" placeholder="ගත් ක්‍රියාමාර්ගය" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:6px;">${esc(ins.actionsTaken||"")}</textarea>
-              <input data-field="otherRemarks" placeholder="වෙනත් කරුණු" value="${esc(ins.otherRemarks||"")}" style="width:100%;margin-top:6px;padding:6px;border:1px solid #ccc;border-radius:6px;">
+              <textarea data-field="actionsTaken" placeholder="ගත් ක්‍රියාමාර්ගය" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:6px;">${esc(ins.actionsTaken || "")}</textarea>
+              <input data-field="otherRemarks" placeholder="වෙනත් කරුණු" value="${esc(ins.otherRemarks || "")}" style="width:100%;margin-top:6px;padding:6px;border:1px solid #ccc;border-radius:6px;">
             </td>
             <td style="padding:8px;vertical-align:top;">
               <div style="display:flex;flex-direction:column;gap:6px;">
@@ -306,26 +306,26 @@
       // read-only row
       return `
         <tr data-id="${ins.id}">
-          <td style="padding:8px;vertical-align:top;">${esc(ins.date||"")}</td>
+          <td style="padding:8px;vertical-align:top;">${esc(ins.date || "")}</td>
           <td style="padding:8px;vertical-align:top;">
             <div style="font-weight:600;margin-bottom:6px;">Environment</div>
             <div style="font-size:13px;line-height:1.35">
-              ආ/වා: ${esc(ins.environment.lightingAir||"")} · තාපය: ${esc(ins.environment.heat||"")} · ශබ්ධය: ${esc(ins.environment.noise||"")}
+              ආ/වා: ${esc(ins.environment.lightingAir || "")} · තාපය: ${esc(ins.environment.heat || "")} · ශබ්ධය: ${esc(ins.environment.noise || "")}
             </div>
           </td>
           <td style="padding:8px;vertical-align:top;">
             <div style="font-weight:600;margin-bottom:6px;">Sanitation</div>
             <div style="font-size:13px;line-height:1.35">
-              ජලය: ${esc(ins.sanitation.drinkingWater||"")} · වැසිකිලි: ${esc(ins.sanitation.toilets||"")}
+              ජලය: ${esc(ins.sanitation.drinkingWater || "")} · වැසිකිලි: ${esc(ins.sanitation.toilets || "")}
             </div>
           </td>
           <td style="padding:8px;vertical-align:top;">
             <div style="font-weight:600;margin-bottom:6px;">Waste</div>
             <div style="font-size:13px;line-height:1.35">
-              ඝණ: ${esc(ins.waste.solid||"")} · ද්‍රව: ${esc(ins.waste.liquid||"")}
+              ඝණ: ${esc(ins.waste.solid || "")} · ද්‍රව: ${esc(ins.waste.liquid || "")}
             </div>
           </td>
-          <td style="padding:8px;vertical-align:top;">${esc(ins.actionsTaken||"")}</td>
+          <td style="padding:8px;vertical-align:top;">${esc(ins.actionsTaken || "")}</td>
           <td style="padding:8px;vertical-align:top;">
             <div style="display:flex;flex-direction:column;gap:6px;">
               <button class="ins_edit" data-id="${ins.id}" style="background:#ffd54f;border:none;padding:6px;border-radius:6px;cursor:pointer">Edit</button>
@@ -350,7 +350,7 @@
 
     // Delete buttons (removes from _currentInspections only)
     tbodyEl.querySelectorAll(".ins_del").forEach(btn => {
-      btn.addEventListener("click", (e) => {
+      btn.addEventListener("click", async (e) => {
         const id = e.currentTarget.dataset.id;
         if (!await showConfirm("Delete this inspection from current session? This will remove it from the record when saved.")) return;
         _currentInspections = _currentInspections.filter(x => String(x.id) !== String(id));
@@ -686,33 +686,33 @@
         <div>
           <table style="width:100%;font-size:14px;border-collapse:collapse;">
             <tbody>
-              <tr><td style="padding:6px;font-weight:700;width:220px">Owner</td><td style="padding:6px">${esc(rec.ownerName||"")}</td></tr>
-              <tr><td style="padding:6px;font-weight:700">Address</td><td style="padding:6px">${esc(rec.ownerAddr||"")}</td></tr>
-              <tr><td style="padding:6px;font-weight:700">Nature</td><td style="padding:6px">${esc(rec.nature||"")}</td></tr>
-              <tr><td style="padding:6px;font-weight:700">Total (F/M)</td><td style="padding:6px">${esc(rec.total||0)} (F:${esc(rec.female||0)} / M:${esc(rec.male||0)})</td></tr>
-              <tr><td style="padding:6px;font-weight:700">Admin Area</td><td style="padding:6px">${esc(rec.adminArea||"")}</td></tr>
-              <tr><td style="padding:6px;font-weight:700">Has License</td><td style="padding:6px">${esc(rec.hasLicense||"")}</td></tr>
+              <tr><td style="padding:6px;font-weight:700;width:220px">Owner</td><td style="padding:6px">${esc(rec.ownerName || "")}</td></tr>
+              <tr><td style="padding:6px;font-weight:700">Address</td><td style="padding:6px">${esc(rec.ownerAddr || "")}</td></tr>
+              <tr><td style="padding:6px;font-weight:700">Nature</td><td style="padding:6px">${esc(rec.nature || "")}</td></tr>
+              <tr><td style="padding:6px;font-weight:700">Total (F/M)</td><td style="padding:6px">${esc(rec.total || 0)} (F:${esc(rec.female || 0)} / M:${esc(rec.male || 0)})</td></tr>
+              <tr><td style="padding:6px;font-weight:700">Admin Area</td><td style="padding:6px">${esc(rec.adminArea || "")}</td></tr>
+              <tr><td style="padding:6px;font-weight:700">Has License</td><td style="padding:6px">${esc(rec.hasLicense || "")}</td></tr>
             </tbody>
           </table>
           <hr style="margin:12px 0" />
           <div><strong>Inspections (latest first)</strong></div>
           <div style="margin-top:8px;">
             ${(rec.inspections && rec.inspections.length) ? sortByDateDesc(rec.inspections).map(ins => {
-              return `<div style="border:1px solid #eef2f6;padding:8px;border-radius:6px;margin-top:8px;">
-                <div style="font-weight:700;margin-bottom:6px;">${esc(ins.date||"")}</div>
+      return `<div style="border:1px solid #eef2f6;padding:8px;border-radius:6px;margin-top:8px;">
+                <div style="font-weight:700;margin-bottom:6px;">${esc(ins.date || "")}</div>
                 <div style="font-size:13px;">
                   <div style="font-weight:600">Environment</div>
-                  ආ/වා: ${esc(ins.environment.lightingAir||"")} · තාපය: ${esc(ins.environment.heat||"")} · ශබ්ධය: ${esc(ins.environment.noise||"")}<br>
+                  ආ/වා: ${esc(ins.environment.lightingAir || "")} · තාපය: ${esc(ins.environment.heat || "")} · ශබ්ධය: ${esc(ins.environment.noise || "")}<br>
                   <div style="font-weight:600;margin-top:6px">Sanitation</div>
-                  ජලය: ${esc(ins.sanitation.drinkingWater||"")} · වැසිකිලි: ${esc(ins.sanitation.toilets||"")}<br>
+                  ජලය: ${esc(ins.sanitation.drinkingWater || "")} · වැසිකිලි: ${esc(ins.sanitation.toilets || "")}<br>
                   <div style="font-weight:600;margin-top:6px">Waste</div>
-                  ඝණ: ${esc(ins.waste.solid||"")} · ද්‍රව: ${esc(ins.waste.liquid||"")}<br>
+                  ඝණ: ${esc(ins.waste.solid || "")} · ද්‍රව: ${esc(ins.waste.liquid || "")}<br>
                   <div style="font-weight:600;margin-top:6px">Actions</div>
-                  ${esc(ins.actionsTaken||"")}
-                  <div style="color:#666;margin-top:6px">${esc(ins.otherRemarks||"")}</div>
+                  ${esc(ins.actionsTaken || "")}
+                  <div style="color:#666;margin-top:6px">${esc(ins.otherRemarks || "")}</div>
                 </div>
               </div>`;
-            }).join("") : `<div style="color:#666;margin-top:8px;">No inspections</div>`}
+    }).join("") : `<div style="color:#666;margin-top:8px;">No inspections</div>`}
           </div>
         </div>
       </div>
@@ -752,7 +752,7 @@
     }, 80);
   }
 
-  function onDeleteRecord(e) {
+  async function onDeleteRecord(e) {
     const id = e.currentTarget.dataset.id;
     if (!await showConfirm("Delete this record? This will remove it permanently.")) return;
     let arr = load() || [];
@@ -767,52 +767,52 @@
   function exportAllCsv() {
     const arr = load() || [];
     if (!arr.length) { alert("No records to export."); return; }
-    const header = ["RecordID","Owner","Address","Nature","Total","Female","Male","AdminArea","HasLicense","RecordCreatedAt","InspectionID","InspectionDate","Env_LightingAir","Env_Heat","Env_Noise","Env_Temperature","Env_Radiation","Env_Ventilation","San_DrinkingWater","San_Toilets","San_FoodRoom","San_FirstAid","San_PPE","San_RestRoom","Waste_Solid","Waste_Liquid","Waste_Gas","ActionsTaken","OtherRemarks"];
+    const header = ["RecordID", "Owner", "Address", "Nature", "Total", "Female", "Male", "AdminArea", "HasLicense", "RecordCreatedAt", "InspectionID", "InspectionDate", "Env_LightingAir", "Env_Heat", "Env_Noise", "Env_Temperature", "Env_Radiation", "Env_Ventilation", "San_DrinkingWater", "San_Toilets", "San_FoodRoom", "San_FirstAid", "San_PPE", "San_RestRoom", "Waste_Solid", "Waste_Liquid", "Waste_Gas", "ActionsTaken", "OtherRemarks"];
     const rows = [header.join(",")];
     for (const r of arr) {
       if (r.inspections && r.inspections.length) {
         for (const ins of r.inspections) {
           const row = [
-            `"${(r.id||"").toString().replace(/"/g,'""')}"`,
-            `"${(r.ownerName||"").toString().replace(/"/g,'""')}"`,
-            `"${(r.ownerAddr||"").toString().replace(/"/g,'""')}"`,
-            `"${(r.nature||"").toString().replace(/"/g,'""')}"`,
-            r.total||0, r.female||0, r.male||0,
-            `"${(r.adminArea||"").toString().replace(/"/g,'""')}"`,
-            `"${(r.hasLicense||"").toString().replace(/"/g,'""')}"`,
-            `"${(r.createdAt||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.id||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.date||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.environment && ins.environment.lightingAir||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.environment && ins.environment.heat||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.environment && ins.environment.noise||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.environment && ins.environment.temperature||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.environment && ins.environment.radiation||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.environment && ins.environment.ventilation||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.sanitation && ins.sanitation.drinkingWater||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.sanitation && ins.sanitation.toilets||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.sanitation && ins.sanitation.foodRoom||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.sanitation && ins.sanitation.firstAid||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.sanitation && ins.sanitation.ppe||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.sanitation && ins.sanitation.restRoom||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.waste && ins.waste.solid||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.waste && ins.waste.liquid||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.waste && ins.waste.gas||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.actionsTaken||"").toString().replace(/"/g,'""')}"`,
-            `"${(ins.otherRemarks||"").toString().replace(/"/g,'""')}"`
+            `"${(r.id || "").toString().replace(/"/g, '""')}"`,
+            `"${(r.ownerName || "").toString().replace(/"/g, '""')}"`,
+            `"${(r.ownerAddr || "").toString().replace(/"/g, '""')}"`,
+            `"${(r.nature || "").toString().replace(/"/g, '""')}"`,
+            r.total || 0, r.female || 0, r.male || 0,
+            `"${(r.adminArea || "").toString().replace(/"/g, '""')}"`,
+            `"${(r.hasLicense || "").toString().replace(/"/g, '""')}"`,
+            `"${(r.createdAt || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.id || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.date || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.environment && ins.environment.lightingAir || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.environment && ins.environment.heat || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.environment && ins.environment.noise || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.environment && ins.environment.temperature || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.environment && ins.environment.radiation || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.environment && ins.environment.ventilation || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.sanitation && ins.sanitation.drinkingWater || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.sanitation && ins.sanitation.toilets || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.sanitation && ins.sanitation.foodRoom || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.sanitation && ins.sanitation.firstAid || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.sanitation && ins.sanitation.ppe || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.sanitation && ins.sanitation.restRoom || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.waste && ins.waste.solid || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.waste && ins.waste.liquid || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.waste && ins.waste.gas || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.actionsTaken || "").toString().replace(/"/g, '""')}"`,
+            `"${(ins.otherRemarks || "").toString().replace(/"/g, '""')}"`
           ];
           rows.push(row.join(","));
         }
       } else {
         const row = [
-          `"${(r.id||"").toString().replace(/"/g,'""')}"`,
-          `"${(r.ownerName||"").toString().replace(/"/g,'""')}"`,
-          `"${(r.ownerAddr||"").toString().replace(/"/g,'""')}"`,
-          `"${(r.nature||"").toString().replace(/"/g,'""')}"`,
-          r.total||0, r.female||0, r.male||0,
-          `"${(r.adminArea||"").toString().replace(/"/g,'""')}"`,
-          `"${(r.hasLicense||"").toString().replace(/"/g,'""')}"`,
-          `"${(r.createdAt||"").toString().replace(/"/g,'""')}"`,
+          `"${(r.id || "").toString().replace(/"/g, '""')}"`,
+          `"${(r.ownerName || "").toString().replace(/"/g, '""')}"`,
+          `"${(r.ownerAddr || "").toString().replace(/"/g, '""')}"`,
+          `"${(r.nature || "").toString().replace(/"/g, '""')}"`,
+          r.total || 0, r.female || 0, r.male || 0,
+          `"${(r.adminArea || "").toString().replace(/"/g, '""')}"`,
+          `"${(r.hasLicense || "").toString().replace(/"/g, '""')}"`,
+          `"${(r.createdAt || "").toString().replace(/"/g, '""')}"`,
           "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""
         ];
         rows.push(row.join(","));

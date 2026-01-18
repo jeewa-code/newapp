@@ -11,54 +11,54 @@
      - trade_food_types_v1
      - trade_other_types_v1
 */
-(function(){
+(function () {
   const STORAGE_KEY = "trade_industries_v1";
   const FOOD_TYPES_KEY = "trade_food_types_v1";
   const OTHER_TYPES_KEY = "trade_other_types_v1";
 
   const DEFAULT_FOOD_TYPES = [
-    "Canteen","Food Factories","Food store","Groceries","Hotels",
-    "Ice Manufacturing Premises","Restaurant","Super Markets",
+    "Canteen", "Food Factories", "Food store", "Groceries", "Hotels",
+    "Ice Manufacturing Premises", "Restaurant", "Super Markets",
     "Tea, coffee, beverages, ready to serve drinks, ice cream boutique",
     "Ice cream, confectioneries, yoghurt, curd, dessert manufacturing cottage industry",
-    "Bakeries","Catering Establishment"
+    "Bakeries", "Catering Establishment"
   ];
 
   // ---------- helpers ----------
-  function load(key){ try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch(e){ return []; } }
-  function save(key, v){ localStorage.setItem(key, JSON.stringify(v)); }
-  function uid(){ return Date.now() + Math.floor(Math.random()*9999); }
-  function esc(s){ if(s===null||s===undefined) return ""; return String(s).replace(/[&<>"']/g, m=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function load(key) { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; } }
+  function save(key, v) { localStorage.setItem(key, JSON.stringify(v)); }
+  function uid() { return Date.now() + Math.floor(Math.random() * 9999); }
+  function esc(s) { if (s === null || s === undefined) return ""; return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
   // ensure master lists exist
-  if(!localStorage.getItem(FOOD_TYPES_KEY)) save(FOOD_TYPES_KEY, DEFAULT_FOOD_TYPES.slice());
-  if(!localStorage.getItem(OTHER_TYPES_KEY)) save(OTHER_TYPES_KEY, []);
-  if(!localStorage.getItem(STORAGE_KEY)) save(STORAGE_KEY, []);
+  if (!localStorage.getItem(FOOD_TYPES_KEY)) save(FOOD_TYPES_KEY, DEFAULT_FOOD_TYPES.slice());
+  if (!localStorage.getItem(OTHER_TYPES_KEY)) save(OTHER_TYPES_KEY, []);
+  if (!localStorage.getItem(STORAGE_KEY)) save(STORAGE_KEY, []);
 
   // in-memory inspection rows while entering/editing
   let _currentInspections = [];
 
   // return sorted copy A-Z (case-insensitive)
-  function sortedAZ(arr){
-    return (arr||[]).slice().sort((a,b)=> String(a).localeCompare(String(b), undefined, {sensitivity:'base'}));
+  function sortedAZ(arr) {
+    return (arr || []).slice().sort((a, b) => String(a).localeCompare(String(b), undefined, { sensitivity: 'base' }));
   }
 
   // sort inspections by date (desc: latest first). Dates are yyyy-mm-dd so lexicographic works.
-  function sortInspectionsByDateDesc(arr){
-    return (arr||[]).slice().sort((a,b)=> {
+  function sortInspectionsByDateDesc(arr) {
+    return (arr || []).slice().sort((a, b) => {
       const da = a && a.date ? a.date : "";
       const db = b && b.date ? b.date : "";
-      if(da === db) return 0;
-      if(!da) return 1;
-      if(!db) return -1;
+      if (da === db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
       return db.localeCompare(da);
     });
   }
 
   // ---------- public entry point ----------
-  window.openTradeRegister = function(title = "Trade and Industries Register"){
+  window.openTradeRegister = function (title = "Trade and Industries Register") {
     const content = document.getElementById("contentArea");
-    if(!content) return console.warn("contentArea not found");
+    if (!content) return console.warn("contentArea not found");
     content.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <h2 style="margin:0">${esc(title)}</h2>
@@ -83,23 +83,23 @@
       </div>
     `;
 
-    document.getElementById("ti_tab_entry").addEventListener("click", ()=> { setActive('entry'); renderEntry(); });
-    document.getElementById("ti_tab_records").addEventListener("click", ()=> { setActive('records'); renderRecords(); });
+    document.getElementById("ti_tab_entry").addEventListener("click", () => { setActive('entry'); renderEntry(); });
+    document.getElementById("ti_tab_records").addEventListener("click", () => { setActive('records'); renderRecords(); });
 
     renderEntry();
   };
 
-  function setActive(key){
+  function setActive(key) {
     const e = document.getElementById("ti_tab_entry"), r = document.getElementById("ti_tab_records");
-    if(!e||!r) return;
+    if (!e || !r) return;
     e.classList.remove('active'); r.classList.remove('active');
     e.style.background = '#fff'; r.style.background = '#fff';
-    if(key==='entry'){ e.classList.add('active'); e.style.background='#f8fbff'; }
-    else { r.classList.add('active'); r.style.background='#f8fbff'; }
+    if (key === 'entry') { e.classList.add('active'); e.style.background = '#f8fbff'; }
+    else { r.classList.add('active'); r.style.background = '#f8fbff'; }
   }
 
   // ---------- Entry UI ----------
-  function renderEntry(){
+  function renderEntry() {
     const cont = document.getElementById("ti_tabContent");
     const foodTypes = sortedAZ(load(FOOD_TYPES_KEY));
     const otherTypes = sortedAZ(load(OTHER_TYPES_KEY));
@@ -229,12 +229,12 @@
     const addOtherBtn = document.getElementById("ti_add_other");
     const removeOtherBtn = document.getElementById("ti_remove_other");
 
-    function toggleNatureUI(){
+    function toggleNatureUI() {
       const val = nature.value;
-      if(val === "food"){
+      if (val === "food") {
         foodWrap.style.display = "block"; foodLabel.style.display = "block";
         otherWrap.style.display = "none"; otherLabel.style.display = "none";
-      } else if(val === "other"){
+      } else if (val === "other") {
         foodWrap.style.display = "none"; foodLabel.style.display = "none";
         otherWrap.style.display = "block"; otherLabel.style.display = "block";
       } else {
@@ -246,46 +246,46 @@
     toggleNatureUI();
 
     // food master add/remove
-    addFoodBtn.addEventListener("click", ()=>{
+    addFoodBtn.addEventListener("click", () => {
       const v = newFood.value.trim();
-      if(!v) return showError("Enter new food type");
+      if (!v) return showError("Enter new food type");
       let ft = load(FOOD_TYPES_KEY);
-      if(ft.includes(v)) { showWarning("Already exists"); newFood.value=""; return; }
+      if (ft.includes(v)) { showWarning("Already exists"); newFood.value = ""; return; }
       ft.push(v); ft = sortedAZ(ft); save(FOOD_TYPES_KEY, ft);
       rebuildSelectOptions(foodSelect, ft);
       newFood.value = "";
     });
-    removeFoodBtn.addEventListener("click", ()=>{
+    removeFoodBtn.addEventListener("click", async () => {
       const selected = foodSelect.value;
-      if(!selected) return alert("Select an item to remove");
-      if(!await showConfirm("Remove selected food type from master list? This removes it universally.")) return;
-      let ft = load(FOOD_TYPES_KEY); ft = ft.filter(x=> x !== selected); save(FOOD_TYPES_KEY, ft);
+      if (!selected) return alert("Select an item to remove");
+      if (!await showConfirm("Remove selected food type from master list? This removes it universally.")) return;
+      let ft = load(FOOD_TYPES_KEY); ft = ft.filter(x => x !== selected); save(FOOD_TYPES_KEY, ft);
       rebuildSelectOptions(foodSelect, sortedAZ(ft));
     });
 
     // other master add/remove
-    addOtherBtn.addEventListener("click", ()=>{
+    addOtherBtn.addEventListener("click", () => {
       const v = newOther.value.trim();
-      if(!v) return showError("Enter new other type");
+      if (!v) return showError("Enter new other type");
       let ot = load(OTHER_TYPES_KEY);
-      if(ot.includes(v)) { showWarning("Already exists"); newOther.value=""; return; }
+      if (ot.includes(v)) { showWarning("Already exists"); newOther.value = ""; return; }
       ot.push(v); ot = sortedAZ(ot); save(OTHER_TYPES_KEY, ot);
       rebuildSelectOptions(otherSelect, ot);
       newOther.value = "";
     });
-    removeOtherBtn.addEventListener("click", async ()=>{
+    removeOtherBtn.addEventListener("click", async () => {
       const selected = otherSelect.value;
-      if(!selected) return showError("Select an item to remove");
-      if(!await showConfirm("Remove selected other type from master list?")) return;
-      let ot = load(OTHER_TYPES_KEY); ot = ot.filter(x=> x !== selected); save(OTHER_TYPES_KEY, ot);
+      if (!selected) return showError("Select an item to remove");
+      if (!await showConfirm("Remove selected other type from master list?")) return;
+      let ot = load(OTHER_TYPES_KEY); ot = ot.filter(x => x !== selected); save(OTHER_TYPES_KEY, ot);
       rebuildSelectOptions(otherSelect, sortedAZ(ot));
     });
 
-    function rebuildSelectOptions(sel, items){
+    function rebuildSelectOptions(sel, items) {
       sel.innerHTML = `<option value="">-- select --</option>` + (items.map(it => `<option value="${esc(it)}">${esc(it)}</option>`).join(""));
     }
 
-    document.getElementById("ti_clear").addEventListener("click", ()=> {
+    document.getElementById("ti_clear").addEventListener("click", () => {
       document.getElementById("ti_owner_place_name").value = "";
       document.getElementById("ti_owner_place_addr").value = "";
       document.getElementById("ti_business_owner_name").value = "";
@@ -307,17 +307,16 @@
       toggleNatureUI();
     });
 
-    document.getElementById("ti_view_records").addEventListener("click", ()=> document.getElementById("ti_tab_records").click());
+    document.getElementById("ti_view_records").addEventListener("click", () => document.getElementById("ti_tab_records").click());
     document.getElementById("ti_save").addEventListener("click", tiOnSave);
     document.getElementById("ti_update").addEventListener("click", tiOnUpdate);
 
-    document.getElementById("ti_add_inspection_btn").addEventListener("click", ()=> {
+    document.getElementById("ti_add_inspection_btn").addEventListener("click", () => {
       const newRow = { id: uid(), date: "", observed: "", actions: "", other: "" };
       _currentInspections.unshift(newRow);
       renderInspectionsTable(true, newRow.id);
     });
-    document.getElementById("ti_clear_inspections_btn").addEventListener("click", ()=> {
-      if(!await showConfirm("Clear all inspections?")) return;
+    document.getElementById("ti_clear_inspections_btn").addEventListener("click", async () => { if (!await showConfirm("Clear all inspections?")) return;
       _currentInspections = [];
       renderInspectionsTable();
       tryPersistIfEditing();
@@ -327,21 +326,21 @@
   } // end renderEntry
 
   // ---------- inspections renderer + handlers ----------
-  function renderInspectionsTable(focusEdit=false, editId=null){
+  function renderInspectionsTable(focusEdit = false, editId = null) {
     const tbody = document.getElementById("ti_inspections_body");
-    if(!tbody) return;
+    if (!tbody) return;
     _currentInspections = sortInspectionsByDateDesc(_currentInspections);
-    if(!_currentInspections || _currentInspections.length === 0){
+    if (!_currentInspections || _currentInspections.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="padding:10px;color:#666;">No inspections yet. Add one with 'Add Inspection'.</td></tr>`;
       return;
     }
-    tbody.innerHTML = _currentInspections.map((ins)=> {
-      if(editId && String(editId) === String(ins.id)){
+    tbody.innerHTML = _currentInspections.map((ins) => {
+      if (editId && String(editId) === String(ins.id)) {
         return `<tr data-ins-id="${ins.id}">
-          <td style="padding:6px"><input type="date" value="${esc(ins.date||"")}" data-field="date" style="width:140px;padding:6px;border:1px solid #ccc;border-radius:6px;" /></td>
-          <td style="padding:6px"><input data-field="observed" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:6px;" value="${esc(ins.observed||"")}" /></td>
-          <td style="padding:6px"><input data-field="actions" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:6px;" value="${esc(ins.actions||"")}" /></td>
-          <td style="padding:6px"><input data-field="other" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:6px;" value="${esc(ins.other||"")}" /></td>
+          <td style="padding:6px"><input type="date" value="${esc(ins.date || "")}" data-field="date" style="width:140px;padding:6px;border:1px solid #ccc;border-radius:6px;" /></td>
+          <td style="padding:6px"><input data-field="observed" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:6px;" value="${esc(ins.observed || "")}" /></td>
+          <td style="padding:6px"><input data-field="actions" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:6px;" value="${esc(ins.actions || "")}" /></td>
+          <td style="padding:6px"><input data-field="other" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:6px;" value="${esc(ins.other || "")}" /></td>
           <td style="padding:6px"><button class="ti_ins_save" data-id="${ins.id}" style="margin-right:6px;padding:6px 8px;border-radius:6px;background:#06ad7d;color:#fff;border:none;">Save</button><button class="ti_ins_cancel" data-id="${ins.id}" style="padding:6px 8px;border-radius:6px;background:#ef9a9a;border:none;">Cancel</button></td>
         </tr>`;
       } else {
@@ -356,72 +355,72 @@
     }).join("");
 
     // attach handlers
-    document.querySelectorAll(".ti_ins_edit").forEach(b => b.addEventListener("click", (ev)=>{
+    document.querySelectorAll(".ti_ins_edit").forEach(b => b.addEventListener("click", (ev) => {
       const id = ev.currentTarget.dataset.id;
       renderInspectionsTable(true, id);
     }));
-    document.querySelectorAll(".ti_ins_delete").forEach(b => b.addEventListener("click", (ev)=>{
+    document.querySelectorAll(".ti_ins_delete").forEach(b => b.addEventListener("click", async (ev) => {
       const id = ev.currentTarget.dataset.id;
-      if(!await showConfirm("Delete this inspection?")) return;
-      _currentInspections = _currentInspections.filter(x=> String(x.id) !== String(id));
+      if (!await showConfirm("Delete this inspection?")) return;
+      _currentInspections = _currentInspections.filter(x => String(x.id) !== String(id));
       renderInspectionsTable();
       tryPersistIfEditing();
     }));
-    document.querySelectorAll(".ti_ins_save").forEach(b => b.addEventListener("click", (ev)=>{
+    document.querySelectorAll(".ti_ins_save").forEach(b => b.addEventListener("click", (ev) => {
       const id = ev.currentTarget.dataset.id;
       const tr = document.querySelector(`tr[data-ins-id="${id}"]`);
-      if(!tr) return;
+      if (!tr) return;
       const date = tr.querySelector('[data-field="date"]').value || "";
       const observed = tr.querySelector('[data-field="observed"]').value.trim();
       const actions = tr.querySelector('[data-field="actions"]').value.trim();
       const other = tr.querySelector('[data-field="other"]').value.trim();
-      const idx = _currentInspections.findIndex(x=> String(x.id) === String(id));
-      if(idx >= 0) _currentInspections[idx] = { id: Number(id), date, observed, actions, other };
+      const idx = _currentInspections.findIndex(x => String(x.id) === String(id));
+      if (idx >= 0) _currentInspections[idx] = { id: Number(id), date, observed, actions, other };
       _currentInspections = sortInspectionsByDateDesc(_currentInspections);
       renderInspectionsTable();
       tryPersistIfEditing();
     }));
-    document.querySelectorAll(".ti_ins_cancel").forEach(b => b.addEventListener("click", (ev)=>{
+    document.querySelectorAll(".ti_ins_cancel").forEach(b => b.addEventListener("click", (ev) => {
       renderInspectionsTable();
     }));
-    if(focusEdit){
-      setTimeout(()=> {
-        const el = document.querySelector('tr[data-ins-id="'+editId+'"] input[type="date"]');
-        if(el) el.focus();
+    if (focusEdit) {
+      setTimeout(() => {
+        const el = document.querySelector('tr[data-ins-id="' + editId + '"] input[type="date"]');
+        if (el) el.focus();
       }, 50);
     }
   }
 
   // If a record is currently open for editing, persist it immediately (so inspection saves are reflected)
-  function tryPersistIfEditing(){
+  function tryPersistIfEditing() {
     const up = document.getElementById("ti_update");
-    if(!up) return;
+    if (!up) return;
     const editId = up.dataset.editId;
-    if(!editId) return;
+    if (!editId) return;
     const rec = collectFormSilent();
-    if(!rec) return;
+    if (!rec) return;
     rec.inspections = sortInspectionsByDateDesc(_currentInspections);
     const arr = load(STORAGE_KEY);
-    const idx = arr.findIndex(x=> String(x.id) === String(editId));
-    if(idx < 0) return;
+    const idx = arr.findIndex(x => String(x.id) === String(editId));
+    if (idx < 0) return;
     rec.id = arr[idx].id;
     rec.createdAt = arr[idx].createdAt || new Date().toISOString();
     arr[idx] = rec;
     save(STORAGE_KEY, arr);
-    if(document.getElementById("ti_tab_records") && document.getElementById("ti_tab_records").classList.contains('active')) renderRecords();
+    if (document.getElementById("ti_tab_records") && document.getElementById("ti_tab_records").classList.contains('active')) renderRecords();
   }
 
   // collect form silently (no alerts) for inline persisting
-  function collectFormSilent(){
+  function collectFormSilent() {
     const ownerPlaceName = document.getElementById("ti_owner_place_name").value.trim();
     const ownerPlaceAddr = document.getElementById("ti_owner_place_addr").value.trim();
     const businessOwnerName = document.getElementById("ti_business_owner_name").value.trim();
     const businessOwnerAddr = document.getElementById("ti_business_owner_addr").value.trim();
     const businessNature = document.getElementById("ti_business_nature").value;
     let foodType = null, otherType = null;
-    if(businessNature === "food"){
+    if (businessNature === "food") {
       foodType = document.getElementById("ti_food_select").value || null;
-    } else if(businessNature === "other"){
+    } else if (businessNature === "other") {
       otherType = document.getElementById("ti_other_select").value || null;
     }
     const staffTotal = Number(document.getElementById("ti_staff_total").value || 0);
@@ -431,8 +430,8 @@
     const adminArea = document.getElementById("ti_admin_area").value.trim();
     const hasLicense = document.getElementById("ti_has_license").value || "";
 
-    if((staffFemale + staffMale) > staffTotal) return null;
-    if(!ownerPlaceName || !businessOwnerName) return null;
+    if ((staffFemale + staffMale) > staffTotal) return null;
+    if (!ownerPlaceName || !businessOwnerName) return null;
 
     return {
       ownerPlaceName, ownerPlaceAddr, businessOwnerName, businessOwnerAddr,
@@ -443,18 +442,18 @@
   }
 
   // full Save / Update handlers
-  function tiCollectFromForm(){
+  function tiCollectFromForm() {
     const rec = collectFormSilent();
-    if(!rec){
+    if (!rec) {
       showError("Validation failed: check required fields and staff totals (Female + Male ≤ Total).");
       return null;
     }
     return rec;
   }
 
-  function tiOnSave(){
+  function tiOnSave() {
     const rec = tiCollectFromForm();
-    if(!rec) return;
+    if (!rec) return;
     const arr = load(STORAGE_KEY);
     rec.id = uid();
     rec.createdAt = new Date().toISOString();
@@ -463,18 +462,18 @@
     save(STORAGE_KEY, arr);
     showSuccess("Record saved.");
     document.getElementById("ti_clear").click();
-    if(document.getElementById("ti_tab_records") && document.getElementById("ti_tab_records").classList.contains('active')) renderRecords();
+    if (document.getElementById("ti_tab_records") && document.getElementById("ti_tab_records").classList.contains('active')) renderRecords();
   }
 
-  function tiOnUpdate(){
+  function tiOnUpdate() {
     const btn = document.getElementById("ti_update");
     const editId = btn.dataset.editId;
-    if(!editId) return showError("Update සදහා record එකක් තෝරන්න.");
+    if (!editId) return showError("Update සදහා record එකක් තෝරන්න.");
     const rec = tiCollectFromForm();
-    if(!rec) return;
+    if (!rec) return;
     const arr = load(STORAGE_KEY);
-    const idx = arr.findIndex(x=> String(x.id) === String(editId));
-    if(idx < 0) return showError("Original record not found.");
+    const idx = arr.findIndex(x => String(x.id) === String(editId));
+    if (idx < 0) return showError("Original record not found.");
     rec.id = arr[idx].id;
     rec.createdAt = arr[idx].createdAt || new Date().toISOString();
     rec.inspections = sortInspectionsByDateDesc(rec.inspections);
@@ -485,11 +484,11 @@
     document.getElementById("ti_update").style.display = "none";
     document.getElementById("ti_update").dataset.editId = "";
     document.getElementById("ti_clear").click();
-    if(document.getElementById("ti_tab_records") && document.getElementById("ti_tab_records").classList.contains('active')) renderRecords();
+    if (document.getElementById("ti_tab_records") && document.getElementById("ti_tab_records").classList.contains('active')) renderRecords();
   }
 
   // ---------- Records UI (final version; filters inside white box) ----------
-  function renderRecords(){
+  function renderRecords() {
     const cont = document.getElementById("ti_tabContent");
     const arr = load(STORAGE_KEY);
     const foodTypes = sortedAZ(load(FOOD_TYPES_KEY));
@@ -558,7 +557,7 @@
               </tr>
             </thead>
             <tbody id="ti_records_body">
-              ${arr.length ? arr.map((r,i)=> rowHtml(r,i) ).join("") : `<tr><td colspan="14" style="padding:12px;color:#666;">No records</td></tr>`}
+              ${arr.length ? arr.map((r, i) => rowHtml(r, i)).join("") : `<tr><td colspan="14" style="padding:12px;color:#666;">No records</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -570,25 +569,25 @@
     const topScroll = document.getElementById("ti_table_top_scroll");
     const topInner = document.getElementById("ti_table_top_inner");
     const mainTable = document.getElementById("ti_main_table");
-    setTimeout(()=> {
-      try { topInner.style.width = mainTable.scrollWidth + "px"; topScroll.style.display = (mainTable.scrollWidth > wrap.clientWidth) ? "block" : "none"; } catch(e){}
-    },80);
-    topScroll.addEventListener("scroll", ()=> { wrap.scrollLeft = topScroll.scrollLeft; });
-    wrap.addEventListener("scroll", ()=> { topScroll.scrollLeft = wrap.scrollLeft; });
+    setTimeout(() => {
+      try { topInner.style.width = mainTable.scrollWidth + "px"; topScroll.style.display = (mainTable.scrollWidth > wrap.clientWidth) ? "block" : "none"; } catch (e) { }
+    }, 80);
+    topScroll.addEventListener("scroll", () => { wrap.scrollLeft = topScroll.scrollLeft; });
+    wrap.addEventListener("scroll", () => { topScroll.scrollLeft = wrap.scrollLeft; });
 
     // filters dynamic behavior
     const filterNature = document.getElementById("ti_filter_nature");
     const filterType = document.getElementById("ti_filter_type");
     const filterLabel = document.getElementById("ti_filter_label_dynamic");
 
-    function rebuildFilterTypeOptions(){
+    function rebuildFilterTypeOptions() {
       const nat = filterNature.value;
-      if(nat === "food"){
+      if (nat === "food") {
         const opts = sortedAZ(load(FOOD_TYPES_KEY));
         filterLabel.textContent = "Food Type";
         filterType.innerHTML = `<option value="">All</option>` + opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join("");
         filterType.disabled = false;
-      } else if(nat === "other"){
+      } else if (nat === "other") {
         const opts = sortedAZ(load(OTHER_TYPES_KEY));
         filterLabel.textContent = "Other Type";
         filterType.innerHTML = `<option value="">All</option>` + opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join("");
@@ -602,14 +601,14 @@
         filterType.disabled = false;
       }
     }
-    filterNature.addEventListener("change", ()=> { rebuildFilterTypeOptions(); });
+    filterNature.addEventListener("change", () => { rebuildFilterTypeOptions(); });
     rebuildFilterTypeOptions();
 
-    document.getElementById("ti_apply").addEventListener("click", ()=> applySearchFilter());
-    document.getElementById("ti_clear_search").addEventListener("click", ()=> { document.getElementById("ti_search").value=""; applySearchFilter(); });
+    document.getElementById("ti_apply").addEventListener("click", () => applySearchFilter());
+    document.getElementById("ti_clear_search").addEventListener("click", () => { document.getElementById("ti_search").value = ""; applySearchFilter(); });
 
-    document.getElementById("ti_filter_apply").addEventListener("click", ()=> applySearchFilter());
-    document.getElementById("ti_filter_clear").addEventListener("click", ()=> {
+    document.getElementById("ti_filter_apply").addEventListener("click", () => applySearchFilter());
+    document.getElementById("ti_filter_clear").addEventListener("click", () => {
       document.getElementById("ti_search").value = "";
       document.getElementById("ti_filter_nature").value = "";
       rebuildFilterTypeOptions();
@@ -619,52 +618,52 @@
 
     attachRecordButtons();
 
-    function applySearchFilter(){
+    function applySearchFilter() {
       const q = document.getElementById("ti_search").value.trim().toLowerCase();
       const nature = document.getElementById("ti_filter_nature").value;
       const type = document.getElementById("ti_filter_type").value;
       const all = load(STORAGE_KEY);
       const filtered = all.filter(r => {
-        if(q){
-          const hit = (r.ownerPlaceName||'').toLowerCase().includes(q) || (r.businessOwnerName||'').toLowerCase().includes(q) || (r.adminArea||'').toLowerCase().includes(q);
-          if(!hit) return false;
+        if (q) {
+          const hit = (r.ownerPlaceName || '').toLowerCase().includes(q) || (r.businessOwnerName || '').toLowerCase().includes(q) || (r.adminArea || '').toLowerCase().includes(q);
+          if (!hit) return false;
         }
-        if(nature){
-          if(r.businessNature !== nature) return false;
+        if (nature) {
+          if (r.businessNature !== nature) return false;
         }
-        if(type){
-          if(nature === "food"){
-            if((r.foodType||'') !== type) return false;
-          } else if(nature === "other"){
-            if((r.otherType||'') !== type) return false;
+        if (type) {
+          if (nature === "food") {
+            if ((r.foodType || '') !== type) return false;
+          } else if (nature === "other") {
+            if ((r.otherType || '') !== type) return false;
           } else {
-            const both = ((r.foodType||'') === type) || ((r.otherType||'') === type);
-            if(!both) return false;
+            const both = ((r.foodType || '') === type) || ((r.otherType || '') === type);
+            if (!both) return false;
           }
         }
         return true;
       });
       const tbody = document.getElementById("ti_records_body");
-      tbody.innerHTML = filtered.length ? filtered.map((r,i)=> rowHtml(r,i) ).join("") : `<tr><td colspan="14" style="padding:12px;color:#666;">No records</td></tr>`;
+      tbody.innerHTML = filtered.length ? filtered.map((r, i) => rowHtml(r, i)).join("") : `<tr><td colspan="14" style="padding:12px;color:#666;">No records</td></tr>`;
       attachRecordButtons();
       document.getElementById("ti_total").textContent = filtered.length;
-      setTimeout(()=> { try { topInner.style.width = mainTable.scrollWidth + "px"; topScroll.style.display = (mainTable.scrollWidth > wrap.clientWidth) ? "block" : "none"; } catch(e){} },80);
+      setTimeout(() => { try { topInner.style.width = mainTable.scrollWidth + "px"; topScroll.style.display = (mainTable.scrollWidth > wrap.clientWidth) ? "block" : "none"; } catch (e) { } }, 80);
     }
   }
 
-  function rowHtml(r,i){
-    const typeLabel = r.businessNature === "food" ? (r.foodType||'') : (r.otherType||'');
+  function rowHtml(r, i) {
+    const typeLabel = r.businessNature === "food" ? (r.foodType || '') : (r.otherType || '');
     return `<tr data-id="${r.id}">
-      <td style="padding:8px 6px;">${i+1}</td>
+      <td style="padding:8px 6px;">${i + 1}</td>
       <td style="padding:8px 6px;">${esc(r.ownerPlaceName)}</td>
       <td style="padding:8px 6px;">${esc(r.ownerPlaceAddr)}</td>
       <td style="padding:8px 6px;">${esc(r.businessOwnerName)}</td>
       <td style="padding:8px 6px;">${esc(r.businessOwnerAddr)}</td>
       <td style="padding:8px 6px;">${esc(r.businessNature)}</td>
-      <td style="padding:8px 6px;">${esc(typeLabel||'')}</td>
-      <td style="padding:8px 6px;">${esc(r.staffTotal||0)}</td>
-      <td style="padding:8px 6px;">${esc(r.staffFemale||0)}</td>
-      <td style="padding:8px 6px;">${esc(r.staffMale||0)}</td>
+      <td style="padding:8px 6px;">${esc(typeLabel || '')}</td>
+      <td style="padding:8px 6px;">${esc(r.staffTotal || 0)}</td>
+      <td style="padding:8px 6px;">${esc(r.staffFemale || 0)}</td>
+      <td style="padding:8px 6px;">${esc(r.staffMale || 0)}</td>
       <td style="padding:8px 6px;">${esc(r.startDate)}</td>
       <td style="padding:8px 6px;">${esc(r.adminArea)}</td>
       <td style="padding:8px 6px;">${esc(r.hasLicense)}</td>
@@ -676,19 +675,19 @@
     </tr>`;
   }
 
-  function attachRecordButtons(){
+  function attachRecordButtons() {
     document.querySelectorAll(".ti_view").forEach(b => { b.removeEventListener("click", tiOnView); b.addEventListener("click", tiOnView); });
     document.querySelectorAll(".ti_edit").forEach(b => { b.removeEventListener("click", tiOnEdit); b.addEventListener("click", tiOnEdit); });
     document.querySelectorAll(".ti_delete").forEach(b => { b.removeEventListener("click", tiOnDelete); b.addEventListener("click", tiOnDelete); });
     const totalEl = document.getElementById("ti_total");
-    if(totalEl) totalEl.textContent = load(STORAGE_KEY).length;
+    if (totalEl) totalEl.textContent = load(STORAGE_KEY).length;
   }
 
   // view / edit / delete handlers
-  function tiOnView(e){
+  function tiOnView(e) {
     const id = e.currentTarget.dataset.id;
-    const rec = load(STORAGE_KEY).find(x=> String(x.id) === String(id));
-    if(!rec) return showError("Record not found.");
+    const rec = load(STORAGE_KEY).find(x => String(x.id) === String(id));
+    if (!rec) return showError("Record not found.");
     rec.inspections = sortInspectionsByDateDesc(rec.inspections || []);
     const modal = document.getElementById("ti_view_modal");
     const body = document.getElementById("ti_view_body");
@@ -700,10 +699,10 @@
           <tr><td style="padding:6px 8px;font-weight:600;">ව්‍යාපාර හිමිකරුගේ නම</td><td style="padding:6px 8px;">${esc(rec.businessOwnerName)}</td></tr>
           <tr><td style="padding:6px 8px;font-weight:600;">ලිපිනය</td><td style="padding:6px 8px;">${esc(rec.businessOwnerAddr)}</td></tr>
           <tr><td style="padding:6px 8px;font-weight:600;">ව්‍යාපාරයේ ස්වභාවය</td><td style="padding:6px 8px;">${esc(rec.businessNature)}</td></tr>
-          <tr><td style="padding:6px 8px;font-weight:600;">Type</td><td style="padding:6px 8px;">${esc(rec.businessNature==='food' ? rec.foodType : rec.otherType || '')}</td></tr>
-          <tr><td style="padding:6px 8px;font-weight:600;">මුළු සේවක සංඛ්‍යාව</td><td style="padding:6px 8px;">${esc(rec.staffTotal||0)}</td></tr>
-          <tr><td style="padding:6px 8px;font-weight:600;">සේවකයින් (ස්ත්‍රී)</td><td style="padding:6px 8px;">${esc(rec.staffFemale||0)}</td></tr>
-          <tr><td style="padding:6px 8px;font-weight:600;">සේවකයින් (පුරුෂ)</td><td style="padding:6px 8px;">${esc(rec.staffMale||0)}</td></tr>
+          <tr><td style="padding:6px 8px;font-weight:600;">Type</td><td style="padding:6px 8px;">${esc(rec.businessNature === 'food' ? rec.foodType : rec.otherType || '')}</td></tr>
+          <tr><td style="padding:6px 8px;font-weight:600;">මුළු සේවක සංඛ්‍යාව</td><td style="padding:6px 8px;">${esc(rec.staffTotal || 0)}</td></tr>
+          <tr><td style="padding:6px 8px;font-weight:600;">සේවකයින් (ස්ත්‍රී)</td><td style="padding:6px 8px;">${esc(rec.staffFemale || 0)}</td></tr>
+          <tr><td style="padding:6px 8px;font-weight:600;">සේවකයින් (පුරුෂ)</td><td style="padding:6px 8px;">${esc(rec.staffMale || 0)}</td></tr>
           <tr><td style="padding:6px 8px;font-weight:600;">ව්‍යාපාර ආරම්භ දිනය</td><td style="padding:6px 8px;">${esc(rec.startDate)}</td></tr>
           <tr><td style="padding:6px 8px;font-weight:600;">පළාත් පාලන ආයතන බල ප්‍රදේශය</td><td style="padding:6px 8px;">${esc(rec.adminArea)}</td></tr>
           <tr><td style="padding:6px 8px;font-weight:600;">බලපත්‍ර ලබා 있는ද</td><td style="padding:6px 8px;">${esc(rec.hasLicense)}</td></tr>
@@ -713,15 +712,15 @@
       </table>
     `;
     modal.style.display = "flex";
-    document.getElementById("ti_view_close").onclick = ()=> modal.style.display = "none";
+    document.getElementById("ti_view_close").onclick = () => modal.style.display = "none";
   }
 
-  function tiOnEdit(e){
+  function tiOnEdit(e) {
     const id = e.currentTarget.dataset.id;
-    const rec = load(STORAGE_KEY).find(x=> String(x.id) === String(id));
-    if(!rec) return showError("Record not found.");
+    const rec = load(STORAGE_KEY).find(x => String(x.id) === String(id));
+    if (!rec) return showError("Record not found.");
     document.getElementById("ti_tab_entry").click();
-    setTimeout(()=> {
+    setTimeout(() => {
       document.getElementById("ti_owner_place_name").value = rec.ownerPlaceName || "";
       document.getElementById("ti_owner_place_addr").value = rec.ownerPlaceAddr || "";
       document.getElementById("ti_business_owner_name").value = rec.businessOwnerName || "";
@@ -732,12 +731,12 @@
       const others = sortedAZ(load(OTHER_TYPES_KEY));
       const foodSel = document.getElementById("ti_food_select");
       const otherSel = document.getElementById("ti_other_select");
-      if(foodSel) foodSel.innerHTML = `<option value="">-- select food type --</option>` + foods.map(ft=> `<option value="${esc(ft)}">${esc(ft)}</option>`).join("");
-      if(otherSel) otherSel.innerHTML = `<option value="">-- select other type --</option>` + others.map(ot=> `<option value="${esc(ot)}">${esc(ot)}</option>`).join("");
-      if(rec.businessNature === "food"){
-        if(document.getElementById("ti_food_select")) document.getElementById("ti_food_select").value = rec.foodType || "";
-      } else if(rec.businessNature === "other"){
-        if(document.getElementById("ti_other_select")) document.getElementById("ti_other_select").value = rec.otherType || "";
+      if (foodSel) foodSel.innerHTML = `<option value="">-- select food type --</option>` + foods.map(ft => `<option value="${esc(ft)}">${esc(ft)}</option>`).join("");
+      if (otherSel) otherSel.innerHTML = `<option value="">-- select other type --</option>` + others.map(ot => `<option value="${esc(ot)}">${esc(ot)}</option>`).join("");
+      if (rec.businessNature === "food") {
+        if (document.getElementById("ti_food_select")) document.getElementById("ti_food_select").value = rec.foodType || "";
+      } else if (rec.businessNature === "other") {
+        if (document.getElementById("ti_other_select")) document.getElementById("ti_other_select").value = rec.otherType || "";
       }
       document.getElementById("ti_staff_total").value = rec.staffTotal || 0;
       document.getElementById("ti_staff_female").value = rec.staffFemale || 0;
@@ -745,24 +744,24 @@
       document.getElementById("ti_start_date").value = rec.startDate || "";
       document.getElementById("ti_admin_area").value = rec.adminArea || "";
       document.getElementById("ti_has_license").value = rec.hasLicense || "";
-      _currentInspections = sortInspectionsByDateDesc((rec.inspections && rec.inspections.map(x=>Object.assign({}, x))) || []);
+      _currentInspections = sortInspectionsByDateDesc((rec.inspections && rec.inspections.map(x => Object.assign({}, x))) || []);
       const evt = new Event('change'); document.getElementById("ti_business_nature").dispatchEvent(evt);
       renderInspectionsTable();
       document.getElementById("ti_save").style.display = "none";
       const up = document.getElementById("ti_update");
       up.style.display = "inline-block";
       up.dataset.editId = rec.id;
-    },120);
+    }, 120);
   }
 
-  async function tiOnDelete(e){
+  async function tiOnDelete(e) {
     const id = e.currentTarget.dataset.id;
-    if(!await showConfirm("මෙම record එක මකා දමන්නද?")) return;
+    if (!await showConfirm("මෙම record එක මකා දමන්නද?")) return;
     let arr = load(STORAGE_KEY);
     arr = arr.filter(x => String(x.id) !== String(id));
     save(STORAGE_KEY, arr);
     showSuccess("Record deleted.");
-    if(document.getElementById("ti_tab_records") && document.getElementById("ti_tab_records").classList.contains('active')) renderRecords();
+    if (document.getElementById("ti_tab_records") && document.getElementById("ti_tab_records").classList.contains('active')) renderRecords();
   }
 
   // expose small helper for debugging

@@ -6,18 +6,18 @@
    - Exposes window.openHealthEducationRegister(title)
 */
 
-(function(){
+(function () {
   const STORAGE_KEY = "healthEduActivities_v1";
 
-  function loadJSON(key){ try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch(e){ return []; } }
-  function saveJSON(key, arr){ localStorage.setItem(key, JSON.stringify(arr)); }
-  function escapeHtml(s){ return (s==null) ? "" : (""+s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function loadJSON(key) { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; } }
+  function saveJSON(key, arr) { localStorage.setItem(key, JSON.stringify(arr)); }
+  function escapeHtml(s) { return (s == null) ? "" : ("" + s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
   const inputStyle = "width:100%;padding:9px 10px;border:1px solid #d0d6db;border-radius:8px;box-sizing:border-box;font-size:14px;";
   const labelStyle = "font-weight:600;color:#223;";
 
   // Entry point called by script.js delegation
-  window.openHealthEducationRegister = function(title){
+  window.openHealthEducationRegister = function (title) {
     const content = document.getElementById("contentArea");
     if (!content) return;
     content.innerHTML = `
@@ -34,25 +34,25 @@
       <div id="he_tabContent" style="min-height:320px;"></div>
     `;
 
-    document.getElementById("backRegsBtn").addEventListener("click", ()=> showContent('Registers', null));
-    document.getElementById("he_tab_entry").addEventListener("click", ()=> { setActive('entry'); renderEntry(); });
-    document.getElementById("he_tab_records").addEventListener("click", ()=> { setActive('records'); renderRecords(); });
+    document.getElementById("backRegsBtn").addEventListener("click", () => showContent('Registers', null));
+    document.getElementById("he_tab_entry").addEventListener("click", () => { setActive('entry'); renderEntry(); });
+    document.getElementById("he_tab_records").addEventListener("click", () => { setActive('records'); renderRecords(); });
 
     // initial
     renderEntry();
   };
 
-  function setActive(key){
+  function setActive(key) {
     const entry = document.getElementById("he_tab_entry");
     const records = document.getElementById("he_tab_records");
     entry.classList.remove('active'); records.classList.remove('active');
     entry.style.background = '#fff'; records.style.background = '#fff';
-    if (key === 'entry'){ entry.classList.add('active'); entry.style.background = '#f8fbff'; }
-    if (key === 'records'){ records.classList.add('active'); records.style.background = '#f8fbff'; }
+    if (key === 'entry') { entry.classList.add('active'); entry.style.background = '#f8fbff'; }
+    if (key === 'records') { records.classList.add('active'); records.style.background = '#f8fbff'; }
   }
 
   // ---------- Entry Tab: pretty 2-column form ----------
-  function renderEntry(){
+  function renderEntry() {
     const cont = document.getElementById("he_tabContent");
     cont.innerHTML = `
       <div style="background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(12,40,60,0.06);">
@@ -125,10 +125,10 @@
     // attach (prevent duplicate by replacing)
     replaceHandler(saveBtn, onSave);
     replaceHandler(clearBtn, onClear);
-    replaceHandler(viewBtn, ()=>{ document.getElementById("he_tab_records").click(); });
+    replaceHandler(viewBtn, () => { document.getElementById("he_tab_records").click(); });
 
     // support edit via dataset.editId
-    function onSave(e){
+    function onSave(e) {
       const editId = this.dataset && this.dataset.editId ? Number(this.dataset.editId) : null;
       const date = document.getElementById("he_date").value || "";
       const location = document.getElementById("he_location").value.trim();
@@ -149,8 +149,8 @@
           date, location, topic, method, objective, target, mechanism, participants, result
         });
       } else {
-        const idx = arr.findIndex(x=>x.id===editId);
-        if (idx>=0) arr[idx] = { id: editId, date, location, topic, method, objective, target, mechanism, participants, result };
+        const idx = arr.findIndex(x => x.id === editId);
+        if (idx >= 0) arr[idx] = { id: editId, date, location, topic, method, objective, target, mechanism, participants, result };
         else arr.unshift({ id: editId, date, location, topic, method, objective, target, mechanism, participants, result });
         delete this.dataset.editId;
       }
@@ -159,27 +159,27 @@
       onClear();
     }
 
-    function onClear(){
-      ["he_date","he_location","he_topic","he_method","he_objective","he_target_group","he_mechanism","he_participants","he_result"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
-      const sb = document.getElementById("he_save_btn"); if(sb) delete sb.dataset.editId;
+    function onClear() {
+      ["he_date", "he_location", "he_topic", "he_method", "he_objective", "he_target_group", "he_mechanism", "he_participants", "he_result"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+      const sb = document.getElementById("he_save_btn"); if (sb) delete sb.dataset.editId;
     }
   }
 
   // ---------- Records Tab ----------
-  function renderRecords(){
+  function renderRecords() {
     const cont = document.getElementById("he_tabContent");
     const arr = loadJSON(STORAGE_KEY);
 
     // build target group options for filter
     const targetOptions = [
-      {v:"", t:"All"},
-      {v:"Vendors", t:"වෙළඳුන් / විකුණුම්කරුවන්"},
-      {v:"FoodHandlers", t:"ආහාර පරිහරණය කරන්නන්"},
-      {v:"Community", t:"ප්‍රජාව"},
-      {v:"Schools", t:"පාසල්"},
-      {v:"LocalAuthority", t:"පළාත් පාලන ආයතන / කාර්යාල"},
-      {v:"OtherInstitutions", t:"වෙනත් ආයතන"},
-      {v:"ConsumerGroups", t:"පාරිභෝගික සංගම්"}
+      { v: "", t: "All" },
+      { v: "Vendors", t: "වෙළඳුන් / විකුණුම්කරුවන්" },
+      { v: "FoodHandlers", t: "ආහාර පරිහරණය කරන්නන්" },
+      { v: "Community", t: "ප්‍රජාව" },
+      { v: "Schools", t: "පාසල්" },
+      { v: "LocalAuthority", t: "පළාත් පාලන ආයතන / කාර්යාල" },
+      { v: "OtherInstitutions", t: "වෙනත් ආයතන" },
+      { v: "ConsumerGroups", t: "පාරිභෝගික සංගම්" }
     ];
 
     cont.innerHTML = `
@@ -190,7 +190,7 @@
             <select id="he_filter_year" style="${inputStyle};width:auto;"><option value=\"\">All years</option></select>
             <select id="he_filter_topic" style="${inputStyle};width:auto;"><option value=\"\">All topics</option><option value=\"Food Safety\">ආහාර ආරක්ෂාව</option><option value=\"Non-communicable Diseases\">බෝ නොවන රෝග</option><option value=\"Communicable Diseases\">බෝවන රෝග</option><option value=\"Infection Control\">පාලනය / පළිබෝධ පාලනය</option><option value=\"Other\">වෙනත්</option></select>
             <select id="he_filter_target" style="${inputStyle};width:auto;">
-              ${targetOptions.map(o=>`<option value="${o.v}">${o.t}</option>`).join("")}
+              ${targetOptions.map(o => `<option value="${o.v}">${o.t}</option>`).join("")}
             </select>
             <select id="he_filter_result" style="${inputStyle};width:auto;"><option value="">All results</option><option value="Successful">සාර්ථක</option><option value="Partially Successful">අර්ධ-සාර්ථක</option><option value="Not Successful">අසාර්ථක</option></select>
             <button id="he_apply_filter" style="background:#0b74d1;color:#fff;padding:8px 12px;border:none;border-radius:8px;cursor:pointer;">Apply</button>
@@ -214,7 +214,7 @@
               </tr>
             </thead>
             <tbody id="he_records_body">
-              ${arr.length ? arr.map((r,i)=>`<tr data-id="${r.id}"><td style="padding:10px 6px;">${i+1}</td><td style="padding:10px 6px;">${escapeHtml(r.date)}</td><td style="padding:10px 6px;">${escapeHtml(r.location)}</td><td style="padding:10px 6px;">${escapeHtml(r.topic)}</td><td style="padding:10px 6px;">${escapeHtml(r.objective)}</td><td style="padding:10px 6px;">${escapeHtml(r.target)}</td><td style="padding:10px 6px;">${escapeHtml(r.participants)}</td><td style="padding:10px 6px;">${escapeHtml(r.result)}</td><td style="padding:10px 6px;"><button class="he-edit" data-id="${r.id}" style="margin-right:6px;padding:6px 8px;border-radius:6px;border:none;cursor:pointer;background:#ffd54f;">Edit</button><button class="he-del" data-id="${r.id}" style="padding:6px 8px;border-radius:6px;border:none;cursor:pointer;background:#ef9a9a;">Delete</button></td></tr>`).join("") : `<tr><td colspan="9" style="padding:12px;color:#666;">No records</td></tr>`}
+              ${arr.length ? arr.map((r, i) => `<tr data-id="${r.id}"><td style="padding:10px 6px;">${i + 1}</td><td style="padding:10px 6px;">${escapeHtml(r.date)}</td><td style="padding:10px 6px;">${escapeHtml(r.location)}</td><td style="padding:10px 6px;">${escapeHtml(r.topic)}</td><td style="padding:10px 6px;">${escapeHtml(r.objective)}</td><td style="padding:10px 6px;">${escapeHtml(r.target)}</td><td style="padding:10px 6px;">${escapeHtml(r.participants)}</td><td style="padding:10px 6px;">${escapeHtml(r.result)}</td><td style="padding:10px 6px;"><button class="he-edit" data-id="${r.id}" style="margin-right:6px;padding:6px 8px;border-radius:6px;border:none;cursor:pointer;background:#ffd54f;">Edit</button><button class="he-del" data-id="${r.id}" style="padding:6px 8px;border-radius:6px;border:none;cursor:pointer;background:#ef9a9a;">Delete</button></td></tr>`).join("") : `<tr><td colspan="9" style="padding:12px;color:#666;">No records</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -222,24 +222,24 @@
     `;
 
     // populate years
-    const years = Array.from(new Set(loadJSON(STORAGE_KEY).map(t => (t.date ? (new Date(t.date)).getFullYear() : null)).filter(Boolean))).sort((a,b)=>b-a);
+    const years = Array.from(new Set(loadJSON(STORAGE_KEY).map(t => (t.date ? (new Date(t.date)).getFullYear() : null)).filter(Boolean))).sort((a, b) => b - a);
     const yearSelect = document.getElementById("he_filter_year");
-    yearSelect.innerHTML = `<option value="">All years</option>` + years.map(y=>`<option value="${y}">${y}</option>`).join("");
+    yearSelect.innerHTML = `<option value="">All years</option>` + years.map(y => `<option value="${y}">${y}</option>`).join("");
 
     // attach filter handlers
     document.getElementById("he_apply_filter").addEventListener("click", applyFilter);
-    document.getElementById("he_clear_filter").addEventListener("click", ()=>{ document.getElementById("he_filter_year").value=""; document.getElementById("he_filter_topic").value=""; document.getElementById("he_filter_target").value=""; document.getElementById("he_filter_result").value=""; renderRecords(); });
+    document.getElementById("he_clear_filter").addEventListener("click", () => { document.getElementById("he_filter_year").value = ""; document.getElementById("he_filter_topic").value = ""; document.getElementById("he_filter_target").value = ""; document.getElementById("he_filter_result").value = ""; renderRecords(); });
 
     // attach edit/delete
-    document.querySelectorAll(".he-edit").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".he-edit").forEach(btn => {
+      btn.addEventListener("click", () => {
         const id = Number(btn.dataset.id);
-        const rec = loadJSON(STORAGE_KEY).find(x=>x.id===id);
+        const rec = loadJSON(STORAGE_KEY).find(x => x.id === id);
         if (!rec) return alert("Record not found.");
         // switch to entry tab and populate
         document.getElementById("he_tab_entry").click();
-        setTimeout(()=>{
-          if (document.getElementById("he_date")){
+        setTimeout(() => {
+          if (document.getElementById("he_date")) {
             document.getElementById("he_date").value = rec.date || "";
             document.getElementById("he_location").value = rec.location || "";
             document.getElementById("he_topic").value = rec.topic || "";
@@ -249,44 +249,44 @@
             document.getElementById("he_mechanism").value = rec.mechanism || "";
             document.getElementById("he_participants").value = rec.participants || "";
             document.getElementById("he_result").value = rec.result || "";
-            const sb = document.getElementById("he_save_btn"); if(sb) sb.dataset.editId = rec.id;
+            const sb = document.getElementById("he_save_btn"); if (sb) sb.dataset.editId = rec.id;
           }
-        },80);
+        }, 80);
       });
     });
 
-    document.querySelectorAll(".he-del").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".he-del").forEach(btn => {
+      btn.addEventListener("click", async () => {
         if (!await showConfirm("Delete this record?")) return;
         const id = Number(btn.dataset.id);
         let arr = loadJSON(STORAGE_KEY);
-        arr = arr.filter(x=>x.id!==id);
+        arr = arr.filter(x => x.id !== id);
         saveJSON(STORAGE_KEY, arr);
         renderRecords();
       });
     });
 
-    function applyFilter(){
+    function applyFilter() {
       const fy = document.getElementById("he_filter_year").value;
       const ft = document.getElementById("he_filter_topic").value;
       const fg = document.getElementById("he_filter_target").value;
       const fr = document.getElementById("he_filter_result").value;
       let list = loadJSON(STORAGE_KEY);
-      if (fy) list = list.filter(r => { try { return new Date(r.date).getFullYear()+'' === fy+''; } catch(e){ return false; } });
-      if (ft) list = list.filter(r => (r.topic+'') === (ft+''));
-      if (fg) list = list.filter(r => (r.target+'') === (fg+''));
-      if (fr) list = list.filter(r => (r.result+'') === (fr+''));
+      if (fy) list = list.filter(r => { try { return new Date(r.date).getFullYear() + '' === fy + ''; } catch (e) { return false; } });
+      if (ft) list = list.filter(r => (r.topic + '') === (ft + ''));
+      if (fg) list = list.filter(r => (r.target + '') === (fg + ''));
+      if (fr) list = list.filter(r => (r.result + '') === (fr + ''));
       const tbody = document.getElementById("he_records_body");
-      if (!list.length){ tbody.innerHTML = `<tr><td colspan="9" style="padding:12px;color:#666;">No records</td></tr>`; return; }
-      tbody.innerHTML = list.map((r,i)=>`<tr data-id="${r.id}"><td style="padding:10px 6px;">${i+1}</td><td style="padding:10px 6px;">${escapeHtml(r.date)}</td><td style="padding:10px 6px;">${escapeHtml(r.location)}</td><td style="padding:10px 6px;">${escapeHtml(r.topic)}</td><td style="padding:10px 6px;">${escapeHtml(r.objective)}</td><td style="padding:10px 6px;">${escapeHtml(r.target)}</td><td style="padding:10px 6px;">${escapeHtml(r.participants)}</td><td style="padding:10px 6px;">${escapeHtml(r.result)}</td><td style="padding:10px 6px;"><button class="he-edit" data-id="${r.id}" style="margin-right:6px;padding:6px 8px;border-radius:6px;border:none;cursor:pointer;background:#ffd54f;">Edit</button><button class="he-del" data-id="${r.id}" style="padding:6px 8px;border-radius:6px;border:none;cursor:pointer;background:#ef9a9a;">Delete</button></td></tr>`).join("");
+      if (!list.length) { tbody.innerHTML = `<tr><td colspan="9" style="padding:12px;color:#666;">No records</td></tr>`; return; }
+      tbody.innerHTML = list.map((r, i) => `<tr data-id="${r.id}"><td style="padding:10px 6px;">${i + 1}</td><td style="padding:10px 6px;">${escapeHtml(r.date)}</td><td style="padding:10px 6px;">${escapeHtml(r.location)}</td><td style="padding:10px 6px;">${escapeHtml(r.topic)}</td><td style="padding:10px 6px;">${escapeHtml(r.objective)}</td><td style="padding:10px 6px;">${escapeHtml(r.target)}</td><td style="padding:10px 6px;">${escapeHtml(r.participants)}</td><td style="padding:10px 6px;">${escapeHtml(r.result)}</td><td style="padding:10px 6px;"><button class="he-edit" data-id="${r.id}" style="margin-right:6px;padding:6px 8px;border-radius:6px;border:none;cursor:pointer;background:#ffd54f;">Edit</button><button class="he-del" data-id="${r.id}" style="padding:6px 8px;border-radius:6px;border:none;cursor:pointer;background:#ef9a9a;">Delete</button></td></tr>`).join("");
       // re-bind newly rendered edit/delete (quick approach: re-call renderRecords() after filter to get handlers) 
       // but for simplicity we keep this one-off binding (user can re-open tab for full bindings).
     }
   }
 
   // helper: replace handler to avoid duplicates
-  function replaceHandler(el, fn){
-    if(!el) return;
+  function replaceHandler(el, fn) {
+    if (!el) return;
     const newEl = el.cloneNode(true);
     el.parentNode.replaceChild(newEl, el);
     newEl.addEventListener('click', fn);
@@ -294,8 +294,8 @@
 
   // Expose small API
   window.healthEducationAPI = {
-    getAll(){ return loadJSON(STORAGE_KEY); },
-    clearAll(){ saveJSON(STORAGE_KEY, []); }
+    getAll() { return loadJSON(STORAGE_KEY); },
+    clearAll() { saveJSON(STORAGE_KEY, []); }
   };
 
 })();

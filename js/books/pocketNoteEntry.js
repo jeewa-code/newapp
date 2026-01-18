@@ -158,6 +158,102 @@ window.openPocketNoteEntry = function (showInTab = false) {
                 height: 16px;
             }
             
+            /* Mobile responsive for day type selector */
+            @media (max-width: 768px) {
+                .day-type-selector {
+                    padding: 12px;
+                    margin-bottom: 12px;
+                }
+                .day-type-label {
+                    font-size: 13px;
+                    margin-bottom: 6px;
+                }
+                .day-type-combo {
+                    min-width: 100%;
+                    width: 100%;
+                    padding: 10px;
+                    font-size: 13px;
+                }
+                .holiday-work-checkbox {
+                    width: 100%;
+                    padding: 8px;
+                    font-size: 12px;
+                }
+            }
+            
+            /* Mobile responsive table */
+            @media (max-width: 768px) {
+                .pnb-responsive-table {
+                    display: block;
+                    width: 100%;
+                    overflow-x: visible;
+                }
+                .pnb-responsive-table thead {
+                    display: none;
+                }
+                .pnb-responsive-table tbody {
+                    display: block;
+                    width: 100%;
+                }
+                .pnb-responsive-table tr {
+                    display: block;
+                    margin-bottom: 15px;
+                    border: 2px solid #1b5e20;
+                    border-radius: 8px;
+                    background: white;
+                    overflow: visible;
+                }
+                .pnb-responsive-table td {
+                    display: block;
+                    width: 100% !important;
+                    border: none !important;
+                    padding: 10px !important;
+                    text-align: left;
+                    position: relative;
+                    box-sizing: border-box;
+                }
+                .pnb-label-cell {
+                    background: #e8f5e8;
+                    font-weight: bold;
+                    font-size: 14px;
+                    color: #1b5e20;
+                    border-bottom: 2px solid #1b5e20 !important;
+                }
+                .pnb-data-cell::before {
+                    content: attr(data-label);
+                    font-weight: bold;
+                    color: #fff;
+                    background: #1b5e20;
+                    display: block;
+                    margin-bottom: 8px;
+                    font-size: 11px;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    text-align: center;
+                }
+                .pnb-data-cell {
+                    background: #f8f9fa;
+                    min-height: 50px;
+                }
+                .pnb-data-cell:not(:last-child) {
+                    border-bottom: 1px solid #dee2e6 !important;
+                }
+                
+                /* Ensure inputs and selects are fully visible */
+                .pnb-data-cell input,
+                .pnb-data-cell select,
+                .pnb-data-cell textarea {
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                
+                /* Quick time buttons responsive */
+                .quick-buttons-row {
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                }
+            }
+            
             /* Table disabled state - only date remains editable */
             .table-disabled {
                 opacity: 0.6;
@@ -190,10 +286,12 @@ window.openPocketNoteEntry = function (showInTab = false) {
             .date-picker-container {
                 position: relative;
                 display: inline-block;
+                width: 100%; /* ensure container takes width on mobile */
             }
             .date-navigation {
                 display: flex;
                 align-items: center;
+                justify-content: center;
                 gap: 10px;
                 margin-bottom: 10px;
             }
@@ -205,6 +303,9 @@ window.openPocketNoteEntry = function (showInTab = false) {
                 border-radius: 5px;
                 cursor: pointer;
                 font-size: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             .date-nav-btn:hover {
                 background: #155724;
@@ -219,6 +320,76 @@ window.openPocketNoteEntry = function (showInTab = false) {
                 color: #1b5e20;
                 min-width: 200px;
                 text-align: center;
+            }
+
+            /* Date picker full row layout */
+            .date-picker-full-row {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                flex-wrap: nowrap;
+            }
+            .date-picker-label {
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            /* Mobile adjustment for date nav - Two row layout */
+            @media (max-width: 768px) {
+                .date-picker-full-row {
+                    flex-wrap: wrap;
+                    gap: 10px;
+                    padding: 5px 0;
+                }
+                
+                /* First row: Label and Calendar button */
+                .date-picker-label {
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: #1b5e20;
+                    line-height: 1.2;
+                    flex: 1;
+                    order: 1;
+                }
+                .calendar-toggle-btn {
+                    padding: 8px 12px;
+                    font-size: 13px;
+                    height: 32px;
+                    border-radius: 6px;
+                    order: 2;
+                }
+                .calendar-toggle-btn span {
+                    display: inline;
+                }
+                
+                /* Second row: Date navigation */
+                .date-navigation {
+                    width: 100%;
+                    gap: 8px;
+                    order: 3;
+                    justify-content: center;
+                }
+                .date-nav-btn {
+                    width: 36px;
+                    height: 36px;
+                    min-width: 36px;
+                    min-height: 36px;
+                    max-width: 36px;
+                    max-height: 36px;
+                    padding: 0;
+                    border-radius: 6px;
+                    flex-shrink: 0;
+                    font-size: 14px;
+                }
+                .current-date-display {
+                    min-width: auto;
+                    max-width: none;
+                    font-size: 13px;
+                    flex: 0 1 auto;
+                    font-weight: 600;
+                    line-height: 1.3;
+                    text-align: center;
+                }
             }
             
             /* Calendar toggle button */
@@ -346,38 +517,68 @@ window.openPocketNoteEntry = function (showInTab = false) {
                 border: none;
                 cursor: pointer;
             }
+            
+            /* Mobile responsive - prevent horizontal overflow */
+            @media (max-width: 768px) {
+                body, html {
+                    overflow-x: hidden;
+                }
+                
+                /* Main container */
+                #contentArea,
+                #pnbTabContainer {
+                    padding: 10px !important;
+                    margin: 0 !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                    overflow-x: hidden !important;
+                }
+                
+                /* Form container */
+                #pocketNoteForm {
+                    width: 100%;
+                    max-width: 100%;
+                    overflow-x: hidden;
+                    box-sizing: border-box;
+                }
+                
+                /* All direct child divs */
+                #pocketNoteForm > div,
+                .day-type-selector,
+                .date-picker-full-row {
+                    max-width: 100%;
+                    box-sizing: border-box;
+                }
+            }
 
         </style>
 
-         <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                <button type="button" onclick="showContent('Books', null)" style="background:var(--primary);color:white;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
-                    <i class="fas fa-arrow-left" style="margin-right:8px;"></i>පොත් වෙත ආපසු
-                </button>
-                <h3 style="color: #1b5e20; margin: 0; flex: 1; text-align: center;">Pocket Note Book Entry (H-253)</h3>
-                <div style="width:120px;"></div> <!-- Spacer to keep title centered -->
-            </div>
+         <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 100%; box-sizing: border-box; overflow-x: hidden;">
             
             <!-- Date Picker Section -->
             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6;">
                 <div id="dataStatusIndicator" style="text-align: center; font-weight: bold; margin-bottom: 15px; display: none;"></div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <label class="day-type-label">දිනය තෝරන්න:</label>
+                
+                <!-- Full row with label, date navigation, and calendar button -->
+                <div class="date-picker-full-row">
+                    <label class="day-type-label date-picker-label">දිනය තෝරන්න:</label>
+                    
+                    <div class="date-navigation">
+                        <button id="prevDate" class="date-nav-btn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div id="currentDateDisplay" class="current-date-display">
+                            ${formatDisplayDateWithDay(new Date().toISOString().split('T')[0])}
+                        </div>
+                        <button id="nextDate" class="date-nav-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
                     <button type="button" id="calendarToggleBtn" class="calendar-toggle-btn">
                         <i class="fas fa-calendar-alt"></i>
-                        දින දර්ශනය
-                    </button>
-                </div>
-                
-                <div class="date-navigation">
-                    <button id="prevDate" class="date-nav-btn">
-                        <i class="fas fa-chevron-left"></i> පසු දිනය
-                    </button>
-                    <div id="currentDateDisplay" class="current-date-display">
-                        ${formatDisplayDateWithDay(new Date().toISOString().split('T')[0])}
-                    </div>
-                    <button id="nextDate" class="date-nav-btn">
-                        ඊළඟ දිනය <i class="fas fa-chevron-right"></i>
+                        <span></span>
                     </button>
                 </div>
                 
@@ -424,7 +625,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                     <tbody>
                     <tr>
                         <td class="pnb-label-cell" style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">සේවා ස්ථානය</td>
-                        <td class="pnb-data-cell" data-label="Morning" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පෙරවරු" style="padding: 5px; border: 1px solid #ddd;">
                             <select class="service-select service-location-morning">
                                 <option value="">තෝරන්න</option>
                                 <option value="office">කාර්යාලය</option>
@@ -435,7 +636,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 <option value="other">වෙනත්</option>
                             </select>
                         </td>
-                        <td class="pnb-data-cell" data-label="Afternoon" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පස්වරු" style="padding: 5px; border: 1px solid #ddd;">
                             <select class="service-select service-location-afternoon">
                                 <option value="">තෝරන්න</option>
                                 <option value="office">කාර්යාලය</option>
@@ -451,7 +652,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                     <!-- Office Departure -->
                     <tr>
                         <td class="pnb-label-cell" style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">කාර්යාලයෙන් පිටත්වීම</td>
-                        <td class="pnb-data-cell" data-label="Morning" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පෙරවරු" style="padding: 5px; border: 1px solid #ddd;">
                             <div>
                                 <div class="time-input-wrapper">
                                     <input type="time" class="time-input default-time" data-field="officeDepartureMorning">
@@ -461,7 +662,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 </div>
                             </div>
                         </td>
-                        <td class="pnb-data-cell" data-label="Afternoon" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පස්වරු" style="padding: 5px; border: 1px solid #ddd;">
                             <div>
                                 <div class="time-input-wrapper">
                                     <input type="time" class="time-input default-time" data-field="officeDepartureAfternoon">
@@ -476,7 +677,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                     <!-- Field Arrival -->
                     <tr>
                         <td class="pnb-label-cell" style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">ක්ෂේත්‍රයට ලගා වීම</td>
-                        <td class="pnb-data-cell" data-label="Morning" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පෙරවරු" style="padding: 5px; border: 1px solid #ddd;">
                             <div>
                                 <div class="time-input-wrapper">
                                     <input type="time" class="time-input default-time" data-field="fieldArrivalMorning">
@@ -486,7 +687,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 </div>
                             </div>
                         </td>
-                        <td class="pnb-data-cell" data-label="Afternoon" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පස්වරු" style="padding: 5px; border: 1px solid #ddd;">
                             <div>
                                 <div class="time-input-wrapper">
                                     <input type="time" class="time-input default-time" data-field="fieldArrivalAfternoon">
@@ -501,7 +702,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                     <!-- Field Departure -->
                     <tr>
                         <td class="pnb-label-cell" style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">ක්ෂේත්‍රයෙන් පිටත්වීම</td>
-                        <td class="pnb-data-cell" data-label="Morning" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පෙරවරු" style="padding: 5px; border: 1px solid #ddd;">
                             <div>
                                 <div class="time-input-wrapper">
                                     <input type="time" class="time-input default-time" data-field="fieldDepartureMorning">
@@ -511,7 +712,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 </div>
                             </div>
                         </td>
-                        <td class="pnb-data-cell" data-label="Afternoon" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පස්වරු" style="padding: 5px; border: 1px solid #ddd;">
                             <div>
                                 <div class="time-input-wrapper">
                                     <input type="time" class="time-input default-time" data-field="fieldDepartureAfternoon">
@@ -526,7 +727,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                     <!-- Office Arrival -->
                     <tr>
                         <td class="pnb-label-cell" style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">කාර්යාලයට ලගා වීම</td>
-                        <td class="pnb-data-cell" data-label="Morning" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පෙරවරු" style="padding: 5px; border: 1px solid #ddd;">
                             <div>
                                 <div class="time-input-wrapper">
                                     <input type="time" class="time-input default-time" data-field="officeArrivalMorning">
@@ -536,7 +737,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 </div>
                             </div>
                         </td>
-                        <td class="pnb-data-cell" data-label="Afternoon" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පස්වරු" style="padding: 5px; border: 1px solid #ddd;">
                             <div>
                                 <div class="time-input-wrapper">
                                     <input type="time" class="time-input default-time" data-field="officeArrivalAfternoon">
@@ -550,11 +751,11 @@ window.openPocketNoteEntry = function (showInTab = false) {
                     
                     <tr>
                         <td class="pnb-label-cell" style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">යතුරුපැදියෙන් ගමන් කල දුර (km)</td>
-                        <td class="pnb-data-cell" data-label="Morning" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පෙරවරු" style="padding: 5px; border: 1px solid #ddd;">
                             <input type="number" step="0.1" min="0" class="distance-morning default-time" 
                                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                         </td>
-                        <td class="pnb-data-cell" data-label="Afternoon" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පස්වරු" style="padding: 5px; border: 1px solid #ddd;">
                             <input type="number" step="0.1" min="0" class="distance-afternoon default-time" 
                                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                         </td>
@@ -562,11 +763,11 @@ window.openPocketNoteEntry = function (showInTab = false) {
                     
                     <tr>
                         <td class="pnb-label-cell" style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">පොදු ප්‍රවාහනයෙන් ගමන් කල දුර (km)</td>
-                        <td class="pnb-data-cell" data-label="Morning" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පෙරවරු" style="padding: 5px; border: 1px solid #ddd;">
                             <input type="number" step="0.1" min="0" class="public-transport-morning default-time" 
                                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                         </td>
-                        <td class="pnb-data-cell" data-label="Afternoon" style="padding: 5px; border: 1px solid #ddd;">
+                        <td class="pnb-data-cell" data-label="පස්වරු" style="padding: 5px; border: 1px solid #ddd;">
                             <input type="number" step="0.1" min="0" class="public-transport-afternoon default-time" 
                                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                         </td>
