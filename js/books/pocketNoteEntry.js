@@ -1070,6 +1070,169 @@ window.openPocketNoteEntry = function (showInTab = false) {
                 }
             }
             
+            /* Service Location Toggle Switch Styling */
+            .service-location-toggle-container {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .service-toggle-label {
+                font-size: 12px;
+                color: #1b5e20;
+                font-weight: 600;
+                white-space: nowrap;
+            }
+            
+            /* Mini toggle switch for service location */
+            .service-toggle-switch {
+                position: relative;
+                display: inline-block;
+                width: 50px;
+                height: 24px;
+            }
+            
+            .service-toggle-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            
+            .service-toggle-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                transition: 0.3s;
+                border-radius: 24px;
+            }
+            
+            .service-toggle-slider:before {
+                position: absolute;
+                content: "";
+                height: 18px;
+                width: 18px;
+                left: 3px;
+                bottom: 3px;
+                background-color: white;
+                transition: 0.3s;
+                border-radius: 50%;
+            }
+            
+            input:checked + .service-toggle-slider {
+                background-color: #1b5e20;
+            }
+            
+            input:checked + .service-toggle-slider:before {
+                transform: translateX(26px);
+            }
+            
+            /* Service location multi-select styling */
+            .service-location-multi {
+                display: none;
+            }
+            
+            .service-location-multi.active {
+                display: block;
+            }
+            
+            .service-location-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 8px;
+            }
+            
+            .service-location-item label {
+                font-weight: bold;
+                color: #1b5e20;
+                min-width: 15px;
+                font-size: 13px;
+            }
+            
+            .service-location-item select {
+                flex: 1;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                background: white;
+            }
+            
+            /* Desktop: Toggle inside cell */
+            @media (min-width: 769px) {
+                .service-location-toggle-container {
+                    justify-content: flex-start;
+                }
+            }
+            
+            /* Mobile: Toggle in label row */
+            @media (max-width: 768px) {
+                .mobile-toggle-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 8px;
+                    background: #e8f5e8;
+                    border-bottom: 2px solid #1b5e20;
+                    margin-bottom: 8px;
+                }
+                
+                .mobile-toggle-row .pnb-field-label {
+                    margin: 0;
+                }
+                
+                .service-location-toggle-container {
+                    margin-bottom: 0;
+                }
+                
+                .service-toggle-switch {
+                    width: 45px;
+                    height: 22px;
+                }
+                
+                .service-toggle-slider:before {
+                    height: 16px;
+                    width: 16px;
+                }
+                
+                input:checked + .service-toggle-slider:before {
+                    transform: translateX(23px);
+                }
+            }
+            
+            @media (max-width: 380px) {
+                .service-toggle-switch {
+                    width: 40px;
+                    height: 20px;
+                }
+                
+                .service-toggle-slider:before {
+                    height: 14px;
+                    width: 14px;
+                }
+                
+                input:checked + .service-toggle-slider:before {
+                    transform: translateX(20px);
+                }
+                
+                .service-toggle-label {
+                    font-size: 10px;
+                }
+                
+                .service-location-item label {
+                    font-size: 11px;
+                }
+                
+                .service-location-item select {
+                    font-size: 12px;
+                    padding: 6px;
+                }
+            }
+            
             /* Mobile responsive - prevent horizontal overflow */
             @media (max-width: 768px) {
                 * {
@@ -1296,11 +1459,18 @@ window.openPocketNoteEntry = function (showInTab = false) {
             <!-- Day Type Selector -->
             <div class="day-type-selector">
                 <label class="day-type-label">දිනයේ තත්වය:</label>
+                
+                <!-- Government Holiday Display (if applicable) -->
+                <div id="governmentHolidayDisplay" style="display: none; margin-bottom: 10px; padding: 10px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 6px;">
+                    <span style="font-weight: bold; color: #856404;">🎉 රජයේ නිවාඩු දිනයකි:</span>
+                    <span id="holidayName" style="margin-left: 8px; color: #856404; font-weight: 600;"></span>
+                </div>
+                
                 <div class="day-type-row">
                     <select id="dayType" class="day-type-combo">
                         <option value="working">රාජකාරි දිනයකි</option>
-                        <option value="government_holiday">රජයේ නිවාඩු දිනයකි</option>
                         <option id="sundayOption" value="sunday_holiday">ඉරිදා විවේක දිනයකි</option>
+                        <option id="governmentHolidayOption" value="government_holiday" style="display: none;">රජයේ නිවාඩු දිනයකි</option>
                         <option value="casual_leave">අනියම් නිවාඩු ලබා ගන්න ලදී</option>
                         <option value="sick_leave">අසනීප නිවාඩු ලබා ගන්න ලදී</option>
                     </select>
@@ -1338,11 +1508,57 @@ window.openPocketNoteEntry = function (showInTab = false) {
                         <td class="pnb-label-cell">සේවා ස්ථානය</td>
                         <td class="pnb-data-cell" data-label="පෙරවරු">
                             <div class="pnb-input-wrapper">
+                                <!-- Mobile: Toggle in label row -->
+                                <div class="mobile-toggle-row" style="display: none;">
+                                    <span class="pnb-field-label" style="color: #1b5e20; font-weight: bold;">පෙරවරු</span>
+                                    <div class="service-location-toggle-container">
+                                        <span class="service-toggle-label">එකක්</span>
+                                        <label class="service-toggle-switch">
+                                            <input type="checkbox" id="morningServiceToggle">
+                                            <span class="service-toggle-slider"></span>
+                                        </label>
+                                        <span class="service-toggle-label">තුනක්</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Desktop: Toggle inside cell -->
+                                <div class="service-location-toggle-container desktop-toggle" style="display: flex;">
+                                    <span class="service-toggle-label">එකක්</span>
+                                    <label class="service-toggle-switch">
+                                        <input type="checkbox" class="morning-toggle-sync">
+                                        <span class="service-toggle-slider"></span>
+                                    </label>
+                                    <span class="service-toggle-label">තුනක්</span>
+                                </div>
+                                
                                 <div id="service-location-morning-container"></div>
                             </div>
                         </td>
                         <td class="pnb-data-cell" data-label="පස්වරු">
                             <div class="pnb-input-wrapper">
+                                <!-- Mobile: Toggle in label row -->
+                                <div class="mobile-toggle-row" style="display: none;">
+                                    <span class="pnb-field-label" style="color: #1b5e20; font-weight: bold;">පස්වරු</span>
+                                    <div class="service-location-toggle-container">
+                                        <span class="service-toggle-label">එකක්</span>
+                                        <label class="service-toggle-switch">
+                                            <input type="checkbox" id="afternoonServiceToggle">
+                                            <span class="service-toggle-slider"></span>
+                                        </label>
+                                        <span class="service-toggle-label">තුනක්</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Desktop: Toggle inside cell -->
+                                <div class="service-location-toggle-container desktop-toggle" style="display: flex;">
+                                    <span class="service-toggle-label">එකක්</span>
+                                    <label class="service-toggle-switch">
+                                        <input type="checkbox" class="afternoon-toggle-sync">
+                                        <span class="service-toggle-slider"></span>
+                                    </label>
+                                    <span class="service-toggle-label">තුනක්</span>
+                                </div>
+                                
                                 <div id="service-location-afternoon-container"></div>
                             </div>
                         </td>
@@ -1487,7 +1703,17 @@ window.openPocketNoteEntry = function (showInTab = false) {
                         <div class="pnb-period-title">පෙරවරුවේ දත්ත</div>
                         
                         <div class="pnb-field-row">
-                            <label class="pnb-field-label">සේවා ස්ථානය</label>
+                            <div class="mobile-toggle-row">
+                                <span class="pnb-field-label">සේවා ස්ථානය</span>
+                                <div class="service-location-toggle-container">
+                                    <span class="service-toggle-label">එකක්</span>
+                                    <label class="service-toggle-switch">
+                                        <input type="checkbox" class="morning-v-toggle-sync">
+                                        <span class="service-toggle-slider"></span>
+                                    </label>
+                                    <span class="service-toggle-label">තුනක්</span>
+                                </div>
+                            </div>
                             <div class="pnb-input-wrapper">
                                 <div id="service-location-morning-v-container"></div>
                             </div>
@@ -1499,7 +1725,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 <input type="time" class="time-input default-time" data-field="officeDepartureMorning-v">
                             </div>
                             <div class="quick-buttons-row">
-                                ${createQuickTimeButtons('officeDepartureMorning-v', ['05:30', '06:00', '06:30', '07:00', '07:30', '08:00'])}
+                                ${createQuickTimeButtons('officeDepartureMorning-v', ['07:00','07:30','08:00','05:30', '06:00', '06:30' ])}
                             </div>
                         </div>
                         
@@ -1509,7 +1735,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 <input type="time" class="time-input default-time" data-field="fieldArrivalMorning-v">
                             </div>
                             <div class="quick-buttons-row">
-                                ${createQuickTimeButtons('fieldArrivalMorning-v', ['06:30', '07:00', '07:30', '08:00', '08:30', '09:00'])}
+                                ${createQuickTimeButtons('fieldArrivalMorning-v', [ '07:30', '08:00', '08:30', '09:00','06:30', '07:00',])}
                             </div>
                         </div>
                         
@@ -1553,7 +1779,17 @@ window.openPocketNoteEntry = function (showInTab = false) {
                         <div class="pnb-period-title">පස්වරුවේ දත්ත</div>
                         
                         <div class="pnb-field-row">
-                            <label class="pnb-field-label">සේවා ස්ථානය</label>
+                            <div class="mobile-toggle-row">
+                                <span class="pnb-field-label">සේවා ස්ථානය</span>
+                                <div class="service-location-toggle-container">
+                                    <span class="service-toggle-label">එකක්</span>
+                                    <label class="service-toggle-switch">
+                                        <input type="checkbox" class="afternoon-v-toggle-sync">
+                                        <span class="service-toggle-slider"></span>
+                                    </label>
+                                    <span class="service-toggle-label">තුනක්</span>
+                                </div>
+                            </div>
                             <div class="pnb-input-wrapper">
                                 <div id="service-location-afternoon-v-container"></div>
                             </div>
@@ -1585,7 +1821,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 <input type="time" class="time-input default-time" data-field="fieldDepartureAfternoon-v">
                             </div>
                             <div class="quick-buttons-row">
-                                ${createQuickTimeButtons('fieldDepartureAfternoon-v', ['16:00', '16:30', '17:00', '17:30', '18:00', '18:30'])}
+                                ${createQuickTimeButtons('fieldDepartureAfternoon-v', ['16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00'])}
                             </div>
                         </div>
                         
@@ -1595,7 +1831,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 <input type="time" class="time-input default-time" data-field="officeArrivalAfternoon-v">
                             </div>
                             <div class="quick-buttons-row">
-                                ${createQuickTimeButtons('officeArrivalAfternoon-v', ['16:30', '17:00', '17:30', '18:00', '18:30', '19:00'])}
+                                ${createQuickTimeButtons('officeArrivalAfternoon-v', ['16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'])}
                             </div>
                         </div>
                         
@@ -1722,7 +1958,7 @@ window.clearForm = function() {
             btn.dataset.value = '';
             const textSpan = btn.querySelector('span:first-child');
             if (textSpan) textSpan.textContent = 'තෝරන්න';
-            btn.style.backgroundColor = 'white';
+            btn.style.backgroundColor = '#e0e0e0';
             btn.style.borderColor = '#ccc';
         }
     });
@@ -1733,7 +1969,7 @@ window.clearForm = function() {
             btn.dataset.value = '';
             const textSpan = btn.querySelector('span:first-child');
             if (textSpan) textSpan.textContent = 'තෝරන්න';
-            btn.style.backgroundColor = 'white';
+            btn.style.backgroundColor = '#e0e0e0';
             btn.style.borderColor = '#ccc';
         }
     });
@@ -1838,11 +2074,31 @@ function initializeForm() {
 
     // Day type change handler
     dayTypeSelect.addEventListener('change', function () {
+        const dayType = this.value;
+        const isWorkingOnHoliday = workOnHolidayCheckbox.checked;
+        const isNonWorkingDay = dayType !== 'working';
+        
+        // Clear times when selecting non-working day types without work checkbox
+        if (isNonWorkingDay && !isWorkingOnHoliday) {
+            clearTimeFields();
+        }
+        
         checkDayTypeAndUpdateTable();
     });
 
     // Holiday work checkbox handler
     workOnHolidayCheckbox.addEventListener('change', function () {
+        const dayType = dayTypeSelect.value;
+        const isNonWorkingDay = dayType !== 'working';
+        
+        if (this.checked && isNonWorkingDay) {
+            // Load times when checking work on holiday
+            loadLastEntryTimes();
+        } else if (!this.checked && isNonWorkingDay) {
+            // Clear times when unchecking work on holiday
+            clearTimeFields();
+        }
+        
         checkDayTypeAndUpdateTable();
     });
 
@@ -2082,7 +2338,7 @@ function syncDropdownValue(fromSelector, toSelector) {
             toBtn.style.backgroundColor = 'rgb(104, 216, 216)';
             toBtn.style.borderColor = '#000000ff';
         } else {
-            toBtn.style.backgroundColor = 'white';
+            toBtn.style.backgroundColor = '#e0e0e0';
             toBtn.style.borderColor = '#ccc';
         }
     }
@@ -2312,24 +2568,108 @@ function loadExistingDataForDate(date) {
             document.getElementById('workOnHoliday').checked = true;
         }
 
-        // Service Location - Update dropdown buttons
-        const morningBtn = document.querySelector('.service-location-morning');
-        const afternoonBtn = document.querySelector('.service-location-afternoon');
+        // Service Location - Handle both single and multiple locations
+        const morningLocations = existingNote.serviceLocation?.morning;
+        const afternoonLocations = existingNote.serviceLocation?.afternoon;
         
-        if (morningBtn && existingNote.serviceLocation?.morning) {
-            morningBtn.dataset.value = existingNote.serviceLocation.morning;
-            const textSpan = morningBtn.querySelector('span:first-child');
-            if (textSpan) textSpan.textContent = getPlaceNameById(existingNote.serviceLocation.morning);
-            morningBtn.style.backgroundColor = 'rgb(104, 216, 216)';
-            morningBtn.style.borderColor = '#000000ff';
+        // Morning service locations
+        if (morningLocations) {
+            const isArray = Array.isArray(morningLocations);
+            const locationsArray = isArray ? morningLocations : [morningLocations];
+            
+            if (locationsArray.length > 1) {
+                // Set toggle to show multiple (checked)
+                const morningToggle = document.getElementById('morningServiceToggle');
+                const morningDesktopToggles = document.querySelectorAll('.morning-toggle-sync');
+                const morningVToggles = document.querySelectorAll('.morning-v-toggle-sync');
+                
+                if (morningToggle) morningToggle.checked = true;
+                morningDesktopToggles.forEach(t => t.checked = true);
+                morningVToggles.forEach(t => t.checked = true);
+                
+                // Trigger rendering of multiple dropdowns
+                const morningContainer = document.getElementById('service-location-morning-container');
+                const morningVContainer = document.getElementById('service-location-morning-v-container');
+                
+                if (morningContainer) {
+                    renderServiceLocation(morningContainer, 'service-location-morning', true);
+                }
+                if (morningVContainer) {
+                    renderServiceLocation(morningVContainer, 'service-location-morning-v', true);
+                }
+                
+                // Set values for each location
+                locationsArray.forEach((location, index) => {
+                    const btn = document.querySelector(`.service-location-morning-${index + 1}`);
+                    if (btn && location) {
+                        btn.dataset.value = location;
+                        const textSpan = btn.querySelector('span:first-child');
+                        if (textSpan) textSpan.textContent = getPlaceNameById(location);
+                        btn.style.backgroundColor = 'rgb(104, 216, 216)';
+                        btn.style.borderColor = '#000000ff';
+                    }
+                });
+            } else {
+                // Single location
+                const morningBtn = document.querySelector('.service-location-morning');
+                if (morningBtn && locationsArray[0]) {
+                    morningBtn.dataset.value = locationsArray[0];
+                    const textSpan = morningBtn.querySelector('span:first-child');
+                    if (textSpan) textSpan.textContent = getPlaceNameById(locationsArray[0]);
+                    morningBtn.style.backgroundColor = 'rgb(104, 216, 216)';
+                    morningBtn.style.borderColor = '#000000ff';
+                }
+            }
         }
         
-        if (afternoonBtn && existingNote.serviceLocation?.afternoon) {
-            afternoonBtn.dataset.value = existingNote.serviceLocation.afternoon;
-            const textSpan = afternoonBtn.querySelector('span:first-child');
-            if (textSpan) textSpan.textContent = getPlaceNameById(existingNote.serviceLocation.afternoon);
-            afternoonBtn.style.backgroundColor = 'rgb(104, 216, 216)';
-            afternoonBtn.style.borderColor = '#000000ff';
+        // Afternoon service locations
+        if (afternoonLocations) {
+            const isArray = Array.isArray(afternoonLocations);
+            const locationsArray = isArray ? afternoonLocations : [afternoonLocations];
+            
+            if (locationsArray.length > 1) {
+                // Set toggle to show multiple (checked)
+                const afternoonToggle = document.getElementById('afternoonServiceToggle');
+                const afternoonDesktopToggles = document.querySelectorAll('.afternoon-toggle-sync');
+                const afternoonVToggles = document.querySelectorAll('.afternoon-v-toggle-sync');
+                
+                if (afternoonToggle) afternoonToggle.checked = true;
+                afternoonDesktopToggles.forEach(t => t.checked = true);
+                afternoonVToggles.forEach(t => t.checked = true);
+                
+                // Trigger rendering of multiple dropdowns
+                const afternoonContainer = document.getElementById('service-location-afternoon-container');
+                const afternoonVContainer = document.getElementById('service-location-afternoon-v-container');
+                
+                if (afternoonContainer) {
+                    renderServiceLocation(afternoonContainer, 'service-location-afternoon', true);
+                }
+                if (afternoonVContainer) {
+                    renderServiceLocation(afternoonVContainer, 'service-location-afternoon-v', true);
+                }
+                
+                // Set values for each location
+                locationsArray.forEach((location, index) => {
+                    const btn = document.querySelector(`.service-location-afternoon-${index + 1}`);
+                    if (btn && location) {
+                        btn.dataset.value = location;
+                        const textSpan = btn.querySelector('span:first-child');
+                        if (textSpan) textSpan.textContent = getPlaceNameById(location);
+                        btn.style.backgroundColor = 'rgb(104, 216, 216)';
+                        btn.style.borderColor = '#000000ff';
+                    }
+                });
+            } else {
+                // Single location
+                const afternoonBtn = document.querySelector('.service-location-afternoon');
+                if (afternoonBtn && locationsArray[0]) {
+                    afternoonBtn.dataset.value = locationsArray[0];
+                    const textSpan = afternoonBtn.querySelector('span:first-child');
+                    if (textSpan) textSpan.textContent = getPlaceNameById(locationsArray[0]);
+                    afternoonBtn.style.backgroundColor = 'rgb(104, 216, 216)';
+                    afternoonBtn.style.borderColor = '#000000ff';
+                }
+            }
         }
 
         // Office Departure
@@ -2430,33 +2770,127 @@ function loadExistingDataForDate(date) {
 
 // Load last entry times as defaults
 function loadLastEntryTimes() {
-    const lastTimes = JSON.parse(localStorage.getItem('pocketNoteLastTimes') || '{}');
-
-    if (Object.keys(lastTimes).length > 0) {
+    const currentDateString = document.getElementById('pnbDate').value;
+    const dateParts = currentDateString.split('-');
+    const currentDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+    const dayOfWeek = currentDate.getDay();
+    
+    const notes = window.getPocketNotes();
+    
+    // Function to check if a date is a valid working day
+    const isValidWorkingDay = (note) => {
+        if (!note) return false;
+        // Valid if it's a working day
+        if (note.dayType === 'working') return true;
+        // Valid if it's a holiday/Sunday with work done
+        if ((note.dayType === 'government_holiday' || note.dayType === 'sunday_holiday') && note.workOnHoliday) {
+            return true;
+        }
+        return false;
+    };
+    
+    // Function to get date string for a date object
+    const getDateString = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+    
+    // Function to find the last valid working day
+    const findLastValidWorkingDay = (startDate, maxDaysBack = 14) => {
+        let checkDate = new Date(startDate);
+        checkDate.setDate(checkDate.getDate() - 1); // Start from yesterday
+        
+        for (let i = 0; i < maxDaysBack; i++) {
+            const dateStr = getDateString(checkDate);
+            const note = notes.find(n => n.date === dateStr);
+            
+            if (isValidWorkingDay(note)) {
+                return note;
+            }
+            
+            checkDate.setDate(checkDate.getDate() - 1);
+        }
+        return null;
+    };
+    
+    let sourceNote = null;
+    
+    // Determine which day's data to load based on current day of week
+    if (dayOfWeek === 1) {
+        // Monday: Load Friday's data (skip weekend)
+        let friday = new Date(currentDate);
+        friday.setDate(friday.getDate() - 3); // Go back 3 days to Friday
+        const fridayStr = getDateString(friday);
+        const fridayNote = notes.find(n => n.date === fridayStr);
+        
+        if (isValidWorkingDay(fridayNote)) {
+            sourceNote = fridayNote;
+        } else {
+            // If Friday wasn't a working day, find last valid working day
+            sourceNote = findLastValidWorkingDay(friday);
+        }
+    } else if (dayOfWeek === 6) {
+        // Saturday: Load previous Saturday's data
+        let lastSaturday = new Date(currentDate);
+        lastSaturday.setDate(lastSaturday.getDate() - 7); // Go back 7 days
+        const lastSaturdayStr = getDateString(lastSaturday);
+        const lastSaturdayNote = notes.find(n => n.date === lastSaturdayStr);
+        
+        if (isValidWorkingDay(lastSaturdayNote)) {
+            sourceNote = lastSaturdayNote;
+        } else {
+            // Find last valid working day
+            sourceNote = findLastValidWorkingDay(lastSaturday);
+        }
+    } else {
+        // Other days (Tuesday-Friday, Sunday): Load previous day if it was a working day
+        sourceNote = findLastValidWorkingDay(currentDate);
+    }
+    
+    // If we found a valid source note, load its times
+    if (sourceNote) {
         // Set time fields with default styling
-        Object.keys(lastTimes).forEach(field => {
-            const input = document.querySelector(`[data-field="${field}"]`);
-            if (input && !input.value) {
-                input.value = lastTimes[field];
-                input.classList.add('default-time');
+        const timeFields = {
+            'officeDepartureMorning': sourceNote.officeDeparture?.morning,
+            'officeDepartureAfternoon': sourceNote.officeDeparture?.afternoon,
+            'fieldArrivalMorning': sourceNote.fieldArrival?.morning,
+            'fieldArrivalAfternoon': sourceNote.fieldArrival?.afternoon,
+            'fieldDepartureMorning': sourceNote.fieldDeparture?.morning,
+            'fieldDepartureAfternoon': sourceNote.fieldDeparture?.afternoon,
+            'officeArrivalMorning': sourceNote.officeArrival?.morning,
+            'officeArrivalAfternoon': sourceNote.officeArrival?.afternoon
+        };
+        
+        Object.keys(timeFields).forEach(field => {
+            const value = timeFields[field];
+            if (value) {
+                const input = document.querySelector(`[data-field="${field}"]`);
+                if (input && !input.value) {
+                    input.value = value;
+                    input.classList.add('default-time');
+                    input.classList.remove('saved-time');
+                }
             }
         });
 
         // Set distance fields
-        if (lastTimes.distanceMorning) {
-            setValueField('.distance-morning', lastTimes.distanceMorning, false);
+        if (sourceNote.vehicleDistance?.morning) {
+            setValueField('.distance-morning', sourceNote.vehicleDistance.morning, false);
         }
-        if (lastTimes.distanceAfternoon) {
-            setValueField('.distance-afternoon', lastTimes.distanceAfternoon, false);
+        if (sourceNote.vehicleDistance?.afternoon) {
+            setValueField('.distance-afternoon', sourceNote.vehicleDistance.afternoon, false);
         }
-        if (lastTimes.publicTransportMorning) {
-            setValueField('.public-transport-morning', lastTimes.publicTransportMorning, false);
+        if (sourceNote.publicTransportDistance?.morning) {
+            setValueField('.public-transport-morning', sourceNote.publicTransportDistance.morning, false);
         }
-        if (lastTimes.publicTransportAfternoon) {
-            setValueField('.public-transport-afternoon', lastTimes.publicTransportAfternoon, false);
+        if (sourceNote.publicTransportDistance?.afternoon) {
+            setValueField('.public-transport-afternoon', sourceNote.publicTransportDistance.afternoon, false);
         }
     }
 }
+
 
 // Update last entry times from current note
 function updateLastEntryTimes(note) {
@@ -2486,45 +2920,101 @@ function checkDayTypeAndUpdateTable() {
     const workOnHolidayCheckbox = document.getElementById('workOnHoliday');
     const mainTable = document.getElementById('mainTable');
     const sundayOption = document.getElementById('sundayOption');
+    const governmentHolidayOption = document.getElementById('governmentHolidayOption');
+    const governmentHolidayDisplay = document.getElementById('governmentHolidayDisplay');
+    const holidayNameSpan = document.getElementById('holidayName');
 
     // Use a more robust local date parsing
     const dateParts = dateString.split('-');
     const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     const dayOfWeek = date.getDay();
+    const year = dateParts[0];
+    const month = dateParts[1];
+    const day = parseInt(dateParts[2], 10);
+
+    // Check if date is a government holiday
+    const holidayName = typeof isGovernmentHoliday === 'function' 
+        ? isGovernmentHoliday(year, month, day, 'si') 
+        : null;
+    const isGovHoliday = holidayName !== null;
+
+    // Show/hide government holiday display
+    if (isGovHoliday && governmentHolidayDisplay && holidayNameSpan) {
+        governmentHolidayDisplay.style.display = 'block';
+        holidayNameSpan.textContent = holidayName;
+    } else if (governmentHolidayDisplay) {
+        governmentHolidayDisplay.style.display = 'none';
+    }
 
     // ENFORCE: Sunday visibility and values based on weekday
     const allOptions = dayTypeSelect.querySelectorAll('option');
     if (dayOfWeek === 0) {
-        // Sunday: Only show Sunday Holiday, hide all others
+        // Sunday: Only show Sunday Holiday, hide all others except government holiday if it exists
         allOptions.forEach(opt => {
             if (opt.value === 'sunday_holiday') {
                 opt.hidden = false;
                 opt.style.display = 'block';
+            } else if (opt.value === 'government_holiday' && isGovHoliday) {
+                opt.hidden = false;
+                opt.style.display = 'block';
+                opt.textContent = holidayName;
             } else {
                 opt.hidden = true;
                 opt.style.display = 'none';
             }
         });
-        dayTypeSelect.value = 'sunday_holiday';
+        // Default to government holiday if it's a gov holiday on Sunday, otherwise sunday_holiday
+        if (isGovHoliday) {
+            dayTypeSelect.value = 'government_holiday';
+        } else {
+            dayTypeSelect.value = 'sunday_holiday';
+        }
     } else {
-        // Non-Sunday: Hide Sunday Holiday, show all others
+        // Non-Sunday: Hide Sunday Holiday, show government holiday if applicable
         allOptions.forEach(opt => {
             if (opt.value === 'sunday_holiday') {
                 opt.hidden = true;
                 opt.style.display = 'none';
+            } else if (opt.value === 'government_holiday') {
+                if (isGovHoliday) {
+                    opt.hidden = false;
+                    opt.style.display = 'block';
+                    opt.textContent = holidayName;
+                } else {
+                    opt.hidden = true;
+                    opt.style.display = 'none';
+                }
             } else {
                 opt.hidden = false;
                 opt.style.display = 'block';
             }
         });
-        // Force reset if non-sunday
+        // Auto-select government holiday if it's a gov holiday, otherwise working
         if (dayTypeSelect.value === 'sunday_holiday') {
-            dayTypeSelect.value = 'working';
+            if (isGovHoliday) {
+                dayTypeSelect.value = 'government_holiday';
+            } else {
+                dayTypeSelect.value = 'working';
+            }
+        } else if (isGovHoliday && dayTypeSelect.value === 'working') {
+            // Auto-select government holiday for new entries
+            const notes = window.getPocketNotes();
+            const existingNote = notes.find(note => note.date === dateString);
+            if (!existingNote) {
+                dayTypeSelect.value = 'government_holiday';
+            }
         }
     }
 
     const dayType = dayTypeSelect.value;
     const isWorkingOnHoliday = workOnHolidayCheckbox.checked;
+
+    // Disable dropdown on government holidays (always disabled, even if worked)
+    if (isGovHoliday) {
+        dayTypeSelect.disabled = true;
+    } else {
+        dayTypeSelect.disabled = false;
+    }
 
     // Check if this is a saved Sunday without work
     const notes = window.getPocketNotes();
@@ -2557,7 +3047,7 @@ function checkDayTypeAndUpdateTable() {
         // Enable table
         mainTable.classList.remove('table-disabled');
         mainTable.classList.add('table-enabled');
-        dayTypeSelect.disabled = false;
+        // Keep dayTypeSelect.disabled state as set above for gov holidays
 
         // Load default times only for enabled working days without existing data
         if (!existingNote && (dayType === 'working' || (isNonWorkingDay && isWorkingOnHoliday))) {
@@ -2567,7 +3057,7 @@ function checkDayTypeAndUpdateTable() {
         // Disable table for non-working days without work
         mainTable.classList.remove('table-enabled');
         mainTable.classList.add('table-disabled');
-        dayTypeSelect.disabled = false;
+        // Keep dayTypeSelect.disabled state as set above for gov holidays
 
         // Clear time fields for disabled non-working days without existing data
         if (!existingNote) {
@@ -2705,8 +3195,8 @@ function buildPlaceDropdown(className, preservedValue = '') {
     btn.id = btnId;
     btn.className = `ms-dropdown-trigger ${className}`;
     btn.dataset.value = preservedValue || '';
-    btn.style.cssText = `width:100%;padding:4px;border:1px solid #ccc;border-radius:4px;
-        background:white;cursor:pointer;min-height:24px;font-size:11px;text-align:left;
+    btn.style.cssText = `width:100%;padding:4px;border:1px solid #c2c1c1;border-radius:4px;
+        background:#757373;cursor:pointer;min-height:24px;font-size:11px;text-align:left;
         user-select:none;display:flex;align-items:center;justify-content:space-between;
         font-family: 'Noto Sans Sinhala', 'Noto Sans', Arial, sans-serif;`;
     
@@ -2986,7 +3476,7 @@ function buildPlaceDropdown(className, preservedValue = '') {
                 btn.style.backgroundColor = 'rgb(104, 216, 216)';
                 btn.style.borderColor = '#000000ff';
             } else {
-                btn.style.backgroundColor = 'white';
+                btn.style.backgroundColor = '#e0e0e0';
                 btn.style.borderColor = '#ccc';
             }
             
@@ -3012,7 +3502,7 @@ function buildPlaceDropdown(className, preservedValue = '') {
                 btn.style.backgroundColor = 'rgb(104, 216, 216)';
                 btn.style.borderColor = '#000000ff';
             } else {
-                btn.style.backgroundColor = 'white';
+                btn.style.backgroundColor = '#e0e0e0';
                 btn.style.borderColor = '#ccc';
             }
             
@@ -3033,35 +3523,139 @@ function buildPlaceDropdown(className, preservedValue = '') {
     return wrapper;
 }
 
-// Initialize service location dropdowns
-function initializeServiceLocationDropdowns() {
-    // Create and insert dropdowns for table layout
+// Render service location based on toggle state (1 or 3 locations)
+function renderServiceLocation(container, baseClass, isMultiple) {
+    container.innerHTML = '';
+    
+    if (isMultiple) {
+        // Show 3 service locations
+        const multiDiv = document.createElement('div');
+        multiDiv.className = 'service-location-multi active';
+        
+        for (let i = 1; i <= 3; i++) {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'service-location-item';
+            
+            const label = document.createElement('label');
+            label.textContent = i;
+            
+            const dropdown = buildPlaceDropdown(`${baseClass}-${i}`);
+            
+            itemDiv.appendChild(label);
+            itemDiv.appendChild(dropdown);
+            multiDiv.appendChild(itemDiv);
+        }
+        
+        container.appendChild(multiDiv);
+    } else {
+        // Show single service location
+        const singleDropdown = buildPlaceDropdown(baseClass);
+        container.appendChild(singleDropdown);
+    }
+}
+
+// Initialize service location toggle switches
+function initializeServiceLocationToggles() {
+    // Mobile toggles (inside mobile-toggle-row)
+    const morningMobileToggle = document.getElementById('morningServiceToggle');
+    const afternoonMobileToggle = document.getElementById('afternoonServiceToggle');
+    
+    // Desktop toggles (inside desktop-toggle)
+    const morningDesktopToggles = document.querySelectorAll('.morning-toggle-sync');
+    const afternoonDesktopToggles = document.querySelectorAll('.afternoon-toggle-sync');
+    
+    // Vertical layout toggles
+    const morningVToggles = document.querySelectorAll('.morning-v-toggle-sync');
+    const afternoonVToggles = document.querySelectorAll('.afternoon-v-toggle-sync');
+    
+    // Containers
     const morningContainer = document.getElementById('service-location-morning-container');
     const afternoonContainer = document.getElementById('service-location-afternoon-container');
-    
-    if (morningContainer) {
-        const morningDropdown = buildPlaceDropdown('service-location-morning');
-        morningContainer.appendChild(morningDropdown);
-    }
-    
-    if (afternoonContainer) {
-        const afternoonDropdown = buildPlaceDropdown('service-location-afternoon');
-        afternoonContainer.appendChild(afternoonDropdown);
-    }
-    
-    // Create and insert dropdowns for vertical layout
     const morningVContainer = document.getElementById('service-location-morning-v-container');
     const afternoonVContainer = document.getElementById('service-location-afternoon-v-container');
     
-    if (morningVContainer) {
-        const morningVDropdown = buildPlaceDropdown('service-location-morning-v');
-        morningVContainer.appendChild(morningVDropdown);
+    // Show/hide mobile vs desktop toggles based on screen size
+    function updateToggleVisibility() {
+        const isMobile = window.innerWidth <= 768;
+        
+        // Mobile toggle rows (show in mobile only)
+        document.querySelectorAll('.mobile-toggle-row').forEach(row => {
+            row.style.display = isMobile ? 'flex' : 'none';
+        });
+        
+        // Desktop toggles (show in desktop only)
+        document.querySelectorAll('.desktop-toggle').forEach(toggle => {
+            toggle.style.display = isMobile ? 'none' : 'flex';
+        });
     }
     
-    if (afternoonVContainer) {
-        const afternoonVDropdown = buildPlaceDropdown('service-location-afternoon-v');
-        afternoonVContainer.appendChild(afternoonVDropdown);
+    // Initial visibility setup
+    updateToggleVisibility();
+    window.addEventListener('resize', updateToggleVisibility);
+    
+    // Morning toggle handler (syncs all morning toggles)
+    function handleMorningToggle(isChecked) {
+        // Sync all morning toggles
+        if (morningMobileToggle) morningMobileToggle.checked = isChecked;
+        morningDesktopToggles.forEach(t => t.checked = isChecked);
+        morningVToggles.forEach(t => t.checked = isChecked);
+        
+        // Update containers
+        if (morningContainer) {
+            renderServiceLocation(morningContainer, 'service-location-morning', isChecked);
+        }
+        if (morningVContainer) {
+            renderServiceLocation(morningVContainer, 'service-location-morning-v', isChecked);
+        }
     }
+    
+    // Afternoon toggle handler (syncs all afternoon toggles)
+    function handleAfternoonToggle(isChecked) {
+        // Sync all afternoon toggles
+        if (afternoonMobileToggle) afternoonMobileToggle.checked = isChecked;
+        afternoonDesktopToggles.forEach(t => t.checked = isChecked);
+        afternoonVToggles.forEach(t => t.checked = isChecked);
+        
+        // Update containers
+        if (afternoonContainer) {
+            renderServiceLocation(afternoonContainer, 'service-location-afternoon', isChecked);
+        }
+        if (afternoonVContainer) {
+            renderServiceLocation(afternoonVContainer, 'service-location-afternoon-v', isChecked);
+        }
+    }
+    
+    // Attach event listeners to all morning toggles
+    if (morningMobileToggle) {
+        morningMobileToggle.addEventListener('change', (e) => handleMorningToggle(e.target.checked));
+    }
+    morningDesktopToggles.forEach(toggle => {
+        toggle.addEventListener('change', (e) => handleMorningToggle(e.target.checked));
+    });
+    morningVToggles.forEach(toggle => {
+        toggle.addEventListener('change', (e) => handleMorningToggle(e.target.checked));
+    });
+    
+    // Attach event listeners to all afternoon toggles
+    if (afternoonMobileToggle) {
+        afternoonMobileToggle.addEventListener('change', (e) => handleAfternoonToggle(e.target.checked));
+    }
+    afternoonDesktopToggles.forEach(toggle => {
+        toggle.addEventListener('change', (e) => handleAfternoonToggle(e.target.checked));
+    });
+    afternoonVToggles.forEach(toggle => {
+        toggle.addEventListener('change', (e) => handleAfternoonToggle(e.target.checked));
+    });
+    
+    // Initialize with single dropdowns (unchecked state)
+    handleMorningToggle(false);
+    handleAfternoonToggle(false);
+}
+
+// Initialize service location dropdowns
+function initializeServiceLocationDropdowns() {
+    // Initialize toggle switches and render initial state
+    initializeServiceLocationToggles();
 }
 
 // Save pocket note entry (reads form, saves to localStorage)
@@ -3090,13 +3684,36 @@ function savePocketNoteEntry() {
         return chips.join('\n');
     };
 
+    // Helper to get service location values (single or multiple)
+    const getServiceLocationValues = (period) => {
+        const baseClass = period === 'morning' ? 'service-location-morning' : 'service-location-afternoon';
+        
+        // Check if multiple locations exist
+        const multipleLocations = [];
+        for (let i = 1; i <= 3; i++) {
+            const dropdown = document.querySelector(`.${baseClass}-${i}`);
+            if (dropdown && dropdown.dataset && dropdown.dataset.value) {
+                multipleLocations.push(dropdown.dataset.value);
+            }
+        }
+        
+        if (multipleLocations.length > 0) {
+            return multipleLocations;
+        }
+        
+        // Otherwise get single location
+        const singleDropdown = document.querySelector(`.${baseClass}`);
+        const singleValue = singleDropdown?.dataset?.value || '';
+        return singleValue ? [singleValue] : [];
+    };
+
     const note = {
         date,
         dayType: document.getElementById('dayType').value,
         workOnHoliday: document.getElementById('workOnHoliday').checked,
         serviceLocation: {
-            morning: document.querySelector('.service-location-morning')?.dataset?.value || '',
-            afternoon: document.querySelector('.service-location-afternoon')?.dataset?.value || ''
+            morning: getServiceLocationValues('morning'),
+            afternoon: getServiceLocationValues('afternoon')
         },
         officeDeparture: {
             morning: document.querySelector('[data-field="officeDepartureMorning"]').value,

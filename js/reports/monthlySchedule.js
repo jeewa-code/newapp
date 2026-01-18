@@ -506,11 +506,13 @@
   // NEW: Get fixed dates for a specific day and week - FIXED WEEK CALCULATION
   function getFixedDatesForDay(dayOfWeek, weekNumber, timePeriod) {
     const fixedDates = loadFixedDates();
-    return fixedDates.filter(fd =>
-      fd.day === dayOfWeek &&
-      fd.week === weekNumber.toString() &&
-      (!timePeriod || fd.time === timePeriod)
-    );
+    return fixedDates.filter(fd => {
+      // Support both old format (fd.week) and new format (fd.weeks array)
+      const weeks = fd.weeks || (fd.week ? [fd.week] : []);
+      return fd.day === dayOfWeek &&
+        weeks.includes(weekNumber.toString()) &&
+        (!timePeriod || fd.time === timePeriod);
+    });
   }
 
 

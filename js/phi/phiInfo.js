@@ -284,6 +284,12 @@
                 <input id="phi_ot_rate" type="number" step="0.01" style="${baseInputStyle}" value="${latest ? esc(latest.ot_rate) : ''}" />
               </div>
 
+              <!-- 5.1 OT Limit -->
+              <div>
+                <label for="phi_ot_limit" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">OT Limit (hours)</label>
+                <input id="phi_ot_limit" type="number" step="0.01" style="${baseInputStyle}" value="${latest ? esc(latest.ot_limit) : ''}" />
+              </div>
+
               <!-- 6. Vehicle Type -->
               <div>
                 <label for="phi_vehicle_type" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">වාහන වර්ගය</label>
@@ -338,6 +344,7 @@
                     <th style="padding:8px;">Area</th>
                     <th style="padding:8px;">Salary</th>
                     <th style="padding:8px;">OT Rate</th>
+                    <th style="padding:8px;">OT Limit</th>
                     <th style="padding:8px;">Vehicle</th>
                     <th style="padding:8px;">Reg No</th>
                     <th style="padding:8px;">Phone</th>
@@ -359,6 +366,7 @@
                     <td style="padding:8px;vertical-align:middle">${esc(p.area)}</td>
                     <td style="padding:8px;vertical-align:middle">${esc(p.salary)}</td>
                     <td style="padding:8px;vertical-align:middle">${esc(p.ot_rate)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.ot_limit)}</td>
                     <td style="padding:8px;vertical-align:middle">${esc(p.vehicle_type)}</td>
                     <td style="padding:8px;vertical-align:middle">${esc(p.vehicle_reg)}</td>
                     <td style="padding:8px;vertical-align:middle">${esc(p.phone)}</td>
@@ -372,7 +380,7 @@
                         <button class="phi_del" data-id="${esc(p.id)}" style="padding:4px 8px;border-radius:4px;border:1px solid #ffdddd;background:#fff0f0;cursor:pointer;color:#d00;">Del</button>
                     </td>
                 </tr>`).join("") : 
-                `<tr><td colspan="16" style="padding:10px;text-align:center;color:#666;">No records</td></tr>`
+                `<tr><td colspan="17" style="padding:10px;text-align:center;color:#666;">No records</td></tr>`
               }
             </tbody>
           </table>
@@ -556,6 +564,7 @@
       const area = container.querySelector("#phi_area").value.trim();
       const salary = container.querySelector("#phi_salary").value.trim();
       const ot_rate = container.querySelector("#phi_ot_rate").value.trim();
+      const ot_limit = container.querySelector("#phi_ot_limit").value.trim();
       const vehicle_type = container.querySelector("#phi_vehicle_type").value;
       const vehicle_reg = container.querySelector("#phi_vehicle_reg").value.trim();
       const phone = container.querySelector("#phi_phone").value.trim();
@@ -591,6 +600,7 @@
           area,
           salary,
           ot_rate,
+          ot_limit,
           vehicle_type,
           vehicle_reg,
           phone,
@@ -629,7 +639,7 @@
       editId = null;
       currentPhotoData = null;
       // Removed #phi_moh, Added #phi_moh_input
-      ["#phi_name", "#phi_moh_input", "#phi_area", "#phi_salary", "#phi_ot_rate", "#phi_vehicle_reg", "#phi_phone", "#phi_date", "#phi_short", "#phi_local_input"].forEach(s => {
+      ["#phi_name", "#phi_moh_input", "#phi_area", "#phi_salary", "#phi_ot_rate", "#phi_ot_limit", "#phi_vehicle_reg", "#phi_phone", "#phi_date", "#phi_short", "#phi_local_input"].forEach(s => {
         const el = container.querySelector(s);
         if (el) el.value = "";
       });
@@ -698,6 +708,7 @@
         container.querySelector("#phi_area").value = rec.area || "";
         container.querySelector("#phi_salary").value = rec.salary || "";
         container.querySelector("#phi_ot_rate").value = rec.ot_rate || "";
+        container.querySelector("#phi_ot_limit").value = rec.ot_limit || "";
         container.querySelector("#phi_vehicle_type").value = rec.vehicle_type || "motor_bicycle";
         container.querySelector("#phi_vehicle_reg").value = rec.vehicle_reg || "";
         container.querySelector("#phi_phone").value = rec.phone || "";

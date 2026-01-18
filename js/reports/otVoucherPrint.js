@@ -29,8 +29,12 @@ window.openOTVoucherPrint = function () {
 
   totalHours = Number(totalHours.toFixed(2));
 
+  // Apply OT limit cap if specified
+  const otLimit = parseFloat(document.getElementById("otLimit").value) || 0;
+  const cappedHours = otLimit > 0 ? Math.min(totalHours, otLimit) : totalHours;
+
   const otRate = parseFloat(document.getElementById("otRate").value) || 0;
-  const totalAmountValue = Number((totalHours * otRate).toFixed(2));
+  const totalAmountValue = Number((cappedHours * otRate).toFixed(2));
 
   const totalAmount =
     totalAmountValue % 1 === 0

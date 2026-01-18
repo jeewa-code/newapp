@@ -352,7 +352,7 @@
 
     const wrapper = document.createElement("div");
     wrapper.className = `${namePrefix}-${type}-wrapper`;
-    wrapper.style.cssText = "position:relative;width:100%;";
+    wrapper.style.cssText = "width:100%;";
 
     // Display button
     const displayBtn = document.createElement("button");
@@ -377,11 +377,73 @@
     // Dropdown menu
     const dropdown = document.createElement("div");
     dropdown.className = `${namePrefix}-${type}-dropdown`;
-    dropdown.style.cssText = `position:absolute;top:100%;left:0;width:100%;background:#fff;
+    dropdown.style.cssText = `position:fixed;background:#fff;
       border:1px solid #d0d6db;border-radius:4px;box-shadow:0 4px 8px rgba(0,0,0,0.15);
-      max-height:300px;overflow-y:auto;z-index:9999;display:none;margin-top:2px;`;
+      max-height:300px;overflow-y:auto;z-index:10000;display:none;min-width:220px;`;
 
     let selectedValue = preservedValue || "";
+
+    // Function to position dropdown
+    const positionDropdown = () => {
+      if (dropdown.style.display !== "block") return;
+
+      const rect = displayBtn.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      
+      const isMobile = viewportWidth <= 768;
+      
+      if (isMobile) {
+        // Mobile: centered modal
+        dropdown.style.position = "fixed";
+        dropdown.style.width = "90%";
+        dropdown.style.left = "50%";
+        dropdown.style.top = "50%";
+        dropdown.style.transform = "translate(-50%, -50%)";
+        dropdown.style.maxHeight = "60vh";
+        dropdown.style.overflowY = "auto";
+        dropdown.style.boxShadow = "0 0 0 1000px rgba(0,0,0,0.5)";
+        return;
+      }
+
+      // Desktop: position relative to button
+      dropdown.style.position = "fixed";
+      dropdown.style.transform = "none";
+      dropdown.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+      
+      const spaceBelow = viewportHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const minSpaceNeeded = 250;
+      
+      dropdown.style.width = Math.max(rect.width, 220) + "px";
+      dropdown.style.left = rect.left + "px";
+      dropdown.style.right = "auto";
+      
+      const openUpward = spaceAbove > spaceBelow || spaceBelow < minSpaceNeeded;
+      
+      if (openUpward) {
+        // Open upward from button
+        dropdown.style.bottom = (viewportHeight - rect.top + 2) + "px";
+        dropdown.style.top = "auto";
+        dropdown.style.maxHeight = Math.min(300, spaceAbove - 10) + "px";
+      } else {
+        // Open downward from button
+        dropdown.style.top = (rect.bottom + 2) + "px";
+        dropdown.style.bottom = "auto";
+        dropdown.style.maxHeight = Math.min(300, spaceBelow - 10) + "px";
+      }
+      
+      // Adjust if dropdown goes off screen horizontally
+      setTimeout(() => {
+        const dropdownRect = dropdown.getBoundingClientRect();
+        if (dropdownRect.right > viewportWidth) {
+          dropdown.style.left = Math.max(5, viewportWidth - dropdownRect.width - 5) + "px";
+        }
+        if (dropdownRect.left < 0) {
+          dropdown.style.left = "5px";
+        }
+      }, 0);
+    };
 
     // Populate dropdown items
     items.forEach(item => {
@@ -507,30 +569,6 @@
       }
     });
 
-    // Helper to update position on scroll/resize
-    const updatePosition = () => {
-      if (dropdown.style.display !== "block") {
-        window.removeEventListener("scroll", updatePosition, true);
-        window.removeEventListener("resize", updatePosition);
-        return;
-      }
-
-      const rect = displayBtn.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const isUp = dropdown.dataset.opensUp === "true";
-
-      dropdown.style.width = rect.width + "px";
-      dropdown.style.left = rect.left + "px";
-
-      if (isUp) {
-        dropdown.style.bottom = (viewportHeight - rect.top + 2) + "px";
-        dropdown.style.top = "auto";
-      } else {
-        dropdown.style.top = (rect.bottom + 2) + "px";
-        dropdown.style.bottom = "auto";
-      }
-    };
-
     // Display button click handler
     if (!disabled) {
       displayBtn.addEventListener("click", (e) => {
@@ -547,71 +585,58 @@
         if (isOpen) {
           dropdown.style.display = "none";
           arrow.style.transform = "rotate(0deg)";
+          
+          // Move back to wrapper when closed
           if (dropdown.parentElement === document.body) {
             wrapper.appendChild(dropdown);
           }
-          window.removeEventListener("scroll", updatePosition, true);
-          window.removeEventListener("resize", updatePosition);
         } else {
-          // Move to body to avoid overflow clipping
-          document.body.appendChild(dropdown);
+          // Move to body to avoid wrapper overflow issues
+          if (dropdown.parentElement !== document.body) {
+            document.body.appendChild(dropdown);
+          }
+          
           dropdown.style.display = "block";
           arrow.style.transform = "rotate(180deg)";
-
-          // Fixed positioning calculations
-          const rect = displayBtn.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-          const spaceBelow = viewportHeight - rect.bottom;
-
-          dropdown.style.position = "fixed";
-          dropdown.style.zIndex = "10000";
-          dropdown.style.margin = "0";
-
-          // Decide direction once
-          const opensUp = spaceBelow < 250;
-          dropdown.dataset.opensUp = opensUp;
-
-          // Apply initial position
-          updatePosition();
-
-          // Add listeners
-          window.addEventListener("scroll", updatePosition, true);
-          window.addEventListener("resize", updatePosition);
+          
+          // Position after display is set and browser has painted
+          requestAnimationFrame(() => {
+            positionDropdown();
+          });
+          
+          // Update position on scroll/resize
+          const scrollHandler = () => {
+            requestAnimationFrame(() => positionDropdown());
+          };
+          window.addEventListener("scroll", scrollHandler, true);
+          window.addEventListener("resize", scrollHandler);
+          
+          // Cleanup on close
+          const cleanup = () => {
+            window.removeEventListener("scroll", scrollHandler, true);
+            window.removeEventListener("resize", scrollHandler);
+          };
+          
+          dropdown._cleanup = cleanup;
         }
       });
+    }
 
-      // Close dropdown when clicking outside
-      const closeHandler = (e) => {
-        // Check if click is outside wrapper AND outside dropdown
-        // Note: wrapper contains displayBtn.
-        if (!wrapper.contains(e.target) && !dropdown.contains(e.target)) {
-          if (dropdown.style.display === "block") {
-            dropdown.style.display = "none";
-            arrow.style.transform = "rotate(0deg)";
-            if (dropdown.parentElement === document.body) {
-              wrapper.appendChild(dropdown);
-            }
-
-            window.removeEventListener("scroll", updatePosition, true);
-            window.removeEventListener("resize", updatePosition);
-
-            // Collapse sub-items
-            dropdown.querySelectorAll(".sub-items-container").forEach(container => {
-              container.style.display = "none";
-              const icon = container.previousElementSibling?.querySelector(".expand-icon");
-              if (icon) icon.style.transform = "rotate(0deg)";
-            });
+    // Close on click outside
+    document.addEventListener("click", (e) => {
+      if (!wrapper.contains(e.target) && !dropdown.contains(e.target)) {
+        if (dropdown.style.display === "block") {
+          dropdown.style.display = "none";
+          arrow.style.transform = "rotate(0deg)";
+          if (dropdown._cleanup) dropdown._cleanup();
+          
+          // Move back to wrapper
+          if (dropdown.parentElement === document.body) {
+            wrapper.appendChild(dropdown);
           }
         }
-      };
-
-      // Use capture true or just document bubbling? Bubbling is fine.
-      document.addEventListener("click", closeHandler);
-
-      // Cleanup listener if wrapper is removed? 
-      // Not easily possible in vanilla JS without MutationObserver. 
-      // But we rely on "closeHandler" logic.
-    }
+      }
+    });
 
     // Add getValue method to wrapper
     wrapper.getValue = () => selectedValue;
@@ -1204,6 +1229,200 @@
     }
   };
 
+  /* ================= WEEK MULTI-SELECT HELPER ================= */
+  function createWeekMultiSelect(recordId, selectedWeeks = [], disabled = false) {
+    const container = document.createElement('div');
+    container.className = 'week-multi-select';
+    container.dataset.recordId = recordId;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'week-select-button';
+    button.disabled = disabled;
+    
+    function updateButtonText() {
+      const selected = getSelectedWeeks(recordId);
+      if (selected.length === 0) {
+        button.textContent = 'සතිය තෝරන්න';
+      } else if (selected.length === 5) {
+        button.textContent = 'සියලු සති';
+      } else {
+        button.textContent = selected.map(w => `${w} වන`).join(', ');
+      }
+    }
+    
+    const menu = document.createElement('div');
+    menu.className = 'week-dropdown-menu';
+    
+    const weekOptions = [
+      { value: '1', label: '1 වන සතිය' },
+      { value: '2', label: '2 වන සතිය' },
+      { value: '3', label: '3 වන සතිය' },
+      { value: '4', label: '4 වන සතිය' },
+      { value: '5', label: '5 වන සතිය' }
+    ];
+    
+    weekOptions.forEach(opt => {
+      const item = document.createElement('div');
+      item.className = 'week-checkbox-item';
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = opt.value;
+      checkbox.checked = selectedWeeks.includes(opt.value);
+      checkbox.dataset.recordId = recordId;
+      checkbox.className = `week-checkbox-${recordId}`;
+      
+      checkbox.addEventListener('change', (e) => {
+        e.stopPropagation();
+        updateButtonText();
+      });
+      
+      const label = document.createElement('label');
+      label.textContent = opt.label;
+      label.style.cursor = 'pointer';
+      label.style.userSelect = 'none';
+      
+      label.addEventListener('click', (e) => {
+        e.stopPropagation();
+        checkbox.checked = !checkbox.checked;
+        updateButtonText();
+      });
+      
+      item.appendChild(checkbox);
+      item.appendChild(label);
+      menu.appendChild(item);
+    });
+    
+    // Position menu function
+    const positionMenu = () => {
+      if (!menu.classList.contains('active')) return;
+      
+      const rect = button.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      
+      const isMobile = viewportWidth <= 768;
+      
+      if (isMobile) {
+        // Mobile: centered modal (handled by CSS)
+        return;
+      }
+      
+      // Desktop positioning
+      menu.style.position = 'fixed';
+      const spaceBelow = viewportHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const minSpaceNeeded = 250;
+      
+      menu.style.width = Math.max(rect.width, 220) + "px";
+      menu.style.left = rect.left + "px";
+      menu.style.right = "auto";
+      
+      const openUpward = spaceAbove > spaceBelow || spaceBelow < minSpaceNeeded;
+      
+      if (openUpward) {
+        menu.style.bottom = (viewportHeight - rect.top + 2) + "px";
+        menu.style.top = "auto";
+        menu.style.maxHeight = Math.min(300, spaceAbove - 10) + "px";
+      } else {
+        menu.style.top = (rect.bottom + 2) + "px";
+        menu.style.bottom = "auto";
+        menu.style.maxHeight = Math.min(300, spaceBelow - 10) + "px";
+      }
+      
+      // Adjust if menu goes off screen horizontally
+      setTimeout(() => {
+        const menuRect = menu.getBoundingClientRect();
+        if (menuRect.right > viewportWidth) {
+          menu.style.left = Math.max(5, viewportWidth - menuRect.width - 5) + "px";
+        }
+        if (menuRect.left < 0) {
+          menu.style.left = "5px";
+        }
+      }, 0);
+    };
+    
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!button.disabled) {
+        const wasActive = menu.classList.contains('active');
+        
+        // Close all other week menus
+        document.querySelectorAll('.week-dropdown-menu.active').forEach(m => {
+          if (m !== menu) {
+            m.classList.remove('active');
+            // Move back to container
+            const parentContainer = document.querySelector(`[data-record-id="${m.dataset?.menuFor}"]`);
+            if (parentContainer && m.parentElement === document.body) {
+              parentContainer.appendChild(m);
+            }
+          }
+        });
+        
+        if (wasActive) {
+          menu.classList.remove('active');
+          if (menu._cleanup) menu._cleanup();
+          // Move back to container
+          if (menu.parentElement === document.body) {
+            container.appendChild(menu);
+          }
+        } else {
+          // Move to body to avoid container overflow
+          if (menu.parentElement !== document.body) {
+            document.body.appendChild(menu);
+            menu.dataset.menuFor = recordId;
+          }
+          
+          menu.classList.add('active');
+          
+          // Position after display and paint
+          requestAnimationFrame(() => {
+            positionMenu();
+          });
+          
+          // Add scroll/resize handlers
+          const scrollHandler = () => {
+            requestAnimationFrame(() => positionMenu());
+          };
+          window.addEventListener('scroll', scrollHandler, true);
+          window.addEventListener('resize', scrollHandler);
+          
+          menu._cleanup = () => {
+            window.removeEventListener('scroll', scrollHandler, true);
+            window.removeEventListener('resize', scrollHandler);
+          };
+        }
+      }
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!container.contains(e.target) && !menu.contains(e.target)) {
+        if (menu.classList.contains('active')) {
+          menu.classList.remove('active');
+          if (menu._cleanup) menu._cleanup();
+          // Move back to container
+          if (menu.parentElement === document.body) {
+            container.appendChild(menu);
+          }
+        }
+      }
+    });
+    
+    container.appendChild(button);
+    container.appendChild(menu);
+    
+    updateButtonText();
+    
+    return container;
+  }
+
+  function getSelectedWeeks(recordId) {
+    const checkboxes = document.querySelectorAll(`.week-checkbox-${recordId}:checked`);
+    return Array.from(checkboxes).map(cb => cb.value);
+  }
+
   /* ================= FIXED DATES ================= */
   function renderFixedDates() {
     const roles = load(ROLE_KEY);
@@ -1211,6 +1430,74 @@
     const fixedDates = load(FIXED_DATES_KEY);
 
     $("kmBody").innerHTML = `
+      <style>
+        .week-multi-select {
+          position: relative;
+          display: inline-block;
+          width: 100%;
+        }
+        .week-select-button {
+          width: 100%;
+          padding: 6px 30px 6px 8px;
+          border: 1px solid #d0d6db;
+          border-radius: 4px;
+          background: white;
+          cursor: pointer;
+          text-align: left;
+          font-size: 13px;
+          position: relative;
+        }
+        .week-select-button:disabled {
+          background: #f5f5f5;
+          cursor: not-allowed;
+        }
+        .week-select-button::after {
+          content: '▼';
+          position: absolute;
+          right: 8px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 10px;
+        }
+        .week-dropdown-menu {
+          position: fixed;
+          background: white;
+          border: 1px solid #d0d6db;
+          border-radius: 4px;
+          z-index: 10000;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          display: none;
+          max-height: 300px;
+          overflow-y: auto;
+        }
+        .week-dropdown-menu.active {
+          display: block;
+        }
+        @media (max-width: 768px) {
+          .week-dropdown-menu.active {
+            position: fixed !important;
+            width: 90% !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            max-height: 60vh !important;
+            box-shadow: 0 0 0 1000px rgba(0,0,0,0.5) !important;
+          }
+        }
+        .week-checkbox-item {
+          padding: 8px 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .week-checkbox-item:hover {
+          background: #f0f7ff;
+        }
+        .week-checkbox-item input[type="checkbox"] {
+          cursor: pointer;
+        }
+      </style>
       <h4 style="margin:0 0 12px 0; color: #0b5ea8;font-size:clamp(14px,3.5vw,18px);">රාජකාරි සදහා නියත දිනයන් ලබා දීම</h4>
       <div style="background:#fff;padding:clamp(8px,2vw,12px);border-radius:8px;overflow:visible;position:relative;">
         <div style="overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;width:100%;padding-bottom:5px;">
@@ -1221,7 +1508,7 @@
                 <th style="padding:clamp(6px,1.5vw,8px); min-width:200px;white-space:nowrap;">රාජකාරියේ නම</th>
                 <th style="padding:clamp(6px,1.5vw,8px); min-width:200px;white-space:nowrap;">ස්ථානය</th>
                 <th style="padding:clamp(6px,1.5vw,8px);white-space:nowrap;min-width:100px;">දවස</th>
-                <th style="padding:clamp(6px,1.5vw,8px);white-space:nowrap;min-width:100px;">කී වෙනි දිනද ?</th>
+                <th style="padding:clamp(6px,1.5vw,8px);white-space:nowrap;min-width:100px;">සතිය</th>
                 <th style="padding:clamp(6px,1.5vw,8px);white-space:nowrap;min-width:100px;">වෙලාව</th>
                 <th style="width:140px; padding:clamp(6px,1.5vw,8px);white-space:nowrap;">Actions</th>
               </tr>
@@ -1292,21 +1579,11 @@
       tdDay.appendChild(daySelect);
       tr.appendChild(tdDay);
 
-      // Week column
+      // Week column with multi-select
       const tdWeek = document.createElement("td");
       tdWeek.style.cssText = "padding:8px";
-      const weekSelect = document.createElement("select");
-      weekSelect.className = "fd_week_select";
-      weekSelect.style.cssText = "width:100%; padding:4px; border:1px solid #d0d6db; border-radius:4px;";
-      weekSelect.disabled = true;
-      weekSelect.innerHTML = `
-        <option value="1" ${fd.week === '1' ? 'selected' : ''}>1 වන</option>
-        <option value="2" ${fd.week === '2' ? 'selected' : ''}>2 වන</option>
-        <option value="3" ${fd.week === '3' ? 'selected' : ''}>3 වන</option>
-        <option value="4" ${fd.week === '4' ? 'selected' : ''}>4 වන</option>
-        <option value="5" ${fd.week === '5' ? 'selected' : ''}>5 වන</option>
-      `;
-      tdWeek.appendChild(weekSelect);
+      const weekMultiSelect = createWeekMultiSelect(fd.id, fd.weeks || [fd.week], true);
+      tdWeek.appendChild(weekMultiSelect);
       tr.appendChild(tdWeek);
 
       // Time column
@@ -1391,20 +1668,11 @@
     newTdDay.appendChild(newDaySelect);
     newTr.appendChild(newTdDay);
 
-    // Week column
+    // Week column with multi-select
     const newTdWeek = document.createElement("td");
     newTdWeek.style.cssText = "padding:8px";
-    const newWeekSelect = document.createElement("select");
-    newWeekSelect.id = "fd_new_week";
-    newWeekSelect.style.cssText = "width:100%; padding:4px; border:1px solid #d0d6db; border-radius:4px;";
-    newWeekSelect.innerHTML = `
-      <option value="1">1 වන</option>
-      <option value="2">2 වන</option>
-      <option value="3">3 වන</option>
-      <option value="4">4 වන</option>
-      <option value="5">5 වන</option>
-    `;
-    newTdWeek.appendChild(newWeekSelect);
+    const newWeekMultiSelect = createWeekMultiSelect('new', [], false);
+    newTdWeek.appendChild(newWeekMultiSelect);
     newTr.appendChild(newTdWeek);
 
     // Time column
@@ -1450,20 +1718,22 @@
         const roleId = roleWrapper ? roleWrapper.getValue() : "";
         const placeId = placeWrapper ? placeWrapper.getValue() : "";
         const day = $("fd_new_day").value;
-        const week = $("fd_new_week").value;
+        const weeks = getSelectedWeeks('new');
         const time = $("fd_new_time").value;
 
-        if (!roleId || !placeId || !day || !week || !time) {
-          return window.showWarning ? showWarning("සියලු ක්ෂේත්‍ර පුරවන්න\nAll fields are required") : alert("All fields are required");
+        if (!roleId || !placeId || !day || weeks.length === 0 || !time) {
+          return window.showWarning ? showWarning("සියලු ක්ෂේත්‍ර පුරවන්න (සතිය අවම වශයෙන් එකක්)\nAll fields required (at least one week)") : alert("All fields required (at least one week)");
         }
 
         const arr = load(FIXED_DATES_KEY);
+        
+        // Create single entry with multiple weeks
         arr.push({
           id: uid(),
           roleId: roleId,
           placeId: placeId,
           day: day,
-          week: week,
+          weeks: weeks,
           time: time
         });
 
@@ -1491,15 +1761,14 @@
           const roleId = roleWrapper ? roleWrapper.getValue() : "";
           const placeId = placeWrapper ? placeWrapper.getValue() : "";
           const daySelect = row.querySelector(".fd_day_select");
-          const weekSelect = row.querySelector(".fd_week_select");
+          const weeks = getSelectedWeeks(id);
           const timeSelect = row.querySelector(".fd_time_select");
 
           const day = daySelect ? daySelect.value : "";
-          const week = weekSelect ? weekSelect.value : "";
           const time = timeSelect ? timeSelect.value : "";
 
-          if (!roleId || !placeId || !day || !week || !time) {
-            return window.showWarning ? showWarning("සියලු ක්ෂේත්‍ර පුරවන්න\nAll fields are required") : alert("All fields are required");
+          if (!roleId || !placeId || !day || weeks.length === 0 || !time) {
+            return window.showWarning ? showWarning("සියලු ක්ෂේත්‍ර පුරවන්න (සතිය අවම වශයෙන් එකක්)\nAll fields required (at least one week)") : alert("All fields required (at least one week)");
           }
 
           const arr = load(FIXED_DATES_KEY);
@@ -1510,7 +1779,7 @@
               roleId: roleId,
               placeId: placeId,
               day: day,
-              week: week,
+              weeks: weeks,
               time: time
             };
             save(FIXED_DATES_KEY, arr);
@@ -1546,10 +1815,10 @@
 
           // Enable other selects
           const daySelect = row.querySelector(".fd_day_select");
-          const weekSelect = row.querySelector(".fd_week_select");
+          const weekButton = row.querySelector('.week-select-button');
           const timeSelect = row.querySelector(".fd_time_select");
           if (daySelect) daySelect.disabled = false;
-          if (weekSelect) weekSelect.disabled = false;
+          if (weekButton) weekButton.disabled = false;
           if (timeSelect) timeSelect.disabled = false;
 
           this.textContent = "Save";
