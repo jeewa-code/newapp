@@ -69,7 +69,7 @@
 
           <p style="color:#ffffff !important;">තවමත් මෙය නිර්මාණ කටයුතු කරගෙන යන බැවින් මෙහි ඇතුලත් කරන කිසිඳු දත්තයක් save කිරීම සිදු නොවේ. නමුත් මෙය open කරන web browser එකේ පමණක් ඔබ ඇතුලත් කරන දත්තයන් save වීම සිදු වේ.</p>
 
-          <p style="color:#ed6f6f !important;">දැනට ඕනෑම කෙනෙක්ට <strong>ඉදිරි කාලසටහන (Advance Program)</strong> මෙය මගින් නිර්මාණය කර ගැනීමේ පහසුව ලබා දී ඇත.</p>
+          <p style="color:#ed6f6f !important;">දැනට ඕනෑම කෙනෙක්ට <strong>ඉදිරි කාලසටහන (Advance Program)</strong> මෙය මගින් නිර්මාණය කර ගැනීමේ පහසුව ලබා දී ඇත.මෙය reports යටතේ ඇත.නමුත් පළමුව PHI Profile  යටතේ ඇති PHI info සහ key map update කර ගත යුතුයි. </p>
 
           <p style="color:#ffffff !important;">මහජන සෞඛ්‍ය පරීක්ෂක වරුන්ට <strong>Books</strong> යටතේ ඇති <strong>Pocket Note Book</strong> සම්පුර්ණ කිරීම මගින් පහත දැක්වෙන දෑ  ස්වයංක්‍රියව නිර්මාණය කර ගැනීමට පහසුකම ලබා ගත හැක:</p>
           <ul style="list-style-type:none;margin-left:0;padding-left:20px;margin-bottom:20px;color:#000 !important;">

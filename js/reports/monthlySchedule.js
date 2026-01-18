@@ -123,7 +123,7 @@
     .monthlySchedule-template .header-xlarge { font-size:24px !important; }
     .monthlySchedule-template .footer-notes { width:80%;margin-left:100px;box-sizing:border-box; resize:none; font-size:10px; padding:6px; border:1px solid #000; min-height:64px; background:#fff; }
     .ms-locked { color:#444; background:#f5f5f5; padding:6px; border-radius:4px; min-height:28px; display:inline-block; width:100%; box-sizing:border-box; }
-    .ms-sunday { color:#b71c1c; font-weight:700; }
+    .ms-sunday { color:#b71c1c !important; font-weight:700; background:#ffebee !important; padding:6px; border-radius:4px; min-height:28px; display:inline-block; width:100%; box-sizing:border-box; }
     .ms-holiday { color:#b71c1c !important; font-weight:700; background:#ffebee !important; }
     
     /* Fixed column widths for schedule table */
@@ -279,14 +279,12 @@
         min-height: 24px !important;
       }
       
-      /* Dropdown menus on mobile */
+      /* Dropdown menus on mobile - Controlled by JS now for full visibility */
       div[id$="-menu"] {
         font-size: 11px !important;
-        max-height: 250px !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
-        border: 2px solid #0b5ea8 !important;
+        border: 1px solid #0b5ea8 !important;
       }
       
       .dropdown-main-item,
@@ -982,9 +980,9 @@
 
         const mainDiv = el("div", {
           class: "dropdown-main-item",
-          style: `padding:8px 10px;cursor:pointer;border-bottom:1px solid #eee;
-            font-weight:${hasSub ? '500' : 'normal'};display:flex;justify-content:space-between;align-items:center;
-            transition:background 0.2s;`
+          style: `padding:10px 12px;cursor:pointer;border-bottom:1px solid #e0e0e0;
+            font-weight:600;color:#004085;display:flex;justify-content:space-between;align-items:center;
+            transition:all 0.2s;background:#ffffff;`
         });
 
         const mainTextSpan = el("span", { text: mainText });
@@ -993,7 +991,7 @@
         if (hasSub) {
           const expandIcon = el("span", {
             class: "expand-icon",
-            style: "color:#666;font-size:10px;transition:transform 0.2s;",
+            style: "color:#353635;font-size:10px;transition:transform 0.2s;",
             text: "▶"
           });
           mainDiv.appendChild(expandIcon);
@@ -1001,7 +999,7 @@
           // Create sub-items container
           const subContainer = el("div", {
             class: "sub-items-container",
-            style: "display:none;background:#eeeeee;"
+            style: "display:none;background:#353635;border-left:4px solid #004085;"
           });
 
           item.sub.forEach(subItem => {
@@ -1012,13 +1010,13 @@
 
             const subDiv = el("div", {
               class: "dropdown-sub-item",
-              style: `padding:8px 10px 8px 25px;cursor:pointer;border-bottom:1px solid #e0e0e0;
-                transition:background 0.2s;`
+              style: `padding:8px 10px 8px 25px;cursor:pointer;border-bottom:1px solid #a9c5d8;
+                transition:background 0.2s;color:#ffffff;font-weight:normal;`
             });
             subDiv.textContent = subText;
 
-            subDiv.addEventListener("mouseenter", () => subDiv.style.background = "#b3e1ffff");
-            subDiv.addEventListener("mouseleave", () => subDiv.style.background = "#eeeeee");
+            subDiv.addEventListener("mouseenter", () => subDiv.style.background = "#2d3ed6"); // Yellowish hover
+            subDiv.addEventListener("mouseleave", () => subDiv.style.background = "transparent");
             subDiv.addEventListener("click", (e) => {
               e.stopPropagation();
               btn.dataset.value = subValue;
@@ -1038,8 +1036,8 @@
           });
 
           // Main item click handler (toggle sub-items)
-          mainDiv.addEventListener("mouseenter", () => mainDiv.style.background = "#a7edffff");
-          mainDiv.addEventListener("mouseleave", () => mainDiv.style.background = "#fff");
+          mainDiv.addEventListener("mouseenter", () => mainDiv.style.background = "#cce5ff"); // Blueish hover
+          mainDiv.addEventListener("mouseleave", () => mainDiv.style.background = "#ffffff");
           mainDiv.addEventListener("click", (e) => {
             e.stopPropagation();
             const isExpanded = subContainer.style.display === "block";
@@ -1060,9 +1058,12 @@
             if (!isExpanded) {
               subContainer.style.display = "block";
               expandIcon.style.transform = "rotate(90deg)";
+              // Keep main item highlighted when expanded
+              mainDiv.style.background = "#00c3ff";
             } else {
               subContainer.style.display = "none";
               expandIcon.style.transform = "rotate(0deg)";
+              mainDiv.style.background = "#00c3ff"; // Return to hover state
             }
           });
 
@@ -1070,8 +1071,8 @@
           menu.appendChild(subContainer);
         } else {
           // No sub items
-          mainDiv.addEventListener("mouseenter", () => mainDiv.style.background = "#e6f2ff");
-          mainDiv.addEventListener("mouseleave", () => mainDiv.style.background = "#fff");
+          mainDiv.addEventListener("mouseenter", () => mainDiv.style.background = "#cce5ff");
+          mainDiv.addEventListener("mouseleave", () => mainDiv.style.background = "#ffffff");
           mainDiv.addEventListener("click", (e) => {
             e.stopPropagation();
             btn.dataset.value = item.id;
@@ -1097,22 +1098,42 @@
         const rect = btn.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
         const viewportWidth = window.innerWidth;
+        
+        // On mobile, use centered modal layout
+        const isMobile = viewportWidth <= 768;
+        
+        if (isMobile) {
+            menu.style.position = "fixed";
+            menu.style.width = "90%";
+            menu.style.left = "50%";
+            menu.style.top = "50%";
+            menu.style.transform = "translate(-50%, -50%)";
+            menu.style.maxHeight = "60vh";
+            menu.style.overflowY = "auto";
+            menu.style.zIndex = "10000";
+            menu.style.margin = "0";
+            menu.style.bottom = "auto";
+            menu.style.boxShadow = "0 0 0 1000px rgba(0,0,0,0.5)"; // Backdrop effect
+            return;
+        }
+
+        // Desktop Reset
+        menu.style.transform = "none";
+        menu.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+
         const spaceBelow = viewportHeight - rect.bottom;
         const spaceAbove = rect.top;
         
         // On mobile, use smaller threshold and adjust max-height
-        const isMobile = viewportWidth <= 768;
-        const minSpaceNeeded = isMobile ? 100 : 250;
+        const minSpaceNeeded = 250;
         
         // Calculate available space more carefully
         const availableBelow = Math.max(0, spaceBelow - 10);
         const availableAbove = Math.max(0, spaceAbove - 10);
-        const maxMenuHeight = isMobile 
-          ? Math.min(250, Math.max(availableBelow, availableAbove))
-          : 300;
+        const maxMenuHeight = 300;
 
         menu.style.position = "fixed";
-        menu.style.width = isMobile ? rect.width + "px" : Math.max(rect.width, 220) + "px";
+        menu.style.width = Math.max(rect.width, 220) + "px";
         menu.style.maxHeight = maxMenuHeight + "px";
         menu.style.overflowY = "auto";
         menu.style.left = rect.left + "px";
@@ -2042,8 +2063,56 @@
           }
         }
 
-        // SUNDAY HANDLING (skip if government holiday)
-        if (sundaySet.has(day) && !(govHolidayName && tr.dataset.manualHoliday !== "1")) {
+        // SUNDAY HANDLING
+        // Check if Sunday AND Government Holiday (and not manually disabled)
+        const isSunday = sundaySet.has(day);
+        const isEffectiveGovHoliday = govHolidayName && tr.dataset.manualHoliday !== "1";
+
+        if (isSunday && isEffectiveGovHoliday) {
+           // 1) Sunday + Government Holiday
+           
+           // Clear previous handlers
+           if (tr._ms_sunday_dbl_handler) {
+               tr.removeEventListener("dblclick", tr._ms_sunday_dbl_handler);
+               delete tr._ms_sunday_dbl_handler;
+           }
+           if (tr._ms_holiday_dbl_handler) {
+               tr.removeEventListener("dblclick", tr._ms_holiday_dbl_handler);
+               delete tr._ms_holiday_dbl_handler;
+           }
+           if (tr._ms_shp_dbl_handler) {
+               tr.removeEventListener("dblclick", tr._ms_shp_dbl_handler);
+               delete tr._ms_shp_dbl_handler;
+           }
+           
+           // Render Sunday + Holiday
+           tdM.innerHTML = "";
+           tdA.innerHTML = "";
+           
+           const sundayDivM = createLockedDisplayCell("ඉරිදා දිනයකි");
+           sundayDivM.classList.add("ms-sunday");
+           
+           const holidayDivA = createHolidayDisplayCell(govHolidayName);
+           
+           tdM.appendChild(sundayDivM);
+           tdA.appendChild(holidayDivA);
+           
+           tr.classList.add("ms-holiday-row"); // Use holiday styling
+           tr.dataset.holidayName = govHolidayName;
+           
+           // Double click to convert to Duty (Manual Duty)
+           const sundayHolidayDblHandler = function(ev) {
+               ev.stopPropagation();
+               tr.dataset.manualHoliday = "1";
+               tr.dataset.sundayLocked = "1";
+               unmarkRowAsHoliday(tr);
+               tr.classList.remove("ms-sunday-row"); // ensure clean
+           };
+           
+           tr.addEventListener("dblclick", sundayHolidayDblHandler);
+           tr._ms_shp_dbl_handler = sundayHolidayDblHandler;
+
+        } else if (isSunday) {
           // helper to render locked Sunday note
           const makeLockedSunday = () => {
             // preserve any selects values first
@@ -2064,8 +2133,11 @@
 
             tdM.innerHTML = "";
             tdA.innerHTML = "";
-            const sundayDivM = createLockedDisplayCell("ඉරිදා දිනයකි");
-            const sundayDivA = createLockedDisplayCell("ඉරිදා දිනයකි");
+            
+            // USE ms-sunday class now which has proper styling
+            const sundayDivM = el("div", { class: "ms-sunday", text: "ඉරිදා දිනයකි" });
+            const sundayDivA = el("div", { class: "ms-sunday", text: "ඉරිදා දිනයකි" });
+            
             tdM.appendChild(sundayDivM);
             tdA.appendChild(sundayDivA);
 
@@ -2108,6 +2180,11 @@
           if (tr._ms_sunday_dbl_handler) {
             tr.removeEventListener("dblclick", tr._ms_sunday_dbl_handler);
             delete tr._ms_sunday_dbl_handler;
+          }
+          // Also clear sunday-govt-holiday handler
+          if (tr._ms_shp_dbl_handler) {
+               tr.removeEventListener("dblclick", tr._ms_shp_dbl_handler);
+               delete tr._ms_shp_dbl_handler;
           }
 
           // Attach double-click toggle handler on the entire row (or you can attach to tdM/tdA)
@@ -2158,6 +2235,11 @@
           if (tr._ms_holiday_dbl_handler) {
             tr.removeEventListener("dblclick", tr._ms_holiday_dbl_handler);
             delete tr._ms_holiday_dbl_handler;
+          }
+          // Also clear sunday-govt-holiday handler
+          if (tr._ms_shp_dbl_handler) {
+               tr.removeEventListener("dblclick", tr._ms_shp_dbl_handler);
+               delete tr._ms_shp_dbl_handler;
           }
 
           // Attach double-click handler for holiday selection
