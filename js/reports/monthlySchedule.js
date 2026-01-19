@@ -902,6 +902,11 @@
         const isDataColumn = td && (td.cellIndex === 1 || td.cellIndex === 2);
         
         if (isDataColumn) {
+           // Highlight month input in red (with !important)
+           if (monthInput) {
+             monthInput.style.setProperty('border', '2px solid #ff0000', 'important');
+             monthInput.style.setProperty('boxShadow', '0 0 8px rgba(255, 0, 0, 0.3)', 'important');
+           }
            Swal.fire({
              icon: 'warning',
              title: 'මාසය තෝරන්න',
@@ -1733,22 +1738,39 @@
     // collect payload
     function collectPayload() {
       const rows = Array.from(tbody.querySelectorAll("tr")).map((tr, i) => {
-        // Check if this is a holiday row
+        // Check if this is a Sunday+Holiday row
         if (tr.classList.contains("ms-holiday-row")) {
           const holidayName = tr.dataset.holidayName || "";
-          return {
-            day: i + 1,
-            morning: { role: "", place: "", holiday: holidayName },
-            afternoon: { role: "", place: "", holiday: holidayName },
-            isHoliday: true,
-            holidayName: holidayName
-          };
+          const morningCell = tr.querySelector("td:nth-child(2)");
+          const hasSundayDiv = morningCell && morningCell.querySelector(".ms-sunday");
+          if (hasSundayDiv) {
+            // Sunday+Holiday row
+            return {
+              day: i + 1,
+              morning: "sunday-holiday",
+              afternoon: holidayName,
+              isSundayHoliday: true,
+              isHoliday: false,
+              isSunday: false,
+              isInvalidDay: false,
+              holidayName: holidayName
+            };
+          } else {
+            // Normal holiday row
+            return {
+              day: i + 1,
+              morning: { role: "", place: "", holiday: holidayName },
+              afternoon: { role: "", place: "", holiday: holidayName },
+              isHoliday: true,
+              holidayName: holidayName
+            };
+          }
         }
 
         // Check if this is a Sunday (locked row with Sunday text)
-        const lockedNode = tr.querySelector(".ms-locked");
-        const isSundayRow = lockedNode && (lockedNode.textContent.trim() === "ඉරිදා දිනයකි" || lockedNode.textContent.trim() === "Sunday");
-        
+        const sundayNode = tr.querySelector(".ms-sunday");
+        const isSundayRow = sundayNode && (sundayNode.textContent.trim() === "ඉරිදා දිනයකි" || sundayNode.textContent.trim() === "Sunday");
+
         if (isSundayRow) {
           return {
             day: i + 1,
@@ -2718,7 +2740,11 @@
         const monthParts = monthValue.split("-");
         const isSaturday = monthParts.length === 2 && row.day ? new Date(parseInt(monthParts[0]), parseInt(monthParts[1]) - 1, row.day).getDay() === 6 : false;
         
-        if (row.isSunday) {
+        if (row.isSundayHoliday) {
+          // Sunday+Holiday: morning = Sunday, afternoon = holiday name
+          tableRowsHTML += '<div class="field row-morning ms-sunday" style="top:' + top + 'px;left:110px;">' + escapeHtml(sundayText) + '</div>';
+          tableRowsHTML += '<div class="field row-afternoon ms-holiday" style="top:' + top + 'px;left:450px;">' + escapeHtml(row.holidayName || "නිවාඩු දිනයකි") + '</div>';
+        } else if (row.isSunday) {
           // Show Sunday text in both morning and afternoon columns
           tableRowsHTML += '<div class="field row-morning ms-sunday" style="top:' + top + 'px;left:110px;">' + escapeHtml(sundayText) + '</div>';
           tableRowsHTML += '<div class="field row-afternoon ms-sunday" style="top:' + top + 'px;left:450px;">' + escapeHtml(sundayText) + '</div>';
