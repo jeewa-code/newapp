@@ -102,17 +102,22 @@
         setTimeout(() => {
           if(window.monthlySchedule && typeof window.monthlySchedule.loadPayloadForMonth === "function"){
             const payload = window.monthlySchedule.loadPayloadForMonth(monthKey);
-            if(payload && window.monthlySchedule.populateEditor){
-              window.monthlySchedule.populateEditor(payload);
-              
-              // Also set the month input to this month
+            if(payload) {
+              // First set the month input to this month (this will create the buttons)
               const monthInput = document.querySelector('input[type="month"]');
               if(monthInput) {
                 monthInput.value = monthKey;
-                // Trigger change event to update the editor
+                // Trigger change event to update the editor and create proper rows
                 monthInput.dispatchEvent(new Event('input', { bubbles: true }));
                 monthInput.dispatchEvent(new Event('change', { bubbles: true }));
               }
+              
+              // Then populate with saved data after a short delay to let month constraints apply
+              setTimeout(() => {
+                if(window.monthlySchedule.populateEditor) {
+                  window.monthlySchedule.populateEditor(payload);
+                }
+              }, 100);
             }
           }
         }, 300);

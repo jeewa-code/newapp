@@ -382,6 +382,7 @@
 
     const wrapper = document.createElement("div");
     wrapper.style.cssText = "position:relative;flex:1;min-width:0;width:100%";
+    wrapper.className = `${namePrefix}-${type}-wrapper`; // Add class for easy selection
 
     const btn = document.createElement("button");
     btn.id = btnId;
@@ -1608,6 +1609,8 @@
 
   /* ================= WEEK MULTI-SELECT HELPER ================= */
   function createWeekMultiSelect(recordId, selectedWeeks = [], disabled = false) {
+    console.log(`Creating week multi-select for ${recordId}, selectedWeeks:`, selectedWeeks, `disabled:`, disabled);
+    
     const container = document.createElement('div');
     container.className = 'week-multi-select';
     container.dataset.recordId = recordId;
@@ -1619,6 +1622,7 @@
     
     function updateButtonText() {
       const selected = getSelectedWeeks(recordId);
+      console.log(`updateButtonText for ${recordId}, selected:`, selected);
       if (selected.length === 0) {
         button.textContent = 'සතිය තෝරන්න';
       } else if (selected.length === 5) {
@@ -1626,6 +1630,7 @@
       } else {
         button.textContent = selected.map(w => `${w} වන`).join(', ');
       }
+      console.log(`Button text set to: ${button.textContent}`);
     }
     
     const menu = document.createElement('div');
@@ -1826,7 +1831,15 @@
     container.appendChild(button);
     container.appendChild(menu);
     
-    updateButtonText();
+    // Initial button text update - use selectedWeeks parameter directly
+    if (selectedWeeks.length === 0) {
+      button.textContent = 'සතිය තෝරන්න';
+    } else if (selectedWeeks.length === 5) {
+      button.textContent = 'සියලු සති';
+    } else {
+      button.textContent = selectedWeeks.map(w => `${w} වන`).join(', ');
+    }
+    console.log(`Initial button text set to: ${button.textContent} for recordId: ${recordId}`);
     
     return container;
   }
@@ -2089,15 +2102,31 @@
     // Add new fixed date
     if (addBtn) {
       addBtn.addEventListener("click", function () {
+        console.log("=== Add Fixed Date Button Clicked ===");
+        
         const roleCell = $("fd_new_role_cell");
         const placeCell = $("fd_new_place_cell");
         const dayCell = $("fd_new_day_cell");
         const timeCell = $("fd_new_time_cell");
         
+        console.log("Cells found:", {
+          roleCell: !!roleCell,
+          placeCell: !!placeCell,
+          dayCell: !!dayCell,
+          timeCell: !!timeCell
+        });
+        
         const roleWrapper = roleCell ? roleCell.querySelector(".fd-new-role-wrapper") : null;
         const placeWrapper = placeCell ? placeCell.querySelector(".fd-new-place-wrapper") : null;
         const dayWrapper = dayCell ? dayCell.querySelector("div") : null;
         const timeWrapper = timeCell ? timeCell.querySelector("div") : null;
+
+        console.log("Wrappers found:", {
+          roleWrapper: !!roleWrapper,
+          placeWrapper: !!placeWrapper,
+          dayWrapper: !!dayWrapper,
+          timeWrapper: !!timeWrapper
+        });
 
         const roleId = roleWrapper ? roleWrapper.getValue() : "";
         const placeId = placeWrapper ? placeWrapper.getValue() : "";
@@ -2105,8 +2134,17 @@
         const weeks = getSelectedWeeks('new');
         const time = timeWrapper ? timeWrapper.getValue() : "";
 
+        console.log("Values extracted:", {
+          roleId: roleId,
+          placeId: placeId,
+          day: day,
+          weeks: weeks,
+          time: time
+        });
+
         // Validate: at least one of role OR place must be selected
         if (!roleId && !placeId) {
+          console.log("Validation failed: No role or place selected");
           return window.showWarning ? showWarning("රාජකාරිය හෝ ස්ථානය අවම වශයෙන් එකක් තෝරන්න\nSelect at least role OR place") : alert("Select at least role OR place");
         }
         

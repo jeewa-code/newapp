@@ -1603,6 +1603,38 @@
       applyMonthConstraints(monthInput.value);
       // NEW: Auto-fill from fixed dates when month changes
       autoFillScheduleFromFixedDates(monthInput.value);
+      
+      // NEW: Check if saved data exists for this month and load it
+      const selectedMonth = monthInput.value;
+      console.log("Month selected:", selectedMonth);
+      if (selectedMonth) {
+        const key = `monthlySchedule_exact_template_${selectedMonth}`;
+        console.log("Looking for key:", key);
+        const stored = localStorage.getItem(key);
+        console.log("Stored data found:", !!stored);
+        if (stored) {
+          try {
+            const payload = JSON.parse(stored);
+            console.log("Found saved data for month:", selectedMonth);
+            
+            // Optional PHI check - if PHI info is available, verify it matches
+            const phiInfo = window.phiMeta ? window.phiMeta.getPhiInfo() : null;
+            const phiName = phiInfo && phiInfo.name ? phiInfo.name.toUpperCase() : "";
+            
+            if (phiName && payload.phi && payload.phi !== phiName) {
+              console.log("PHI mismatch - not loading data. Saved PHI:", payload.phi, "Current PHI:", phiName);
+              return;
+            }
+            
+            console.log("Auto-loading saved data for month:", selectedMonth);
+            setTimeout(() => {
+              populateFromPayload_local(payload);
+            }, 100);
+          } catch (e) {
+            console.error("Error loading saved data:", e);
+          }
+        }
+      }
     });
     monthInput.addEventListener("change", function () {
       // Remove red highlight when month is selected
@@ -1614,6 +1646,38 @@
       applyMonthConstraints(monthInput.value);
       // NEW: Auto-fill from fixed dates when month changes
       autoFillScheduleFromFixedDates(monthInput.value);
+      
+      // NEW: Check if saved data exists for this month and load it
+      const selectedMonth = monthInput.value;
+      console.log("Month changed:", selectedMonth);
+      if (selectedMonth) {
+        const key = `monthlySchedule_exact_template_${selectedMonth}`;
+        console.log("Looking for key:", key);
+        const stored = localStorage.getItem(key);
+        console.log("Stored data found:", !!stored);
+        if (stored) {
+          try {
+            const payload = JSON.parse(stored);
+            console.log("Found saved data for month:", selectedMonth);
+            
+            // Optional PHI check - if PHI info is available, verify it matches
+            const phiInfo = window.phiMeta ? window.phiMeta.getPhiInfo() : null;
+            const phiName = phiInfo && phiInfo.name ? phiInfo.name.toUpperCase() : "";
+            
+            if (phiName && payload.phi && payload.phi !== phiName) {
+              console.log("PHI mismatch - not loading data. Saved PHI:", payload.phi, "Current PHI:", phiName);
+              return;
+            }
+            
+            console.log("Auto-loading saved data for month:", selectedMonth);
+            setTimeout(() => {
+              populateFromPayload_local(payload);
+            }, 100);
+          } catch (e) {
+            console.error("Error loading saved data:", e);
+          }
+        }
+      }
     });
     
     // Designation change listener
@@ -1757,94 +1821,120 @@
     function populateFromPayload_local(p) {
       if (!p) return;
 
+      console.log("populateFromPayload_local called with payload:", p);
+
+      // FIRST: Set month and apply constraints to create all buttons
       monthInput.value = p.month || "";
-      if (p.entries && Array.isArray(p.entries)) {
-        p.entries.forEach(e => {
-          const row = tbody.querySelectorAll("tr")[(e.day || 1) - 1];
-          if (!row) return;
+      applyMonthConstraints(monthInput.value);
+      autoFillScheduleFromFixedDates(monthInput.value);
 
-          // Handle holiday rows
-          if (e.isHoliday) {
-            const holidayName = (e.morning && e.morning.holiday) || "";
-            if (holidayName) {
-              markRowAsHoliday(row, holidayName);
+      // THEN: Populate data after a small delay to ensure buttons are created
+      setTimeout(() => {
+        console.log("Starting data population after buttons created");
+        
+        if (p.entries && Array.isArray(p.entries)) {
+          p.entries.forEach(e => {
+            const row = tbody.querySelectorAll("tr")[(e.day || 1) - 1];
+            if (!row) return;
+
+            console.log(`Processing day ${e.day}:`, e);
+
+            // Handle holiday rows
+            if (e.isHoliday) {
+              const holidayName = (e.morning && e.morning.holiday) || "";
+              if (holidayName) {
+                markRowAsHoliday(row, holidayName);
+              }
+              return;
             }
-            return;
-          }
 
-          const mRole = row.querySelector(".tpl-morning-role");
-          const mPlace = row.querySelector(".tpl-morning-place");
-          const aRole = row.querySelector(".tpl-afternoon-role");
-          const aPlace = row.querySelector(".tpl-afternoon-place");
+            const mRole = row.querySelector(".tpl-morning-role");
+            const mPlace = row.querySelector(".tpl-morning-place");
+            const aRole = row.querySelector(".tpl-afternoon-role");
+            const aPlace = row.querySelector(".tpl-afternoon-place");
 
-          const setSelect = (selRoleBtn, selPlaceBtn, value) => {
-            if (!value) { 
-              if (selRoleBtn) selRoleBtn.dataset.value = ""; 
-              if (selPlaceBtn) selPlaceBtn.dataset.value = ""; 
-              return; 
-            }
-            if (typeof value === 'object') { 
-              // Set dataset values for buttons
-              if (selRoleBtn) {
-                selRoleBtn.dataset.value = value.role || "";
-                const roleText = getRoleNameById(value.role) || (value.role ? '-- තෝරන්න --' : '-- තෝරන්න --');
-                const textSpan = selRoleBtn.querySelector('span');
-                if (textSpan) textSpan.textContent = roleText;
-                // Update button style
-                if (value.role) {
-                  selRoleBtn.style.background = '#e3f2fd';
-                  selRoleBtn.style.color = '#000';
-                } else {
+            console.log(`Day ${e.day} - Found buttons:`, {
+              mRole: !!mRole,
+              mPlace: !!mPlace,
+              aRole: !!aRole,
+              aPlace: !!aPlace
+            });
+
+            const setSelect = (selRoleBtn, selPlaceBtn, value) => {
+              console.log("setSelect called with value:", value);
+              
+              if (!value) { 
+                if (selRoleBtn) {
+                  selRoleBtn.dataset.value = "";
+                  const textSpan = selRoleBtn.querySelector('span');
+                  if (textSpan) textSpan.textContent = currentLanguage === 'en' ? '-- Select --' : '-- තෝරන්න --';
                   selRoleBtn.style.background = '#fff';
-                  selRoleBtn.style.color = '#000';
                 }
-              }
-              if (selPlaceBtn) {
-                selPlaceBtn.dataset.value = value.place || "";
-                const placeText = getPlaceNameById(value.place) || (value.place ? '-- තෝරන්න --' : '-- තෝරන්න --');
-                const textSpan = selPlaceBtn.querySelector('span');
-                if (textSpan) textSpan.textContent = placeText;
-                // Update button style
-                if (value.place) {
-                  selPlaceBtn.style.background = '#e3f2fd';
-                  selPlaceBtn.style.color = '#000';
-                } else {
+                if (selPlaceBtn) {
+                  selPlaceBtn.dataset.value = "";
+                  const textSpan = selPlaceBtn.querySelector('span');
+                  if (textSpan) textSpan.textContent = currentLanguage === 'en' ? '-- Select --' : '-- තෝරන්න --';
                   selPlaceBtn.style.background = '#fff';
-                  selPlaceBtn.style.color = '#000';
                 }
-              }
-              return; 
-            }
-            try {
-              const parsed = JSON.parse(value);
-              if (parsed && typeof parsed === 'object') { 
-                setSelect(selRoleBtn, selPlaceBtn, parsed);
                 return; 
               }
-            } catch (e) { }
-            // fallback: plain text into role button
-            if (value && value.length) {
-              if (selRoleBtn) {
-                selRoleBtn.dataset.value = value;
-                const textSpan = selRoleBtn.querySelector('span');
-                if (textSpan) textSpan.textContent = value;
-                selRoleBtn.style.background = '#e3f2fd';
-                selRoleBtn.style.color = '#000';
+              if (typeof value === 'object') { 
+                // Set dataset values for buttons
+                if (selRoleBtn && value.role) {
+                  console.log("Setting role:", value.role);
+                  selRoleBtn.dataset.value = value.role;
+                  const roleText = getRoleNameById(value.role) || value.role;
+                  const textSpan = selRoleBtn.querySelector('span');
+                  if (textSpan) textSpan.textContent = roleText;
+                  // Update button style
+                  selRoleBtn.style.backgroundColor = 'rgb(104, 216, 216)';
+                  selRoleBtn.style.borderColor = '#000000ff';
+                  selRoleBtn.style.color = '#000';
+                }
+                if (selPlaceBtn && value.place) {
+                  console.log("Setting place:", value.place);
+                  selPlaceBtn.dataset.value = value.place;
+                  const placeText = getPlaceNameById(value.place) || value.place;
+                  const textSpan = selPlaceBtn.querySelector('span');
+                  if (textSpan) textSpan.textContent = placeText;
+                  // Update button style
+                  selPlaceBtn.style.backgroundColor = 'rgb(104, 216, 216)';
+                  selPlaceBtn.style.borderColor = '#000000ff';
+                  selPlaceBtn.style.color = '#000';
+                }
+                return; 
               }
-            }
-          };
+              try {
+                const parsed = JSON.parse(value);
+                if (parsed && typeof parsed === 'object') { 
+                  setSelect(selRoleBtn, selPlaceBtn, parsed);
+                  return; 
+                }
+              } catch (e) { }
+              // fallback: plain text into role button
+              if (value && value.length) {
+                if (selRoleBtn) {
+                  selRoleBtn.dataset.value = value;
+                  const textSpan = selRoleBtn.querySelector('span');
+                  if (textSpan) textSpan.textContent = value;
+                  selRoleBtn.style.backgroundColor = 'rgb(104, 216, 216)';
+                  selRoleBtn.style.borderColor = '#000000ff';
+                  selRoleBtn.style.color = '#000';
+                }
+              }
+            };
 
-          setSelect(mRole, mPlace, e.morning);
-          setSelect(aRole, aPlace, e.afternoon);
-        });
-      }
-      const fn = templateWrap.querySelector(".footer-notes");
-      if (fn) fn.value = p.footerNotes || "";
-      applyMetaDisplays();
-      // enforce month constraints if month present
-      applyMonthConstraints(monthInput.value);
-      // NEW: Auto-fill from fixed dates when loading saved schedule
-      autoFillScheduleFromFixedDates(monthInput.value);
+            setSelect(mRole, mPlace, e.morning);
+            setSelect(aRole, aPlace, e.afternoon);
+          });
+        }
+        
+        const fn = templateWrap.querySelector(".footer-notes");
+        if (fn) fn.value = p.footerNotes || "";
+        applyMetaDisplays();
+        
+        console.log("populateFromPayload_local completed");
+      }, 50);
     }
 
     // NEW: Function to mark a row as holiday
@@ -1952,9 +2042,8 @@
         if (!await showConfirm("Month not selected. Save without month key? (It will be stored under 'unspecified')")) return;
       }
       const key = storageKeyForMonth(payload.month);
-      const exists = !!localStorage.getItem(key);
       
-      // If exists, always overwrite without confirmation (user is editing existing schedule)
+      // Always save/overwrite without confirmation
       localStorage.setItem(key, JSON.stringify(payload));
       showSuccess("Saved successfully.");
       window.dispatchEvent(new CustomEvent("monthlyScheduleSaved", { detail: { month: payload.month } }));
