@@ -1443,13 +1443,32 @@
         
         // Update Sunday rows
         if (tr.classList.contains("ms-sunday-row")) {
-          const lockedDivM = tdM.querySelector(".ms-locked");
-          const lockedDivA = tdA.querySelector(".ms-locked");
-          if (lockedDivM) lockedDivM.textContent = currentSundayText;
-          if (lockedDivA) lockedDivA.textContent = currentSundayText;
+          const sundayDivM = tdM.querySelector(".ms-sunday");
+          const sundayDivA = tdA.querySelector(".ms-sunday");
+          if (sundayDivM) sundayDivM.textContent = currentSundayText;
+          if (sundayDivA) sundayDivA.textContent = currentSundayText;
         }
         
-        // Update government holiday rows
+        // Check for Sunday + Holiday combination (morning has .ms-sunday, afternoon has .ms-holiday)
+        const sundayDivM = tdM.querySelector(".ms-sunday");
+        const holidayDivA = tdA.querySelector(".ms-holiday");
+        if (sundayDivM && holidayDivA) {
+          // This is a Sunday + Government Holiday combination
+          sundayDivM.textContent = currentSundayText;
+          
+          // Update the holiday text in current language
+          const monthValue = monthInput.value;
+          if (monthValue) {
+            const [year, month] = monthValue.split("-");
+            const govHolidayName = isGovernmentHoliday(parseInt(year), parseInt(month), day, currentLanguage);
+            if (govHolidayName) {
+              holidayDivA.textContent = govHolidayName;
+              tr.dataset.holidayName = govHolidayName;
+            }
+          }
+        }
+        
+        // Update government holiday rows (both morning and afternoon are holidays)
         if (tr.classList.contains("ms-holiday-row") && !tr.dataset.manualHoliday) {
           // This is a government holiday, get the name in current language
           const monthValue = monthInput.value;
@@ -1664,7 +1683,7 @@
 
         // Check if this is a Sunday (locked row with Sunday text)
         const lockedNode = tr.querySelector(".ms-locked");
-        const isSundayRow = lockedNode && lockedNode.textContent.trim() === "ඉරිදා දිනයකි";
+        const isSundayRow = lockedNode && (lockedNode.textContent.trim() === "ඉරිදා දිනයකි" || lockedNode.textContent.trim() === "Sunday");
         
         if (isSundayRow) {
           return {
@@ -1758,21 +1777,59 @@
           const aRole = row.querySelector(".tpl-afternoon-role");
           const aPlace = row.querySelector(".tpl-afternoon-place");
 
-          const setSelect = (selRoleSel, selPlaceSel, value) => {
-            if (!value) { if (selRoleSel) selRoleSel.value = ""; if (selPlaceSel) selPlaceSel.value = ""; return; }
-            if (typeof value === 'object') { if (selRoleSel) selRoleSel.value = value.role || ""; if (selPlaceSel) selPlaceSel.value = value.place || ""; return; }
+          const setSelect = (selRoleBtn, selPlaceBtn, value) => {
+            if (!value) { 
+              if (selRoleBtn) selRoleBtn.dataset.value = ""; 
+              if (selPlaceBtn) selPlaceBtn.dataset.value = ""; 
+              return; 
+            }
+            if (typeof value === 'object') { 
+              // Set dataset values for buttons
+              if (selRoleBtn) {
+                selRoleBtn.dataset.value = value.role || "";
+                const roleText = getRoleNameById(value.role) || (value.role ? '-- තෝරන්න --' : '-- තෝරන්න --');
+                const textSpan = selRoleBtn.querySelector('span');
+                if (textSpan) textSpan.textContent = roleText;
+                // Update button style
+                if (value.role) {
+                  selRoleBtn.style.background = '#e3f2fd';
+                  selRoleBtn.style.color = '#000';
+                } else {
+                  selRoleBtn.style.background = '#fff';
+                  selRoleBtn.style.color = '#000';
+                }
+              }
+              if (selPlaceBtn) {
+                selPlaceBtn.dataset.value = value.place || "";
+                const placeText = getPlaceNameById(value.place) || (value.place ? '-- තෝරන්න --' : '-- තෝරන්න --');
+                const textSpan = selPlaceBtn.querySelector('span');
+                if (textSpan) textSpan.textContent = placeText;
+                // Update button style
+                if (value.place) {
+                  selPlaceBtn.style.background = '#e3f2fd';
+                  selPlaceBtn.style.color = '#000';
+                } else {
+                  selPlaceBtn.style.background = '#fff';
+                  selPlaceBtn.style.color = '#000';
+                }
+              }
+              return; 
+            }
             try {
               const parsed = JSON.parse(value);
-              if (parsed && typeof parsed === 'object') { if (selRoleSel) selRoleSel.value = parsed.role || ""; if (selPlaceSel) selPlaceSel.value = parsed.place || ""; return; }
+              if (parsed && typeof parsed === 'object') { 
+                setSelect(selRoleBtn, selPlaceBtn, parsed);
+                return; 
+              }
             } catch (e) { }
-            // fallback: plain text into role select
+            // fallback: plain text into role button
             if (value && value.length) {
-              if (selRoleSel) {
-                if (!Array.from(selRoleSel.options).some(o => o.value === value)) {
-                  const opt = document.createElement("option"); opt.value = value; opt.text = value + " (free)";
-                  selRoleSel.add(opt, selRoleSel.options[1] || null);
-                }
-                selRoleSel.value = value;
+              if (selRoleBtn) {
+                selRoleBtn.dataset.value = value;
+                const textSpan = selRoleBtn.querySelector('span');
+                if (textSpan) textSpan.textContent = value;
+                selRoleBtn.style.background = '#e3f2fd';
+                selRoleBtn.style.color = '#000';
               }
             }
           };
@@ -1832,6 +1889,12 @@
       const preservedMPlace = row.dataset.morningPlace || "";
       const preservedARole = row.dataset.afternoonRole || "";
       const preservedAPlace = row.dataset.afternoonPlace || "";
+      
+      // If this was a manual holiday (not government), preserve it for restoration
+      if (row.dataset.manualHoliday === "1" && row.dataset.holidayName) {
+        row.dataset.wasManualHoliday = "1";
+        row.dataset.manualHolidayName = row.dataset.holidayName;
+      }
 
       tdM.innerHTML = "";
       tdA.innerHTML = "";
@@ -1840,7 +1903,7 @@
 
       row.classList.remove("ms-holiday-row");
       delete row.dataset.holidayName;
-      delete row.dataset.manualHoliday;
+      // Don't delete manualHoliday flag here - it's used to track government holiday disable state
 
       // Refresh options
       refreshKeyMapOptions();
@@ -1890,12 +1953,8 @@
       }
       const key = storageKeyForMonth(payload.month);
       const exists = !!localStorage.getItem(key);
-      if (exists) {
-        if (!await showConfirm(`A saved schedule already exists for ${payload.month}. Overwrite?`)) {
-          showWarning("Save cancelled.");
-          return;
-        }
-      }
+      
+      // If exists, always overwrite without confirmation (user is editing existing schedule)
       localStorage.setItem(key, JSON.stringify(payload));
       showSuccess("Saved successfully.");
       window.dispatchEvent(new CustomEvent("monthlyScheduleSaved", { detail: { month: payload.month } }));
@@ -1961,11 +2020,13 @@
       const m = parseInt(parts[1], 10);
       const last = daysInMonth(y, m);
 
-      // mark Sundays set
+      // mark Sundays and Saturdays set
       const sundaySet = new Set();
+      const saturdaySet = new Set();
       for (let d = 1; d <= last; d++) {
-        const dayOfWeek = new Date(y, m - 1, d).getDay(); // 0 = Sunday
+        const dayOfWeek = new Date(y, m - 1, d).getDay(); // 0 = Sunday, 6 = Saturday
         if (dayOfWeek === 0) sundaySet.add(d);
+        if (dayOfWeek === 6) saturdaySet.add(d);
       }
 
       // Get government holidays for this month with current language
@@ -2003,10 +2064,10 @@
           const aRoleSel = tdA.querySelector(".tpl-afternoon-role");
           const aPlaceSel = tdA.querySelector(".tpl-afternoon-place");
 
-          const mRoleVal = (mRoleSel && mRoleSel.value) ? mRoleSel.value : (tr.dataset.morningRole || "");
-          const mPlaceVal = (mPlaceSel && mPlaceSel.value) ? mPlaceSel.value : (tr.dataset.morningPlace || "");
-          const aRoleVal = (aRoleSel && aRoleSel.value) ? aRoleSel.value : (tr.dataset.afternoonRole || "");
-          const aPlaceVal = (aPlaceSel && aPlaceSel.value) ? aPlaceSel.value : (tr.dataset.afternoonPlace || "");
+          const mRoleVal = (mRoleSel && mRoleSel.dataset.value) ? mRoleSel.dataset.value : (tr.dataset.morningRole || "");
+          const mPlaceVal = (mPlaceSel && mPlaceSel.dataset.value) ? mPlaceSel.dataset.value : (tr.dataset.morningPlace || "");
+          const aRoleVal = (aRoleSel && aRoleSel.dataset.value) ? aRoleSel.dataset.value : (tr.dataset.afternoonRole || "");
+          const aPlaceVal = (aPlaceSel && aPlaceSel.dataset.value) ? aPlaceSel.dataset.value : (tr.dataset.afternoonPlace || "");
 
           // store preserved values in dataset
           if (mRoleVal) tr.dataset.morningRole = mRoleVal; else delete tr.dataset.morningRole;
@@ -2091,7 +2152,8 @@
            tdM.innerHTML = "";
            tdA.innerHTML = "";
            
-           const sundayDivM = createLockedDisplayCell("ඉරිදා දිනයකි");
+           const sundayText = currentLanguage === 'en' ? "Sunday" : "ඉරිදා දිනයකි";
+           const sundayDivM = createLockedDisplayCell(sundayText);
            sundayDivM.classList.add("ms-sunday");
            
            const holidayDivA = createHolidayDisplayCell(govHolidayName);
@@ -2105,10 +2167,38 @@
            // Double click to convert to Duty (Manual Duty)
            const sundayHolidayDblHandler = function(ev) {
                ev.stopPropagation();
-               tr.dataset.manualHoliday = "1";
-               tr.dataset.sundayLocked = "1";
-               unmarkRowAsHoliday(tr);
-               tr.classList.remove("ms-sunday-row"); // ensure clean
+               
+               // Check if currently showing Sunday + Holiday
+               const hasSundayDiv = tdM.querySelector(".ms-sunday");
+               const hasHolidayDiv = tdA.querySelector(".ms-holiday");
+               
+               if (hasSundayDiv && hasHolidayDiv) {
+                   // Currently showing Sunday + Holiday -> convert to duty
+                   tr.dataset.manualHoliday = "1";
+                   tr.dataset.wasSundayHoliday = "1"; // Mark that it was Sunday + Holiday combo
+                   unmarkRowAsHoliday(tr);
+                   tr.classList.remove("ms-sunday-row");
+               } else {
+                   // Currently showing duty -> restore Sunday + Holiday
+                   delete tr.dataset.manualHoliday;
+                   delete tr.dataset.wasSundayHoliday;
+                   
+                   // Re-render Sunday + Holiday
+                   tdM.innerHTML = "";
+                   tdA.innerHTML = "";
+                   
+                   const sundayText = currentLanguage === 'en' ? "Sunday" : "ඉරිදා දිනයකි";
+                   const sundayDivM = createLockedDisplayCell(sundayText);
+                   sundayDivM.classList.add("ms-sunday");
+                   
+                   const holidayDivA = createHolidayDisplayCell(govHolidayName);
+                   
+                   tdM.appendChild(sundayDivM);
+                   tdA.appendChild(holidayDivA);
+                   
+                   tr.classList.add("ms-holiday-row");
+                   tr.dataset.holidayName = govHolidayName;
+               }
            };
            
            tr.addEventListener("dblclick", sundayHolidayDblHandler);
@@ -2137,8 +2227,9 @@
             tdA.innerHTML = "";
             
             // USE ms-sunday class now which has proper styling
-            const sundayDivM = el("div", { class: "ms-sunday", text: "ඉරිදා දිනයකි" });
-            const sundayDivA = el("div", { class: "ms-sunday", text: "ඉරිදා දිනයකි" });
+            const sundayText = currentLanguage === 'en' ? "Sunday" : "ඉරිදා දිනයකි";
+            const sundayDivM = el("div", { class: "ms-sunday", text: sundayText });
+            const sundayDivA = el("div", { class: "ms-sunday", text: sundayText });
             
             tdM.appendChild(sundayDivM);
             tdA.appendChild(sundayDivA);
@@ -2192,14 +2283,19 @@
           // Attach double-click toggle handler on the entire row (or you can attach to tdM/tdA)
           const dblHandler = function (ev) {
             ev.stopPropagation();
-            // If currently shows selects (duty) -> switch back to locked Sunday
-            const hasSelects = !!tdM.querySelector("select") || !!tdA.querySelector("select");
-            if (hasSelects) {
+            // If currently shows selects/buttons (duty) -> switch back to locked Sunday
+            const hasInputs = !!tdM.querySelector("button[class*='tpl-']") || !!tdA.querySelector("button[class*='tpl-']");
+            if (hasInputs) {
               // store current select values then make locked
-              const curMRole = (tdM.querySelector(".tpl-morning-role") || { value: "" }).value || "";
-              const curMPlace = (tdM.querySelector(".tpl-morning-place") || { value: "" }).value || "";
-              const curARole = (tdA.querySelector(".tpl-afternoon-role") || { value: "" }).value || "";
-              const curAPlace = (tdA.querySelector(".tpl-afternoon-place") || { value: "" }).value || "";
+              const mRoleBtn = tdM.querySelector(".tpl-morning-role");
+              const mPlaceBtn = tdM.querySelector(".tpl-morning-place");
+              const aRoleBtn = tdA.querySelector(".tpl-afternoon-role");
+              const aPlaceBtn = tdA.querySelector(".tpl-afternoon-place");
+
+              const curMRole = (mRoleBtn && mRoleBtn.dataset.value) || "";
+              const curMPlace = (mPlaceBtn && mPlaceBtn.dataset.value) || "";
+              const curARole = (aRoleBtn && aRoleBtn.dataset.value) || "";
+              const curAPlace = (aPlaceBtn && aPlaceBtn.dataset.value) || "";
 
               if (curMRole) tr.dataset.morningRole = curMRole; else delete tr.dataset.morningRole;
               if (curMPlace) tr.dataset.morningPlace = curMPlace; else delete tr.dataset.morningPlace;
@@ -2247,6 +2343,19 @@
           // Attach double-click handler for holiday selection
           const holidayDblHandler = function (ev) {
             ev.stopPropagation();
+            
+            // NEW: For Saturday, only allow holiday marking from morning cell or day number cell
+            const isSaturday = saturdaySet.has(day);
+            if (isSaturday) {
+              const tdDay = tr.children[0]; // Day number cell
+              const tdM = tr.children[1];   // Morning cell
+              const tdA = tr.children[2];   // Afternoon cell
+              
+              // Only respond if click is in day number or morning cell
+              if (!tdDay.contains(ev.target) && !tdM.contains(ev.target)) {
+                return; // Ignore clicks on afternoon cell for Saturday
+              }
+            }
 
             // If already a holiday, toggle back to normal day
             if (tr.classList.contains("ms-holiday-row")) {
@@ -2281,17 +2390,28 @@
               return;
             }
 
-            // Not currently a holiday - check if this day has a government holiday
+            // Not currently a holiday - check if this is a normal day
+            // Check if this day has a government holiday that was manually disabled
             const govHolidayName = monthHolidays[day];
-            if (govHolidayName) {
-              // This day has a government holiday - restore it
-              // Clear the manual flag to allow it to show
+            if (govHolidayName && tr.dataset.manualHoliday === "1") {
+              // This day has a government holiday that was manually converted to normal day
+              // Restore it back to government holiday
               delete tr.dataset.manualHoliday;
               markRowAsHoliday(tr, govHolidayName, false);
               return;
             }
+            
+            // Check if there's a manual holiday stored (was removed but can be restored)
+            if (tr.dataset.wasManualHoliday === "1" && tr.dataset.manualHolidayName) {
+              // Restore the manual holiday
+              const restoredHolidayName = tr.dataset.manualHolidayName;
+              delete tr.dataset.wasManualHoliday;
+              delete tr.dataset.manualHolidayName;
+              markRowAsHoliday(tr, restoredHolidayName, true);
+              return;
+            }
 
-            // No government holiday - show manual holiday selection dialog
+            // No holiday to restore - show manual holiday selection dialog
             const holidays = loadHolidays();
             if (holidays.length === 0) {
               showWarning("No holiday types available. Please add holiday types in Key Map first.");
@@ -2381,6 +2501,97 @@
           }
           tr.classList.remove("ms-sunday-row");
         }
+        
+        // SATURDAY HANDLING - Disable afternoon by default, enable on double-click
+        const isSaturday = saturdaySet.has(day);
+        if (isSaturday && !isSunday && !isEffectiveGovHoliday && day <= last) {
+          // Helper to lock Saturday afternoon
+          const lockSaturdayAfternoon = () => {
+            // Preserve afternoon values
+            const aRoleSel = tdA.querySelector(".tpl-afternoon-role");
+            const aPlaceSel = tdA.querySelector(".tpl-afternoon-place");
+            
+            const aRoleVal = (aRoleSel && aRoleSel.dataset.value) ? aRoleSel.dataset.value : (tr.dataset.afternoonRole || "");
+            const aPlaceVal = (aPlaceSel && aPlaceSel.dataset.value) ? aPlaceSel.dataset.value : (tr.dataset.afternoonPlace || "");
+            
+            if (aRoleVal) tr.dataset.afternoonRole = aRoleVal; else delete tr.dataset.afternoonRole;
+            if (aPlaceVal) tr.dataset.afternoonPlace = aPlaceVal; else delete tr.dataset.afternoonPlace;
+            
+            // Replace with locked display (showing preserved values or empty)
+            tdA.innerHTML = "";
+            const lockedDiv = createLockedDisplayCell(formatEntryForPrint({ role: aRoleVal, place: aPlaceVal }) || "");
+            lockedDiv.style.background = "#f5f5f5";
+            lockedDiv.style.cursor = "pointer";
+            lockedDiv.title = "Double-click to enable Saturday afternoon duty";
+            tdA.appendChild(lockedDiv);
+            
+            tr.classList.add("ms-saturday-afternoon-locked");
+            delete tr.dataset.saturdayAfternoonUnlocked;
+          };
+          
+          // Helper to unlock Saturday afternoon (enable selects)
+          const unlockSaturdayAfternoon = () => {
+            const preservedRole = tr.dataset.afternoonRole || "";
+            const preservedPlace = tr.dataset.afternoonPlace || "";
+            
+            tdA.innerHTML = "";
+            tdA.appendChild(createSelectCell("tpl-afternoon", preservedRole, preservedPlace, false));
+            
+            tr.classList.remove("ms-saturday-afternoon-locked");
+            tr.dataset.saturdayAfternoonUnlocked = "1";
+            
+            refreshKeyMapOptions();
+          };
+          
+          // Check initial state: if saturdayAfternoonUnlocked flag is set, show selects
+          if (tr.dataset.saturdayAfternoonUnlocked === "1") {
+            // Ensure selects exist
+            if (!tdA.querySelector(".tpl-afternoon-role")) {
+              tdA.innerHTML = "";
+              tdA.appendChild(createSelectCell("tpl-afternoon", tr.dataset.afternoonRole || "", tr.dataset.afternoonPlace || "", false));
+            }
+            tr.classList.remove("ms-saturday-afternoon-locked");
+          } else {
+            // Default: lock the afternoon
+            lockSaturdayAfternoon();
+          }
+          
+          // Remove any previous Saturday double-click handler
+          if (tr._ms_saturday_dbl_handler) {
+            tr.removeEventListener("dblclick", tr._ms_saturday_dbl_handler);
+            delete tr._ms_saturday_dbl_handler;
+          }
+          
+          // Attach double-click toggle handler specifically for afternoon cell
+          const saturdayDblHandler = function (ev) {
+            // Only respond to clicks in the afternoon cell
+            if (!tdA.contains(ev.target)) return;
+            
+            ev.stopPropagation();
+            
+            // Toggle between locked and unlocked
+            const isCurrentlyLocked = tr.classList.contains("ms-saturday-afternoon-locked");
+            
+            if (isCurrentlyLocked) {
+              unlockSaturdayAfternoon();
+              // Focus first select for better UX
+              const firstBtn = tdA.querySelector("button");
+              if (firstBtn) try { firstBtn.focus(); } catch (e) { }
+            } else {
+              // Store current values then lock
+              const curARole = (tdA.querySelector(".tpl-afternoon-role") || { dataset: {} }).dataset.value || "";
+              const curAPlace = (tdA.querySelector(".tpl-afternoon-place") || { dataset: {} }).dataset.value || "";
+              
+              if (curARole) tr.dataset.afternoonRole = curARole; else delete tr.dataset.afternoonRole;
+              if (curAPlace) tr.dataset.afternoonPlace = curAPlace; else delete tr.dataset.afternoonPlace;
+              
+              lockSaturdayAfternoon();
+            }
+          };
+          
+          tr.addEventListener("dblclick", saturdayDblHandler);
+          tr._ms_saturday_dbl_handler = saturdayDblHandler;
+        }
       });
     }
 
@@ -2414,6 +2625,10 @@
         const ROW_HEIGHT = 27.5;
         const top = TABLE_START_TOP + (idx * ROW_HEIGHT);
         
+        // Check if this day is Saturday
+        const monthParts = monthValue.split("-");
+        const isSaturday = monthParts.length === 2 && row.day ? new Date(parseInt(monthParts[0]), parseInt(monthParts[1]) - 1, row.day).getDay() === 6 : false;
+        
         if (row.isSunday) {
           // Show Sunday text in both morning and afternoon columns
           tableRowsHTML += '<div class="field row-morning ms-sunday" style="top:' + top + 'px;left:110px;">' + escapeHtml(sundayText) + '</div>';
@@ -2429,8 +2644,17 @@
         } else {
           const mText = formatEntryForPrint(row.morning);
           const aText = formatEntryForPrint(row.afternoon);
+          
+          // Morning - always show if has text
           if (mText) tableRowsHTML += '<div class="field row-morning" style="top:' + top + 'px;">' + escapeHtml(mText) + '</div>';
-          if (aText) tableRowsHTML += '<div class="field row-afternoon" style="top:' + top + 'px;">' + escapeHtml(aText) + '</div>';
+          
+          // Afternoon - if Saturday and empty, show red line
+          if (aText) {
+            tableRowsHTML += '<div class="field row-afternoon" style="top:' + top + 'px;">' + escapeHtml(aText) + '</div>';
+          } else if (isSaturday) {
+            // Saturday afternoon with no duty - show red line
+            tableRowsHTML += '<div class="field" style="top:' + (top + 5) + 'px;left:450px;width:320px;height:2px;background:#b71c1c;white-space:normal;"></div>';
+          }
         }
       });
 

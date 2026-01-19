@@ -44,6 +44,37 @@
 
         // Clear any existing content completely
         realContent.innerHTML = "";
+        
+        // Add CSS for animated cards
+        if (!document.getElementById("monthly-schedule-animated-cards-css")) {
+            const style = document.createElement("style");
+            style.id = "monthly-schedule-animated-cards-css";
+            style.textContent = `
+                .ms-card-container { position: relative; width: 190px; height: 254px; transition: 200ms; margin: 0 auto; }
+                .ms-card-container:active { width: 180px; height: 245px; }
+                .ms-card { position: absolute; inset: 0; z-index: 0; display: flex; justify-content: center; align-items: center; border-radius: 20px; transition: 700ms; background: linear-gradient(45deg, #1a1a1a, #262626); border: 2px solid rgba(255, 255, 255, 0.1); overflow: hidden; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.2); }
+                .ms-card-content { position: relative; width: 100%; height: 100%; }
+                .ms-card-prompt { bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 20; font-size: 14px; font-weight: 600; letter-spacing: 2px; transition: 300ms ease-in-out; position: absolute; text-align: center; color: rgba(255, 255, 255, 0.7); text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+                .ms-card-title { opacity: 0; transition: 300ms ease-in-out; position: absolute; font-size: 24px; font-weight: 800; letter-spacing: 3px; text-align: center; width: 100%; padding-top: 30px; background: linear-gradient(45deg, #00ffaa, #00a2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(0, 255, 170, 0.3)); }
+                .ms-card-subtitle { position: absolute; bottom: 40px; width: 100%; text-align: center; font-size: 11px; letter-spacing: 1px; color: rgba(255, 255, 255, 0.6); padding: 0 10px; }
+                .ms-card-glowing { position: absolute; inset: 0; pointer-events: none; }
+                .ms-card-glow { position: absolute; width: 100px; height: 100px; border-radius: 50%; background: radial-gradient(circle at center, rgba(0, 255, 170, 0.3) 0%, rgba(0, 255, 170, 0) 70%); filter: blur(15px); opacity: 0; transition: opacity 0.3s ease; }
+                .ms-card-glow:nth-child(1) { top: -20px; left: -20px; }
+                .ms-card-glow:nth-child(2) { top: 50%; right: -30px; transform: translateY(-50%); }
+                .ms-card-glow:nth-child(3) { bottom: -20px; left: 30%; }
+                .ms-card-tracker { position: absolute; z-index: 200; width: 100%; height: 100%; cursor: pointer; }
+                .ms-card-tracker:hover ~ .ms-card .ms-card-title { opacity: 1; transform: translateY(-10px); }
+                .ms-card-tracker:hover ~ .ms-card .ms-card-glow { opacity: 1; }
+                .ms-card-tracker:hover ~ .ms-card .ms-card-prompt { opacity: 0; }
+                .ms-card-tracker:hover ~ .ms-card { transition: 300ms; filter: brightness(1.1); }
+                .ms-card::before { content: ""; background: radial-gradient(circle at center, rgba(0, 255, 170, 0.1) 0%, rgba(0, 162, 255, 0.05) 50%, transparent 100%); filter: blur(20px); opacity: 0; width: 150%; height: 150%; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: opacity 0.3s ease; }
+                .ms-card-tracker:hover ~ .ms-card::before { opacity: 1; }
+                .ms-card-glare { position: absolute; inset: 0; background: linear-gradient(125deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 55%, rgba(255, 255, 255, 0) 100%); opacity: 0; transition: opacity 300ms; }
+                .ms-card:hover .ms-card-glare { opacity: 1; }
+                .ms-card-icon { font-size: 3em; color: #00ffaa; margin-bottom: 15px; position: absolute; top: 60px; left: 50%; transform: translateX(-50%); filter: drop-shadow(0 0 10px rgba(0, 255, 170, 0.5)); }
+            `;
+            document.head.appendChild(style);
+        }
 
         // Header - Only title with back button to cards view
         const header = el("div", {
@@ -79,61 +110,51 @@
         const cardsContainer = el("div", {
             id: "ms_cards_container",
             class: "monthly-schedule-cards",
-            style: "display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;"
+            style: "display:flex;justify-content:center;gap:40px;margin-bottom:20px;flex-wrap:wrap;"
         });
 
-        // Card 1: Editor Card (Clickable)
-        const editorCard = el("div", {
-            class: "glass card-clickable",
-            style: "padding:25px;border-radius:12px;cursor:pointer;text-align:center;transition:all 0.3s ease;border:2px solid var(--primary);min-height:120px;display:flex;flex-direction:column;justify-content:center;align-items:center;"
-        });
+        // Card 1: Editor Card (Animated)
+        const editorCardContainer = el("div", { class: "ms-card-container" });
+        editorCardContainer.innerHTML = `
+            <div class="ms-card-tracker"></div>
+            <div class="ms-card">
+                <div class="ms-card-content">
+                    <i class="fas fa-edit ms-card-icon"></i>
+                    <div class="ms-card-prompt">CLICK TO OPEN</div>
+                    <div class="ms-card-title">Editor</div>
+                    <div class="ms-card-subtitle">advance program</div>
+                    <div class="ms-card-glowing">
+                        <div class="ms-card-glow"></div>
+                        <div class="ms-card-glow"></div>
+                        <div class="ms-card-glow"></div>
+                    </div>
+                    <div class="ms-card-glare"></div>
+                </div>
+            </div>
+        `;
 
-        const editorIcon = el("i", {
-            class: "fas fa-edit",
-            style: "font-size:2em;color:var(--primary);margin-bottom:10px;"
-        });
+        // Card 2: Saved Schedules Card (Animated)
+        const savedCardContainer = el("div", { class: "ms-card-container" });
+        savedCardContainer.innerHTML = `
+            <div class="ms-card-tracker"></div>
+            <div class="ms-card">
+                <div class="ms-card-content">
+                    <i class="fas fa-list ms-card-icon"></i>
+                    <div class="ms-card-prompt">CLICK TO OPEN</div>
+                    <div class="ms-card-title">Saved</div>
+                    <div class="ms-card-subtitle"> saved advance program</div>
+                    <div class="ms-card-glowing">
+                        <div class="ms-card-glow"></div>
+                        <div class="ms-card-glow"></div>
+                        <div class="ms-card-glow"></div>
+                    </div>
+                    <div class="ms-card-glare"></div>
+                </div>
+            </div>
+        `;
 
-        const editorTitle = el("h3", {
-            style: "color:var(--primary);margin:0 0 8px 0;font-size:18px;",
-            text: "Editor"
-        });
-
-        const editorDesc = el("p", {
-            style: "color:#666;margin:0;font-size:14px;",
-            text: "Create or edit monthly schedules"
-        });
-
-        editorCard.appendChild(editorIcon);
-        editorCard.appendChild(editorTitle);
-        editorCard.appendChild(editorDesc);
-
-        // Card 2: Saved List Card (Clickable)
-        const savedCard = el("div", {
-            class: "glass card-clickable",
-            style: "padding:25px;border-radius:12px;cursor:pointer;text-align:center;transition:all 0.3s ease;border:2px solid var(--primary);min-height:120px;display:flex;flex-direction:column;justify-content:center;align-items:center;"
-        });
-
-        const savedIcon = el("i", {
-            class: "fas fa-list",
-            style: "font-size:2em;color:var(--primary);margin-bottom:10px;"
-        });
-
-        const savedTitle = el("h3", {
-            style: "color:var(--primary);margin:0 0 8px 0;font-size:18px;",
-            text: "Saved Schedules"
-        });
-
-        const savedDesc = el("p", {
-            style: "color:#666;margin:0;font-size:14px;",
-            text: "View and manage saved schedules"
-        });
-
-        savedCard.appendChild(savedIcon);
-        savedCard.appendChild(savedTitle);
-        savedCard.appendChild(savedDesc);
-
-        cardsContainer.appendChild(editorCard);
-        cardsContainer.appendChild(savedCard);
+        cardsContainer.appendChild(editorCardContainer);
+        cardsContainer.appendChild(savedCardContainer);
 
         realContent.appendChild(cardsContainer);
 
@@ -183,7 +204,7 @@
 
         // Function to show cards view
         function showCardsView() {
-            cardsContainer.style.display = "grid";
+            cardsContainer.style.display = "flex";
             contentArea.style.display = "none";
             backBtn.style.display = "none";
             reportsBackBtn.style.display = "block";
@@ -281,30 +302,12 @@
             }
         }
 
-        // Add hover effects for cards
-        editorCard.addEventListener('mouseenter', () => {
-            editorCard.style.transform = 'translateY(-2px)';
-            editorCard.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-        });
+        // Add click event handlers to the tracker divs
+        const editorTracker = editorCardContainer.querySelector('.ms-card-tracker');
+        const savedTracker = savedCardContainer.querySelector('.ms-card-tracker');
 
-        editorCard.addEventListener('mouseleave', () => {
-            editorCard.style.transform = 'translateY(0)';
-            editorCard.style.boxShadow = 'none';
-        });
-
-        savedCard.addEventListener('mouseenter', () => {
-            savedCard.style.transform = 'translateY(-2px)';
-            savedCard.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-        });
-
-        savedCard.addEventListener('mouseleave', () => {
-            savedCard.style.transform = 'translateY(0)';
-            savedCard.style.boxShadow = 'none';
-        });
-
-        // Add click event handlers
-        addEventHandler(editorCard, "click", loadEditor);
-        addEventHandler(savedCard, "click", loadSaved);
+        addEventHandler(editorTracker, "click", loadEditor);
+        addEventHandler(savedTracker, "click", loadSaved);
         addEventHandler(backBtn, "click", showCardsView);
 
         // Listen for save events to refresh the saved list if it's currently active

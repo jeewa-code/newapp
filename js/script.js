@@ -287,7 +287,7 @@
     const mapping = {
       // IMPORTANT: monthlyScheduleModule provides the tabbed Editor+Saved UI and calls monthlySchedule.js internally.
       "මාසික ඉදිරි කාලසටහන": { path: "js/reports/monthlyScheduleModule.js", fn: "openMonthlyScheduleModule" },
-      "මාසික වාර්තාව": { path: "js/reports/monthlyReport.js", fn: "openMonthlyReport" },
+      // "මාසික වාර්තාව": { path: "js/reports/monthlyReport.js", fn: "openMonthlyReport" }, // Temporarily disabled - file not created yet
       "OT": { path: "js/reports/otReport.js", fn: "openOTReport" },
       "CT": { path: "js/reports/ctReport.js", fn: "openCTReport" },
       "වෙනත්": { path: "js/reports/otherReports.js", fn: "openOtherReports" }

@@ -91,29 +91,33 @@
     card.appendChild(removeBtn);
 
 
-    card.addEventListener("click", ()=>{
-      // Open editor for this month
-      // dispatch event so monthlyScheduleModule handles switching
-      // Prefer to call monthlySchedule.openWithMonth if available.
-      if(window.monthlySchedule && typeof window.monthlySchedule.openWithMonth === "function"){
-        // to keep UI consistent: dispatch global event that module listens to, but directly call openWithMonth too.
-        window.monthlySchedule.openWithMonth(monthKey);
-        // also notify any listeners
-        window.dispatchEvent(new CustomEvent("openMonthlyScheduleForMonth", { detail:{ month: monthKey } }));
-      } else {
-        // if monthlySchedule not loaded yet, try to load it then call
-        const s = document.createElement("script");
-        s.src = "js/reports/monthlySchedule.js";
-        s.onload = function(){
-          if(window.monthlySchedule && typeof window.monthlySchedule.openWithMonth === "function"){
-            window.monthlySchedule.openWithMonth(monthKey);
-            window.dispatchEvent(new CustomEvent("openMonthlyScheduleForMonth", { detail:{ month: monthKey } }));
-          } else {
-            showError("Editor not available yet.");
+    card.addEventListener("click", async ()=>{
+      // Open editor for this month with saved data
+      // Use the module's editor loader and then populate with saved data
+      if(window.openMonthlyScheduleEditor && typeof window.openMonthlyScheduleEditor === "function"){
+        // Call the module's editor loader
+        await window.openMonthlyScheduleEditor();
+        
+        // Wait a bit for editor to render, then load the saved data
+        setTimeout(() => {
+          if(window.monthlySchedule && typeof window.monthlySchedule.loadPayloadForMonth === "function"){
+            const payload = window.monthlySchedule.loadPayloadForMonth(monthKey);
+            if(payload && window.monthlySchedule.populateEditor){
+              window.monthlySchedule.populateEditor(payload);
+              
+              // Also set the month input to this month
+              const monthInput = document.querySelector('input[type="month"]');
+              if(monthInput) {
+                monthInput.value = monthKey;
+                // Trigger change event to update the editor
+                monthInput.dispatchEvent(new Event('input', { bubbles: true }));
+                monthInput.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            }
           }
-        };
-        s.onerror = ()=> showError("Failed to load editor.");
-        document.head.appendChild(s);
+        }, 300);
+      } else {
+        showError("Editor not available. Please go back and click the Editor card first.");
       }
     });
 
