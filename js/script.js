@@ -168,6 +168,14 @@
           </div>
         </div>
       `;
+    } else if (section === "BMI") {
+      dynamicLoadScript("js/bmi/bmiApp.js", () => {
+        if (typeof window.bmiApp === "object" && typeof window.bmiApp.render === "function") {
+          window.bmiApp.render("contentArea");
+        } else {
+          content.innerHTML = `<h2>BMI App</h2><p>Failed to initialize BMI App.</p>`;
+        }
+      });
     } else {
       content.innerHTML = `<h2>${escapeHtml(section)}</h2><p>${escapeHtml(section)} details will appear here.</p>`;
     }
@@ -691,7 +699,7 @@
   // Call on page load
   document.addEventListener('DOMContentLoaded', function () {
     updateSidebarPhiInfo();
-    
+
     // Default to HOME
     showContent('Home', { currentTarget: document.querySelector("li.active") });
 
