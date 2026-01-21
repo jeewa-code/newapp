@@ -93,7 +93,7 @@
             if (!container) return;
 
             // Generate options
-            let gradeOptions = '<option value="" disabled selected>තෝරන්න / Select</option>';
+            let gradeOptions = '<option value="" disabled selected>තෝරන්න </option>';
             for (let i = 1; i <= 13; i++) {
                 gradeOptions += `<option value="${i}">Grade ${i}</option>`;
             }
@@ -101,9 +101,15 @@
             // Injected Styles for Mobile Responsiveness
             const styles = `
               <style>
+                .bmi-container {
+                   max-width: 900px;
+                   margin: 30px auto;
+                   padding: 30px;
+                   border-radius: 16px;
+                }
                 .bmi-grid-container {
                   display: grid;
-                  grid-template-columns: 1fr 1fr;
+                  grid-template-columns: 1fr;
                   gap: 15px;
                   margin-bottom: 20px;
                 }
@@ -112,44 +118,107 @@
                    grid-template-columns: 1fr 1fr; 
                    gap: 20px;
                 }
+                .bmi-gender-group {
+                    display: flex;
+                    gap: 20px;
+                }
+                .bmi-chart-card {
+                   background: white; 
+                   padding: 15px; 
+                   border-radius: 10px; 
+                   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                }
+                .bmi-chart-wrapper {
+                   position: relative;
+                   height: 600px;
+                   width: 100%;
+                }
                 @media (max-width: 768px) {
                   .bmi-grid-container, .bmi-charts-container {
                     grid-template-columns: 1fr !important;
                   }
-                  #bmiGrade, #bmiDOB, #bmiHeight, #bmiWeight {
-                      font-size: 16px !important; /* Prevent zoom on mobile */
+                  .bmi-container { 
+                    margin: 15px 10px; 
+                    padding: 15px; 
+                  }
+                  #bmiGrade, #bmiDOB, #bmiHeight, #bmiWeight, #bmiExamDate {
+                      font-size: 14px !important; /* Smaller font for mobile */
+                      padding: 10px !important;
                   }
                   .bmi-header {
-                      font-size: 20px !important;
+                      font-size: 18px !important;
+                      margin-bottom: 15px !important;
                   }
+                  .bmi-grid-container {
+                      gap: 10px !important; /* Reduced row gap */
+                      margin-bottom: 15px !important;
+                  }
+                  label {
+                      font-size: 13px !important;
+                      margin-bottom: 5px !important;
+                  }
+                  /* Mobile chart height adjustments */
+                  .bmi-chart-wrapper {
+                      height: 400px !important; 
+                  }
+                }
+                @media (max-width: 480px) {
+                    /* Specific styles for small screens */
+                    .bmi-container {
+                        margin: 5px 2px !important; /* Minimal margin */
+                        padding: 10px !important;
+                    }
+                    .bmi-chart-card {
+                        padding: 5px !important; /* Reduce card padding */
+                    }
+                    .bmi-gender-group {
+                        flex-direction: row !important; /* Keep gender on one row */
+                        gap: 10px;
+                    }
+                    .bmi-gender-group label {
+                        flex: 1;
+                        justify-content: center;
+                        padding: 8px !important;
+                        font-size: 12px !important;
+                    }
+                     /* Smaller chart height for 320px screens */
+                    .bmi-chart-wrapper {
+                        height: 300px !important; 
+                    }
                 }
               </style>
             `;
 
             container.innerHTML = `
         ${styles}
-        <div class="glass" style="max-width: 900px; margin: 30px auto; padding: 30px; border-radius: 16px;">
+        <div class="glass bmi-container">
           <h2 class="bmi-header" style="color: #ffffff; text-align: center; margin-bottom: 25px; font-size: 24px; font-weight: 600;">
             <i class="fa-solid fa-child-reaching" style="margin-right:10px;"></i>පාසල් සෞඛ්‍ය සඳහා BMI calculator
           </h2>
           
           <div class="bmi-grid-container">
+             <!-- Exam Date -->
+             <div>
+               <label style="display: block; color: #ffffff; margin-bottom: 10px; font-weight: 500;">මූලික පරීක්ෂාව කල දිනය </label>
+               <input type="date" id="bmiExamDate" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 15px;">
+             </div>
+
              <!-- Gender -->
-             <div style="grid-column: span 2;">
-                <label style="display: block; color: #ffffff; margin-bottom: 10px; font-weight: 500;">ස්ත්‍රී / පුරුෂ භාවය (Gender)</label>
-                <div style="display: flex; gap: 20px;">
+             <div>
+                <label style="display: block; color: #ffffff; margin-bottom: 10px; font-weight: 500;">ස්ත්‍රී / පුරුෂ භාවය </label>
+                <div class="bmi-gender-group">
                     <label style="cursor: pointer; display: flex; align-items: center; color: white; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3);">
-                        <input type="radio" name="bmiGender" value="male" checked style="margin-right: 8px; transform: scale(1.2);"> පිරිමි (Boy)
+                        <input type="radio" name="bmiGender" value="male" checked style="margin-right: 8px; transform: scale(1.2);"> පිරිමි 
                     </label>
                     <label style="cursor: pointer; display: flex; align-items: center; color: white; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3);">
-                        <input type="radio" name="bmiGender" value="female" style="margin-right: 8px; transform: scale(1.2);"> ගැහැණු (Girl)
+                        <input type="radio" name="bmiGender" value="female" style="margin-right: 8px; transform: scale(1.2);"> ගැහැණු 
                     </label>
                 </div>
              </div>
 
              <!-- Grade -->
              <div>
-               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">ශ්‍රේණිය / Grade</label>
+               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">ශ්‍රේණිය </label>
                <select id="bmiGrade" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 15px;">
                    ${gradeOptions}
                </select>
@@ -157,25 +226,26 @@
 
              <!-- DOB -->
              <div>
-               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">උපන් දිනය / Date of Birth</label>
+               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">උපන් දිනය </label>
                <input type="date" id="bmiDOB" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 15px;">
+               <div id="liveAgeDisplay" style="margin-top: 5px; font-size: 13px; color: #d0d0d0; font-style: italic; min-height: 20px;"></div>
              </div>
              
              <!-- Height -->
              <div>
-               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">උස (cm) / Height</label>
+               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">උස (cm)</label>
                <input type="number" id="bmiHeight" placeholder="Ex: 135" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 15px;">
              </div>
              
              <!-- Weight -->
              <div>
-               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">බර (kg) / Weight</label>
+               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">බර (kg) </label>
                <input type="number" id="bmiWeight" placeholder="Ex: 28" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 15px;">
              </div>
           </div>
           
           <button id="btnCalculateBMI" style="width: 100%; padding: 14px; background: #1b5e20; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-            <i class="fa-solid fa-calculator" style="margin-right:8px;"></i> ප්‍රතිඵලය බලන්න / Calculate
+            <i class="fa-solid fa-calculator" style="margin-right:8px;"></i> BMI ගණනය කරන්න
           </button>
 
           <!-- Result Area -->
@@ -183,7 +253,7 @@
              
              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
                  <div>
-                    <span style="font-size: 14px; color: #777;">වයස / Age:</span>
+                    <span style="font-size: 14px; color: #777;">වයස </span>
                     <strong id="displayAge" style="font-size: 16px; color: #333;">-</strong>
                  </div>
                  <div>
@@ -209,15 +279,15 @@
 
              <!-- Charts -->
              <div class="bmi-charts-container">
-               <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+               <div class="bmi-chart-card">
                  <h4 style="text-align:center; font-size:14px; margin-bottom:10px; color:#333;">BMI for Age (5-19 Years, WHO)</h4>
-                 <div style="position: relative; height: 600px; width: 100%;">
+                 <div class="bmi-chart-wrapper">
                     <canvas id="chartBMI"></canvas>
                  </div>
                </div>
-               <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+               <div class="bmi-chart-card">
                  <h4 style="text-align:center; font-size:14px; margin-bottom:10px; color:#333;">Height for Age (5-19 Years, WHO)</h4>
-                 <div style="position: relative; height: 600px; width: 100%;">
+                 <div class="bmi-chart-wrapper">
                     <canvas id="chartHeight"></canvas>
                  </div>
                </div>
@@ -227,11 +297,56 @@
         </div>
       `;
 
+            const updateAgeDisplay = () => {
+                const dobVal = document.getElementById("bmiDOB").value;
+                const examDateVal = document.getElementById("bmiExamDate").value;
+                const displayEl = document.getElementById("liveAgeDisplay");
+
+                if (!dobVal) {
+                    displayEl.textContent = "";
+                    return;
+                }
+
+                const dob = new Date(dobVal);
+                const compareDate = examDateVal ? new Date(examDateVal) : new Date();
+
+                let ageYears = compareDate.getFullYear() - dob.getFullYear();
+                let ageMonths = compareDate.getMonth() - dob.getMonth();
+                const dayDiff = compareDate.getDate() - dob.getDate();
+
+                if (dayDiff < 0) {
+                    ageMonths--;
+                }
+
+                if (ageMonths < 0) {
+                    ageYears--;
+                    ageMonths += 12;
+                }
+
+                // If compareDate is earlier than DOB (invalid state usually), handle or ignore.
+                if (ageYears < 0) {
+                    displayEl.textContent = "Invalid Dates";
+                    return;
+                }
+
+                displayEl.textContent = `වයස: අවුරුදු ${ageYears} මාස ${ageMonths}`;
+            };
+
             document.getElementById("btnCalculateBMI").addEventListener("click", this.calculateBMI);
-            document.getElementById("bmiGrade").addEventListener("change", this.handleGradeChange);
+            document.getElementById("bmiGrade").addEventListener("change", () => {
+                this.handleGradeChange();
+                updateAgeDisplay();
+            });
+            document.getElementById("bmiDOB").addEventListener("change", updateAgeDisplay);
+            document.getElementById("bmiExamDate").addEventListener("change", updateAgeDisplay);
+
             container.addEventListener("keypress", (e) => {
                 if (e.key === "Enter") this.calculateBMI();
             });
+
+            // Set Exam Date to today by default
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById("bmiExamDate").value = todayStr;
         },
 
         handleGradeChange: function () {
@@ -249,6 +364,7 @@
         calculateBMI: function () {
             const gender = document.querySelector('input[name="bmiGender"]:checked').value;
             const dobVal = document.getElementById("bmiDOB").value;
+            const examDateVal = document.getElementById("bmiExamDate").value;
             const heightInput = document.getElementById("bmiHeight");
             const weightInput = document.getElementById("bmiWeight");
 
@@ -265,14 +381,22 @@
             }
 
             const dob = new Date(dobVal);
-            const today = new Date();
-            let ageYears = today.getFullYear() - dob.getFullYear();
-            let ageMonths = today.getMonth() - dob.getMonth();
-            if (ageMonths < 0 || (ageMonths === 0 && today.getDate() < dob.getDate())) {
-                ageYears--;
+            const compareDate = examDateVal ? new Date(examDateVal) : new Date();
+
+            let ageYears = compareDate.getFullYear() - dob.getFullYear();
+            let ageMonths = compareDate.getMonth() - dob.getMonth();
+            const dayDiff = compareDate.getDate() - dob.getDate();
+
+            if (dayDiff < 0) {
+                ageMonths--;
             }
-            const ageDecimal = ageYears + (ageMonths + (today.getDate() / 30)) / 12;
-            const displayAgeStr = `${ageYears} Y, ${ageMonths < 0 ? ageMonths + 12 : ageMonths} M`;
+            if (ageMonths < 0) {
+                ageYears--;
+                ageMonths += 12;
+            }
+
+            const ageDecimal = ageYears + (ageMonths + (dayDiff < 0 ? 30 + dayDiff : dayDiff) / 30) / 12;
+            const displayAgeStr = `${ageYears} Y, ${ageMonths} M`;
 
             let lookupAge = ageYears;
             if (lookupAge < 5) lookupAge = 5;
