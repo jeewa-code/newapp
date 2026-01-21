@@ -1833,6 +1833,7 @@
         // use stored PHI (from localStorage via phiInfo) for payload
         phi: curPhi,
         month: monthInput.value || "",
+        designation: designationSelect.value || "",
         footerNotes: (templateWrap.querySelector(".footer-notes") || { value: "" }).value || "",
         entries: rows,
         savedAt: new Date().toISOString()
@@ -1847,6 +1848,7 @@
 
       // FIRST: Set month and apply constraints to create all buttons
       monthInput.value = p.month || "";
+      if (p.designation) designationSelect.value = p.designation;
       applyMonthConstraints(monthInput.value);
       autoFillScheduleFromFixedDates(monthInput.value);
 
