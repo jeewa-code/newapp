@@ -82,6 +82,9 @@
             <li onclick="showContent('BMI',event)">
               <i class="fa-solid fa-calculator"></i><span>BMI App</span>
             </li>
+            <li id="logoutBtn" style="margin-top: auto; color: #ef4444; border-top: 1px solid rgba(255,255,255,0.1);">
+              <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+            </li>
           </ul>
         </nav>
       </aside>
@@ -260,6 +263,64 @@
 
 
 
+  <script type="module">
+    import { checkAuthStatus, logoutUser } from './js/auth/authService.js';
+
+    // Check Authentication
+    checkAuthStatus((user, role) => {
+      if (!user) {
+        // Redirect if not logged in
+        window.location.replace('login.html');
+      } else {
+        // Update Profile Info
+        const profileNames = document.querySelectorAll('.profile-text strong');
+        profileNames.forEach(el => el.textContent = user.displayName || user.email);
+
+        const profileIdentity = document.querySelectorAll('.profile-text small');
+        profileIdentity.forEach(el => el.textContent = role === 'admin' ? 'Administrator' : 'Public Health Inspector');
+
+        // Show admin specific controls if needed
+        if (role === 'admin') {
+          // Add Admin Panel Link to Sidebar
+          const navUl = document.querySelector('aside nav ul');
+          const logoutLi = document.getElementById('logoutBtn');
+
+          // Check if it already exists to prevent duplicates
+          if (!document.getElementById('adminPanelLink')) {
+            const adminLi = document.createElement('li');
+            adminLi.id = 'adminPanelLink';
+            adminLi.innerHTML = '<i class="fa-solid fa-user-shield"></i><span>Admin Panel</span>';
+            adminLi.onclick = () => window.location.href = 'admin.html';
+
+            // Insert before logout button
+            navUl.insertBefore(adminLi, logoutLi);
+          }
+        }
+      }
+    });
+
+    // Handle Logout
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        const confirm = await Swal.fire({
+          title: 'Logout?',
+          text: "Are you sure you want to logout?",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#0b5ea8',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, Logout'
+        });
+
+        if (confirm.isConfirmed) {
+          await logoutUser();
+          window.location.replace('login.html');
+        }
+      } catch (error) {
+        console.error('Logout failed', error);
+      }
+    });
+  </script>
 </body>
 
 </html>
