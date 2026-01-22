@@ -151,6 +151,9 @@
         </div>
       `;
     } else if (section === "Reports") {
+      // Check if user is visitor
+      const isVisitor = window.isVisitorRole && window.isVisitorRole();
+
       // --- Reports cards (the five requested) ---
       content.innerHTML = `
         <h2>Reports</h2>
@@ -159,6 +162,7 @@
             <i class="fa-solid fa-calendar-days fa-2x"></i>
             <p>මාසික ඉදිරි කාලසටහන</p>
           </div>
+          ${!isVisitor ? `
           <div class="card" onclick="openReport('මාසික වාර්තාව')">
             <i class="fa-solid fa-file-lines fa-2x"></i>
             <p>මාසික වාර්තාව</p>
@@ -175,6 +179,7 @@
             <i class="fa-solid fa-folder-open fa-2x"></i>
             <p>වෙනත්</p>
           </div>
+          ` : ''}
         </div>
       `;
     } else if (section === "BMI") {
@@ -354,17 +359,21 @@
   window.openPhiAreaMap = function () {
     const content = document.getElementById("contentArea");
     if (!content) return;
+
+    // Check if user is visitor to conditionally show tabs
+    const isVisitor = window.isVisitorRole && window.isVisitorRole();
+
     content.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
-        <h2>PHI Profile</h2>
-        <button onclick="showContent('Dashboard', null)" style="background:var(--primary);color:#fff;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;">
-          <i class="fas fa-arrow-left" style="margin-right:8px;"></i>Dashboard වෙත ආපසු
+        <h2>Profile</h2>
+        <button onclick="showContent('Home', null)" style="background:var(--primary);color:#fff;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;">
+          <i class="fas fa-arrow-left" style="margin-right:8px;"></i>Back
         </button>
       </div>
       <div class="phi-area-tabs" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-        <button id="tab_phi_info" class="tab active" style="padding:8px 12px;">PHI ගේ විස්තර</button>
-        <button id="tab_phi_map" class="tab" style="padding:8px 12px;">ක්ෂේත්‍ර සිතියම</button>
-        <button id="tab_phi_meta" class="tab" style="padding:8px 12px;">PHI ක්ෂේත්‍ර දත්ත</button>
+        <button id="tab_phi_info" class="tab active" style="padding:8px 12px;">Personal details</button>
+        ${!isVisitor ? '<button id="tab_phi_map" class="tab" style="padding:8px 12px;">ක්ෂේත්‍ර සිතියම</button>' : ''}
+        ${!isVisitor ? '<button id="tab_phi_meta" class="tab" style="padding:8px 12px;">PHI ක්ෂේත්‍ර දත්ත</button>' : ''}
         <button id="tab_phi_keymap" class="tab" style="padding:8px 12px;">Key Map</button>
       </div>
       <div id="phi_tab_container"></div>
@@ -382,8 +391,14 @@
     }
 
     document.getElementById("tab_phi_info").addEventListener("click", () => { setActiveBtn("tab_phi_info"); loadPhiInfoTab(); });
-    document.getElementById("tab_phi_map").addEventListener("click", () => { setActiveBtn("tab_phi_map"); loadPhiMapTab(); });
-    document.getElementById("tab_phi_meta").addEventListener("click", () => { setActiveBtn("tab_phi_meta"); loadPhiMetaTab(); });
+
+    if (!isVisitor) {
+      const mapTab = document.getElementById("tab_phi_map");
+      const metaTab = document.getElementById("tab_phi_meta");
+      if (mapTab) mapTab.addEventListener("click", () => { setActiveBtn("tab_phi_map"); loadPhiMapTab(); });
+      if (metaTab) metaTab.addEventListener("click", () => { setActiveBtn("tab_phi_meta"); loadPhiMetaTab(); });
+    }
+
     document.getElementById("tab_phi_keymap").addEventListener("click", () => { setActiveBtn("tab_phi_keymap"); loadPhiKeyMapTab(); });
 
     // default
@@ -698,22 +713,35 @@
       nameEl.textContent = phiName;
     }
 
-    // Update area and Role Title
-    const roleTitle = localStorage.getItem('phi_info_role_title') || 'Public Health Inspector';
+    // Get user role and determine designation
+    const userRole = getUserRole();
+    const roleDesignations = {
+      'PHI': 'Public Health Inspector',
+      'PHM': 'Public Health Midwife',
+      'MOH': 'Medical Officer of Health',
+      'SPHI': 'Supervising Public Health Inspector',
+      'SPHM': 'Supervising Public Health Midwife',
+      'AMOH': 'Additional Medical Officer of Health',
+      'PHNS': 'Public Health Nursing Service'
+    };
+
+    const designation = roleDesignations[userRole] || 'Public Health Inspector';
+
+    // Update area with role-based designation
     const areaEl = sidebarProfile.querySelector('.profile-text small');
     if (areaEl) {
-      if (roleTitle === 'Public Health Inspector') {
-        areaEl.textContent = `${roleTitle} — ${phiArea}`;
-      } else {
-        // For MOH etc, it might be better to just show Title + Area (MOH Office)
-        areaEl.textContent = `${roleTitle} — ${phiArea}`;
-      }
+      areaEl.textContent = `${designation} — ${phiArea}`;
     }
   }
 
   // Call on page load
-  // Call on page load
   document.addEventListener('DOMContentLoaded', function () {
+    // Check if PHI Profile data exists, if not redirect to complete_profile
+    checkPhiProfileData();
+
+    // Apply role-based access restrictions
+    applyRoleBasedAccess();
+
     updateSidebarPhiInfo();
 
     // Handle Hardware Back Button (Mobile)
@@ -760,5 +788,84 @@
       updateSidebarPhiInfo();
     });
   });
+
+  // Function to check if PHI Profile data exists
+  function checkPhiProfileData() {
+    try {
+      const phiInfoKey = 'phi_info_v1';
+      const phiInfoData = localStorage.getItem(phiInfoKey);
+
+      if (!phiInfoData) {
+        // No data at all, redirect to complete_profile
+        window.location.href = 'complete_profile.html';
+        return;
+      }
+
+      const phiArray = JSON.parse(phiInfoData);
+      if (!Array.isArray(phiArray) || phiArray.length === 0) {
+        // Empty array, redirect to complete_profile
+        window.location.href = 'complete_profile.html';
+        return;
+      }
+    } catch (e) {
+      console.error('Error checking PHI Profile data:', e);
+      // If there's an error reading the data, redirect to be safe
+      window.location.href = 'complete_profile.html';
+    }
+  }
+
+  // Function to get user role from PHI Profile
+  function getUserRole() {
+    try {
+      const phiInfoKey = 'phi_info_v1';
+      const phiInfoData = localStorage.getItem(phiInfoKey);
+      if (!phiInfoData) return null;
+
+      const phiArray = JSON.parse(phiInfoData);
+      if (phiArray && phiArray.length > 0 && phiArray[0].role) {
+        return phiArray[0].role;
+      }
+      return null;
+    } catch (e) {
+      console.error('Error getting user role:', e);
+      return null;
+    }
+  }
+
+  // Apply role-based restrictions
+  function applyRoleBasedAccess() {
+    const userRole = getUserRole();
+    if (!userRole) return; // If no role, don't restrict
+
+    // Check if user is a Visitor (AMOH, PHNS, SPHM, PHM)
+    const isVisitor = ['AMOH', 'PHNS', 'SPHM', 'PHM'].includes(userRole);
+
+    if (isVisitor) {
+      // Hide sidebar items for visitors except Home, PHI Profile, and Reports
+      const sidebarItems = document.querySelectorAll('.sidebar nav ul li');
+      sidebarItems.forEach(li => {
+        const onclick = li.getAttribute('onclick');
+        if (onclick) {
+          // Keep only Home, phiArea (PHI Profile), and Reports
+          if (onclick.includes("'Home'") ||
+            onclick.includes("'phiArea'") ||
+            onclick.includes("'Reports'")) {
+            li.style.display = ''; // Show
+          } else if (li.id === 'logoutBtn') {
+            li.style.display = ''; // Keep logout
+          } else {
+            li.style.display = 'none'; // Hide
+          }
+        }
+      });
+    }
+  }
+
+  // Store user role globally for use in other functions
+  window.getUserRole = getUserRole;
+  window.isVisitorRole = function () {
+    const role = getUserRole();
+    return role && ['AMOH', 'PHNS', 'SPHM', 'PHM'].includes(role);
+  };
 
 })();

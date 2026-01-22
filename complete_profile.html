@@ -1,19 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="si">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Profile - PHI Office</title>
+    <!-- Fonts and Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <style>
         :root {
             --primary-color: #0b5ea8;
-            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-bg: rgba(255, 255, 255, 0.95);
             --text-color: #333;
         }
 
@@ -23,23 +24,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Poppins', sans-serif;
             padding: 20px;
+            font-family: 'Poppins', sans-serif;
         }
 
-        .container {
+        .profile-container {
             background: var(--glass-bg);
-            padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            padding: 40px;
             width: 100%;
             max-width: 600px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
         }
 
         h2 {
             color: var(--primary-color);
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .form-group {
@@ -56,102 +57,119 @@
         input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        select:focus,
-        input:focus {
-            border-color: var(--primary-color);
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-top: 5px;
         }
 
         .hidden {
             display: none;
         }
 
-        button {
+        .btn-primary {
             width: 100%;
-            padding: 14px;
+            padding: 15px;
             background: var(--primary-color);
             color: white;
             border: none;
             border-radius: 10px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             margin-top: 20px;
-        }
-
-        button:hover {
-            opacity: 0.9;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="container">
+    <div class="profile-container">
         <h2>Complete Your Profile</h2>
-        <p style="text-align:center; color:#666; margin-bottom:30px;">Please provide your official details to proceed.
-        </p>
-
         <form id="profileForm">
+
+            <!-- Full Name with Initials -->
             <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" id="fullName" required placeholder="Dr./Mr./Ms. Name">
+                <label>Name with initials</label>
+                <input type="text" id="fullName" placeholder="Enter your name with initials" required>
             </div>
 
+            <!-- Province -->
             <div class="form-group">
-                <label>Governing Authority</label>
-                <select id="govAuthority" required>
-                    <option value="">Select Authority</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Province</label>
-                <select id="province" required disabled>
+                <label>Province (පළාත)</label>
+                <select id="province" required>
                     <option value="">Select Province</option>
+                    <option value="Western">Western</option>
+                    <option value="Central">Central</option>
+                    <option value="Southern">Southern</option>
+                    <option value="Northern">Northern</option>
+                    <option value="Eastern">Eastern</option>
+                    <option value="North Western">North Western</option>
+                    <option value="North Central">North Central</option>
+                    <option value="Uva">Uva</option>
+                    <option value="Sabaragamuwa">Sabaragamuwa</option>
                 </select>
             </div>
 
+            <!-- Authority Type (RDHS / NIHS / MC) -->
             <div class="form-group">
-                <label>Health District (RDHS)</label>
-                <select id="district" required disabled>
-                    <option value="">Select District</option>
+                <label>Authority Type (ආයතන වර්ගය)</label>
+                <div style="display: flex; gap: 15px; margin-top: 8px;">
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="authType" value="RDHS" id="authRDHS" checked>
+                        RDHS
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;"
+                        id="authNIHSLabel">
+                        <input type="radio" name="authType" value="NIHS" id="authNIHS">
+                        NIHS
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+                        <input type="radio" name="authType" value="MC" id="authMC">
+                        MC (Municipal Council)
+                    </label>
+                </div>
+            </div>
+
+            <!-- RDHS / Health District -->
+            <div class="form-group" id="rdhsGroup">
+                <label>RDHS / Health District</label>
+                <select id="district" required>
+                    <option value="">Select RDHS</option>
                 </select>
             </div>
 
+            <!-- MC Name (for Municipal Council) -->
+            <div class="form-group hidden" id="mcGroup">
+                <label>Municipal Council Name</label>
+                <input type="text" id="mcName" placeholder="e.g. Colombo Municipal Council">
+            </div>
+
+            <!-- MOH Office -->
             <div class="form-group">
-                <label>MOH Office</label>
-                <select id="mohOffice" required disabled>
+                <label>MOH Office (සෞඛ්‍ය වෛද්‍ය නිලධාරි කාර්යාලය)</label>
+                <select id="mohOffice" required>
                     <option value="">Select MOH Office</option>
                 </select>
             </div>
 
+            <!-- Role Selection -->
             <div class="form-group">
-                <label>Role</label>
-                <select id="role" required>
+                <label>Role (කාර්යභාරය)</label>
+                <select id="baseRole" required onchange="handleRoleChange()">
                     <option value="">Select Role</option>
                     <option value="MOH">MOH</option>
                     <option value="SPHI">SPHI</option>
                     <option value="PHI">PHI</option>
-                    <option value="visitors">Visitors (Other Staff)</option>
+                    <option value="Visitors">Visitors</option>
                 </select>
             </div>
 
-            <div class="form-group hidden" id="phiAreaGroup">
-                <label>PHI Area</label>
-                <input type="text" id="phiArea" placeholder="Enter PHI Area Name (e.g. Nehinna)">
-                <small style="color:#666;">If your area is listed, it will appear here (future feature). For now type
-                    it.</small>
-            </div>
-
+            <!-- Visitor Sub-Role (Visible only if Visitors) -->
             <div class="form-group hidden" id="visitorRoleGroup">
-                <label>Visitor Designation</label>
-                <select id="visitorRole">
-                    <option value="">Select Designation</option>
+                <label>Visitor Type</label>
+                <select id="visitorRole" onchange="handleVisitorRoleChange()">
+                    <option value="">Select Type</option>
                     <option value="AMOH">AMOH</option>
                     <option value="PHNS">PHNS</option>
                     <option value="SPHM">SPHM</option>
@@ -159,191 +177,387 @@
                 </select>
             </div>
 
-            <button type="submit">Save Profile</button>
+            <!-- Field / Area (ක්ෂේත්රය) - Changes based on role -->
+            <div class="form-group" id="fieldAreaGroup">
+                <label id="fieldAreaLabel">Field / Area (ක්ෂේත්රය)</label>
+                <input type="text" id="fieldArea" placeholder="Enter field/area" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Save & Continue</button>
         </form>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script type="module">
         import { auth, db } from './js/firebase-config.js';
-        import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { locationData, phiAreas } from './js/data/locationData.js';
 
-        // Populate Governance
-        const govSelect = document.getElementById('govAuthority');
-        Object.keys(locationData).forEach(k => {
-            const op = document.createElement('option');
-            op.value = k;
-            op.innerText = k;
-            govSelect.appendChild(op);
-        });
+        let currentUser = null;
 
-        // Cascading Dropdowns
-        const provSelect = document.getElementById('province');
-        const distSelect = document.getElementById('district');
-        const mohSelect = document.getElementById('mohOffice');
+        // RDHS Mapping by Province
+        const RDHS_MAP = {
+            "Western": ["Colombo", "Gampaha", "Kalutara"],
+            "Central": ["Kandy", "Matale", "Nuwara Eliya"],
+            "Southern": ["Galle", "Matara", "Hambantota"],
+            "Northern": ["Jaffna", "Kilinochchi", "Mannar", "Vavuniya", "Mullaitivu"],
+            "Eastern": ["Batticaloa", "Ampara", "Trincomalee", "Kalmunai"],
+            "North Western": ["Kurunegala", "Puttalam"],
+            "North Central": ["Anuradhapura", "Polonnaruwa"],
+            "Uva": ["Badulla", "Monaragala"],
+            "Sabaragamuwa": ["Ratnapura", "Kegalle"]
+        };
 
-        govSelect.addEventListener('change', () => {
-            provSelect.innerHTML = '<option value="">Select Province</option>';
-            distSelect.innerHTML = '<option value="">Select District</option>';
-            mohSelect.innerHTML = '<option value="">Select MOH Office</option>';
-            provSelect.disabled = true;
-            distSelect.disabled = true;
-            mohSelect.disabled = true;
+        // MOH Offices by RDHS
+        const MOH_MAP = {
+            "Colombo": ["Colombo Municipal Council", "Dehiwala", "Ratmalana", "Moratuwa", "Kotte", "Battaramulla", "Nugegoda", "Maharagama", "Homagama", "Padukka", "Hanwella", "Kolonnawa", "Kaduwela", "Piliyandala", "Kahathuduwa"],
+            "Gampaha": ["Gampaha", "Negombo", "Wattala", "Ja-Ela", "Kelaniya", "Mahara", "Biyagama", "Dompe", "Attanagalla", "Mirigama", "Minuwangoda", "Katana", "Divulapitiya", "Seeduwa"],
+            "Kalutara": ["Wadduwa", "Panadura", "Bandaragama", "Horana", "Bulathsinhala", "Madurawala", "Millaniya", "Ingiriya", "Matugama", "Dodangoda", "Walallawita", "Agalawatta", "Palindanuwara"],
+            "Kandy": ["Kandy Municipal Council", "Gangawatakorale", "Yatinuwara", "Udunuwara", "Doluwa", "Pathadumbara", "Panvila", "Udadumbara", "Kundasale", "Pujapitiya", "Hatharaliyadda", "Akurana", "Harispattuwa", "Galagedara", "Gampola", "Udapalatha", "Ganga Ihala Korale", "Pasbage Korale", "Medadumbara", "Minipe"],
+            "Matale": ["Matale", "Yatawatta", "Rattota", "Ukuwela", "Ambanganga Korale", "Laggala-Pallegama", "Wilgamuwa", "Naula", "Pallepola", "Galewela", "Dambulla"],
+            "Nuwara Eliya": ["Nuwara Eliya", "Ragala", "Walapane", "Hanguranketha", "Kothmale", "Hatton", "Ambagamuwa", "Maskeliya", "Lindula", "Talawakelle"],
+            "Galle": ["Galle Municipal Council", "Akmeemana", "Ambalangoda", "Balapitiya", "Bope-Poddala", "Elpitiya", "Gonapinuwala", "Habaraduwa", "Hikkaduwa", "Imaduwa", "Karandeniya", "Nagoda", "Neluwa", "Niyagama", "Rathgama", "Thawalama", "Welivitiya-Divithura", "Yakkalamulla", "Baddegama"],
+            "Matara": ["Matara Municipal Council", "Akuressa", "Athuraliya", "Devinuwara", "Dickwella", "Hakmana", "Kamburupitiya", "Kirinda Puhulwella", "Kotapola", "Malimbada", "Mulatiyana", "Pasgoda", "Pitabeddara", "Thihagoda", "Weligama", "Welipitiya"],
+            "Hambantota": ["Hambantota", "Ambalantota", "Angunukolapelessa", "Beliatta", "Katuwana", "Lunugamvehera", "Okewela", "Sooriyawewa", "Tangalle", "Thissamaharama", "Walasmulla", "Weeraketiya"],
+            "Jaffna": ["Jaffna Municipal Council", "Nallur", "Chankanai", "Sandilipay", "Tellippalai", "Uduvil", "Kopay", "Karaveddy", "Point Pedro", "Chavakachcheri", "Karainagar", "Kayts", "Velanai", "Delft"],
+            "Kilinochchi": ["Karachchi", "Kandavalai", "Poonakary", "Pachchilaipallai"],
+            "Mannar": ["Mannar", "Mantai West", "Nanaddan", "Musali", "Madhu"],
+            "Vavuniya": ["Vavuniya", "Vavuniya North", "Vavuniya South", "Vengalacheddikulam"],
+            "Mullaitivu": ["Maritimepattu", "Puthukudiyiruppu", "Oddusuddan", "Thunukkai", "Manthai East", "Welioya"],
+            "Batticaloa": ["Batticaloa", "Kattankudy", "Eravur", "Koralai Pattu (Valaichchenai)", "Manmunai North", "Porativu Pattu"],
+            "Ampara": ["Ampara", "Dehiattakandiya", "Damana", "Uhana", "Maha Oya", "Padiyatalawa", "Lahugala"],
+            "Trincomalee": ["Trincomalee", "Uppuveli", "Kuchchaveli", "Thampalakamam", "Kantale", "Kinniya", "Muttur", "Seruvila", "Gomarankadawala", "Morawewa", "Padavi Sri Pura"],
+            "Kalmunai": ["Kalmunai North", "Kalmunai South", "Sainthamaruthu", "Karaitivu", "Nintavur", "Addalaichenai", "Akkaraipattu", "Alayadivembu", "Thirukkovil", "Pottuvil", "Sammanthurai", "Irakkamam", "Navithanveli"],
+            "Kurunegala": ["Kurunegala Municipal Council", "Kurunegala", "Mawathagama", "Polgahawela", "Alawwa", "Narammala", "Wariyapola", "Nikaweratiya", "Mahawa", "Galgamuwa", "Yapahuwa", "Bingiriya", "Panduwasnuwara", "Kuliyapitiya", "Pannala", "Ridigama", "Ibbagamuwa"],
+            "Puttalam": ["Puttalam", "Kalpitiya", "Mundel", "Mahakumbukkadawala", "Anamaduwa", "Pallama", "Wanathavilluwa", "Karuwalagaswewa", "Nawagattegama", "Chilaw", "Arachchikattuwa", "Madampe", "Mahawewa", "Nattandiya", "Wennappuwa", "Dankotuwa"],
+            "Anuradhapura": ["Anuradhapura Municipal Council", "Nuwaragam Palatha Central", "Nuwaragam Palatha East", "Medawachchiya", "Rambewa", "Kebithigollewa", "Padaviya", "Horowpothana", "Kahatagasdigiliya", "Mihintale", "Nachchaduwa", "Nochchiyagama", "Rajanganaya", "Tambuttegama", "Thalawa", "Thirappane", "Galenbindunuwewa", "Palagala", "Ipalogama", "Kekirawa", "Palugaswewa"],
+            "Polonnaruwa": ["Polonnaruwa", "Tamankaduwa", "Dimbulagala", "Hingurakgoda", "Medirigiriya", "Welikanda", "Lankapura", "Elahera"],
+            "Badulla": ["Badulla", "Hali-Ela", "Uva Paranagama", "Welimada", "Bandarawela", "Ella", "Haputale", "Haldummulla", "Mahiyanganaya", "Rideemaliyadda", "Passara", "Soranathota", "Kandaketiya", "Meegahakiula", "Lunugala"],
+            "Monaragala": ["Monaragala", "Siyambalanduwa", "Buttala", "Wellawaya", "Katharagama", "Thanamalwila", "Badalkumbura", "Bibile", "Madulla", "Medagama", "Sevanagala"],
+            "Ratnapura": ["Ratnapura", "Kuruwita", "Eheliyagoda", "Pelmadulla", "Nivithigala", "Elapatha", "Ayagama", "Imbulpe", "Balangoda", "Opanayake", "Weligepola", "Embilipitiya", "Godakawela", "Kahawatta", "Rakwana", "Kolonna", "Kaltota"],
+            "Kegalle": ["Kegalle", "Galigamuwa", "Warakapola", "Ruwanwella", "Yatiyanthota", "Deraniyagala", "Dehiowita", "Mawanella", "Aranayaka", "Rambukkana", "Bulathkohupitiya"]
+        };
 
-            if (govSelect.value && locationData[govSelect.value]) {
-                Object.keys(locationData[govSelect.value]).forEach(k => {
-                    const op = document.createElement('option');
-                    op.value = k;
-                    op.innerText = k;
-                    provSelect.appendChild(op);
+        // NIHS MOH List (only for Kalutara when NIHS is selected)
+        const NIHS_MOH_LIST = ["Kalutara", "Beruwala", "Payagala"];
+
+        // Update RDHS dropdown based on province
+        function updateRDHSDropdown() {
+            const province = document.getElementById('province').value;
+            const district = document.getElementById('district');
+            const authType = document.querySelector('input[name="authType"]:checked').value;
+
+            // Clear existing options
+            district.innerHTML = '<option value="">Select RDHS</option>';
+
+            if (authType === 'NIHS') {
+                // For NIHS, show Kalutara
+                district.innerHTML = '<option value="Kalutara">Kalutara</option>';
+                district.value = 'Kalutara';
+            } else if (authType === 'RDHS' && province && RDHS_MAP[province]) {
+                // Populate RDHS based on province
+                RDHS_MAP[province].forEach(rdhs => {
+                    const option = document.createElement('option');
+                    option.value = rdhs;
+                    option.textContent = rdhs;
+                    district.appendChild(option);
                 });
-                provSelect.disabled = false;
             }
+
+            // Update MOH dropdown when RDHS changes
+            updateMOHDropdown();
+        }
+
+        // Update MOH dropdown based on RDHS/NIHS selection
+        function updateMOHDropdown() {
+            const authType = document.querySelector('input[name="authType"]:checked').value;
+            const district = document.getElementById('district').value;
+            const mohOffice = document.getElementById('mohOffice');
+
+            // Clear existing options
+            mohOffice.innerHTML = '<option value="">Select MOH Office</option>';
+
+            let mohList = [];
+
+            if (authType === 'NIHS') {
+                mohList = NIHS_MOH_LIST;
+            } else if (authType === 'RDHS' && district && MOH_MAP[district]) {
+                mohList = MOH_MAP[district];
+            } else if (authType === 'MC') {
+                // For MC, we'll allow manual entry later or keep dropdown empty
+                mohOffice.innerHTML = '<option value="">Not applicable for MC</option>';
+                return;
+            }
+
+            mohList.forEach(moh => {
+                const option = document.createElement('option');
+                option.value = moh;
+                option.textContent = moh;
+                mohOffice.appendChild(option);
+            });
+        }
+
+        // Update Authority Type options based on province
+        function updateAuthorityTypeOptions() {
+            const province = document.getElementById('province').value;
+            const nihsLabel = document.getElementById('authNIHSLabel');
+            const nihsRadio = document.getElementById('authNIHS');
+            const rdhsRadio = document.getElementById('authRDHS');
+
+            if (province === 'Western') {
+                // Show NIHS option for Western Province
+                nihsLabel.style.display = 'flex';
+            } else {
+                // Hide NIHS option for other provinces
+                nihsLabel.style.display = 'none';
+                // If NIHS was selected, switch to RDHS
+                if (nihsRadio.checked) {
+                    rdhsRadio.checked = true;
+                }
+            }
+
+            updateRDHSDropdown();
+        }
+
+        // Handle authority type changes (RDHS/NIHS/MC radio buttons)
+        function handleAuthorityTypeChange() {
+            const authType = document.querySelector('input[name="authType"]:checked').value;
+            const rdhsGroup = document.getElementById('rdhsGroup');
+            const mcGroup = document.getElementById('mcGroup');
+            const districtSelect = document.getElementById('district');
+            const mcInput = document.getElementById('mcName');
+
+            if (authType === 'MC') {
+                // Hide RDHS dropdown, show MC input
+                rdhsGroup.classList.add('hidden');
+                mcGroup.classList.remove('hidden');
+                districtSelect.removeAttribute('required');
+                mcInput.setAttribute('required', 'true');
+            } else {
+                // Show RDHS dropdown, hide MC input
+                rdhsGroup.classList.remove('hidden');
+                mcGroup.classList.add('hidden');
+                districtSelect.setAttribute('required', 'true');
+                mcInput.removeAttribute('required');
+            }
+
+            updateRDHSDropdown();
+        }
+
+        // Event Listeners
+        document.getElementById('province').addEventListener('change', updateAuthorityTypeOptions);
+        document.getElementById('district').addEventListener('change', updateMOHDropdown);
+
+        // Add event listeners to all radio buttons
+        document.querySelectorAll('input[name="authType"]').forEach(radio => {
+            radio.addEventListener('change', handleAuthorityTypeChange);
         });
 
-        provSelect.addEventListener('change', () => {
-            distSelect.innerHTML = '<option value="">Select District</option>';
-            mohSelect.innerHTML = '<option value="">Select MOH Office</option>';
-            distSelect.disabled = true;
-            mohSelect.disabled = true;
-
-            const gov = govSelect.value;
-            const prov = provSelect.value;
-
-            if (gov && prov && locationData[gov][prov]) {
-                Object.keys(locationData[gov][prov]).forEach(k => {
-                    const op = document.createElement('option');
-                    op.value = k;
-                    op.innerText = k;
-                    distSelect.appendChild(op);
-                });
-                distSelect.disabled = false;
-            }
-        });
-
-        distSelect.addEventListener('change', () => {
-            mohSelect.innerHTML = '<option value="">Select MOH Office</option>';
-            mohSelect.disabled = true;
-
-            const gov = govSelect.value;
-            const prov = provSelect.value;
-            const dist = distSelect.value;
-
-            if (gov && prov && dist && locationData[gov][prov][dist]) {
-                locationData[gov][prov][dist].forEach(k => {
-                    const op = document.createElement('option');
-                    op.value = k;
-                    op.innerText = k;
-                    mohSelect.appendChild(op);
-                });
-                mohSelect.disabled = false;
-            }
-        });
-
-        // Role Logic
-        const roleSelect = document.getElementById('role');
-        const phiGroup = document.getElementById('phiAreaGroup');
-        const visitorGroup = document.getElementById('visitorRoleGroup');
-
-        roleSelect.addEventListener('change', () => {
-            phiGroup.classList.add('hidden');
-            visitorGroup.classList.add('hidden');
-
-            if (roleSelect.value === 'PHI') {
-                phiGroup.classList.remove('hidden');
-            } else if (roleSelect.value === 'visitors') {
-                visitorGroup.classList.remove('hidden');
-            }
-        });
-
-        // Auth & Submit
-        let userUid = null;
-
+        // Check Auth
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.replace('login.html');
             } else {
-                userUid = user.uid;
-                // Maybe prefill existing data if partial?
+                currentUser = user;
+                // Pre-fill name if available from provider
+                if (user.displayName && !document.getElementById('fullName').value) {
+                    document.getElementById('fullName').value = user.displayName;
+                }
+
+                // Allow update: check if profile exists to pre-fill?
+                const snap = await getDoc(doc(db, "users", user.uid));
+                if (snap.exists() && snap.data().profileCompleted) {
+                    // Maybe they want to edit? Allow it.
+                    // Populate fields if needed.
+                    const data = snap.data();
+                    if (data.name) document.getElementById('fullName').value = data.name;
+                    if (data.province) document.getElementById('province').value = data.province;
+                    if (data.district) document.getElementById('district').value = data.district;
+                    if (data.mohOffice) document.getElementById('mohOffice').value = data.mohOffice;
+                    // Role handling is tricky due to sub-roles logic, keeping empty for safety or basic fill
+                }
+            }
+        });
+
+        window.handleRoleChange = () => {
+            const role = document.getElementById('baseRole').value;
+            const visitorGroup = document.getElementById('visitorRoleGroup');
+            const fieldAreaInput = document.getElementById('fieldArea');
+            const fieldAreaLabel = document.getElementById('fieldAreaLabel');
+            const mohOffice = document.getElementById('mohOffice').value;
+
+            // Reset
+            visitorGroup.classList.add('hidden');
+            document.getElementById('visitorRole').removeAttribute('required');
+
+            if (role === 'Visitors') {
+                visitorGroup.classList.remove('hidden');
+                document.getElementById('visitorRole').setAttribute('required', 'true');
+                // Initially disable field until visitor role is selected
+                fieldAreaInput.disabled = true;
+                fieldAreaInput.value = mohOffice;
+                fieldAreaLabel.textContent = 'Field / Area (ක්ෂේත්රය)';
+            } else if (role === 'PHI') {
+                // PHI can enter custom field
+                fieldAreaInput.disabled = false;
+                fieldAreaInput.value = '';
+                fieldAreaLabel.textContent = 'PHI Area (ක්ෂේත්රය)';
+            } else if (role === 'MOH' || role === 'SPHI') {
+                // MOH/SPHI - show MOH office as field
+                fieldAreaInput.disabled = true;
+                fieldAreaInput.value = mohOffice;
+                fieldAreaLabel.textContent = 'Field / Area (ක්ෂේත්රය)';
+            } else {
+                // Default
+                fieldAreaInput.disabled = false;
+                fieldAreaInput.value = '';
+                fieldAreaLabel.textContent = 'Field / Area (ක්ෂේත්රය)';
+            }
+        };
+
+        window.handleVisitorRoleChange = () => {
+            const visitorRole = document.getElementById('visitorRole').value;
+            const fieldAreaInput = document.getElementById('fieldArea');
+            const mohOffice = document.getElementById('mohOffice').value;
+
+            if (visitorRole === 'PHM') {
+                // PHM can enter custom field
+                fieldAreaInput.disabled = false;
+                fieldAreaInput.value = '';
+            } else if (visitorRole === 'AMOH' || visitorRole === 'PHNS' || visitorRole === 'SPHM') {
+                // Other visitor roles - show MOH office as field
+                fieldAreaInput.disabled = true;
+                fieldAreaInput.value = mohOffice;
+            }
+        };
+
+        // Update field when MOH office changes
+        document.getElementById('mohOffice').addEventListener('change', function () {
+            const role = document.getElementById('baseRole').value;
+            const visitorRole = document.getElementById('visitorRole').value;
+            const fieldAreaInput = document.getElementById('fieldArea');
+
+            // Update field if it should be showing MOH office
+            if ((role === 'MOH' || role === 'SPHI') ||
+                (role === 'Visitors' && (visitorRole === 'AMOH' || visitorRole === 'PHNS' || visitorRole === 'SPHM'))) {
+                fieldAreaInput.value = this.value;
             }
         });
 
         document.getElementById('profileForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const role = roleSelect.value;
-            const visitorRole = document.getElementById('visitorRole').value;
+            if (!currentUser) return;
 
-            let finalRole = role;
-            if (role === 'visitors') {
-                if (!visitorRole) {
-                    Swal.fire('Error', 'Please select a visitor designation', 'error');
-                    return;
-                }
-                finalRole = visitorRole;
-            }
+            const name = document.getElementById('fullName').value;
+            const province = document.getElementById('province').value;
+            const authType = document.querySelector('input[name="authType"]:checked').value;
 
-            let areaVal = "";
-            if (role === 'PHI') {
-                areaVal = document.getElementById('phiArea').value;
-                if (!areaVal) {
-                    Swal.fire('Error', 'Please enter PHI Area', 'error');
-                    return;
-                }
+            // Get district or MC name based on authority type
+            let district = '';
+            let authName = '';
+
+            if (authType === 'MC') {
+                district = document.getElementById('mcName').value;
+                authName = district; // For MC, the name is the authority name
             } else {
-                // For others, area is MOH Office name
-                areaVal = document.getElementById('mohOffice').value;
+                district = document.getElementById('district').value;
+                authName = district;
             }
 
-            const data = {
-                name: document.getElementById('fullName').value,
-                governingAuthority: govSelect.value,
-                province: provSelect.value,
-                district: distSelect.value,
-                mohOffice: document.getElementById('mohOffice').value,
-                role: finalRole,
-                // If PHI, specific area, else their 'area' concept is the MOH Office
-                displayArea: areaVal,
-                profileCompleted: true
-            };
+            const mohOffice = document.getElementById('mohOffice').value;
+            const baseRole = document.getElementById('baseRole').value;
+            const fieldArea = document.getElementById('fieldArea').value;
 
-            if (role === 'PHI') {
-                data.phiArea = areaVal;
+            let finalRole = baseRole;
+            let visitorSubRole = null;
+
+            if (baseRole === 'Visitors') {
+                visitorSubRole = document.getElementById('visitorRole').value;
+                if (!visitorSubRole) {
+                    Swal.fire('Error', 'Please select a visitor type', 'error');
+                    return;
+                }
+                finalRole = visitorSubRole; // Use the sub-role as the main role
             }
 
             try {
-                await updateDoc(doc(db, "users", userUid), data);
+                // Save to Firestore users collection
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    name: name,
+                    province: province,
+                    authType: authType,
+                    district: district,
+                    authName: authName,
+                    mohOffice: mohOffice,
+                    role: finalRole,
+                    baseRole: baseRole,
+                    visitorSubRole: visitorSubRole,
+                    fieldArea: fieldArea,
+                    area: fieldArea, // Unified field for easy display
+                    profileCompleted: true,
+                    updatedAt: new Date().toISOString()
+                });
 
-                // Also update localStorage for immediate sidebar reflection (legacy support)
-                localStorage.setItem('phi_info_inspector', data.name);
-                localStorage.setItem('phi_info_area', data.displayArea);
+                // Also save to PHI Profile (phiInfo localStorage)
+                // This ensures the data appears in PHI ගේ විස්තර tab
+                const phiProfileData = {
+                    id: currentUser.uid,
+                    name: name,
+                    province: province,
+                    auth_type: authType,
+                    auth_name: authName,
+                    moh: mohOffice,
+                    area: fieldArea,
+                    role: finalRole,
+                    baseRole: baseRole,
+                    date: new Date().toISOString().split('T')[0],
+                    salary: '',
+                    ot_rate: '',
+                    ot_limit: '',
+                    vehicle_type: 'motor_bicycle',
+                    vehicle_reg: '',
+                    phone: '',
+                    short: '',
+                    photo: null
+                };
 
-                // Determine Title
-                let title = "Public Health Inspector";
-                if (finalRole === 'MOH') title = "Medical Officer of Health";
-                else if (finalRole === 'SPHI') title = "Supervising PHI";
-                else if (finalRole === 'AMOH') title = "Additional MOH";
-                else if (finalRole === 'PHNS') title = "Public Health Nursing Sister";
-                else if (finalRole === 'SPHM') title = "Supervising PHM";
-                else if (finalRole === 'PHM') title = "Public Health Midwife";
+                // Save to localStorage for PHI Profile
+                try {
+                    const phiInfoKey = 'phi_info_v1';
+                    let phiInfoArray = JSON.parse(localStorage.getItem(phiInfoKey) || '[]');
 
-                localStorage.setItem('phi_info_role_title', title);
+                    // Check if user profile already exists
+                    const existingIndex = phiInfoArray.findIndex(p => p.id === currentUser.uid);
+
+                    if (existingIndex >= 0) {
+                        // Update existing
+                        phiInfoArray[existingIndex] = { ...phiInfoArray[existingIndex], ...phiProfileData };
+                    } else {
+                        // Add new
+                        phiInfoArray.unshift(phiProfileData);
+                    }
+
+                    localStorage.setItem(phiInfoKey, JSON.stringify(phiInfoArray));
+                    localStorage.setItem('phi_info_inspector', name);
+                    localStorage.setItem('phi_info_area', fieldArea);
+                    window.dispatchEvent(new Event('phiInfoUpdated'));
+                } catch (e) {
+                    console.error('Error saving to PHI Profile:', e);
+                }
 
                 Swal.fire({
                     icon: 'success',
-                    title: 'Profile Saved',
-                    text: 'Your details have been updated.',
+                    title: 'Profile Updated!',
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
                     window.location.replace('index.html');
                 });
+
             } catch (error) {
                 console.error(error);
-                Swal.fire('Error', 'Failed to save profile', 'error');
+                Swal.fire('Error', error.message, 'error');
             }
         });
     </script>

@@ -15,9 +15,9 @@
   <!-- External CSS -->
 
   <link rel="stylesheet" href="css/books.css">
-  <link rel="stylesheet" href="css/styles.css?v=20260122_1">
+  <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/dashboard.css?v=20260122_1">
+  <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/boards.css">
 
 
@@ -65,7 +65,7 @@
               <i class="fa-solid fa-gauge"></i><span>Home</span>
             </li>
             <li onclick="showContent('phiArea', event)">
-              <i class="fa-solid fa-map-location-dot"></i><span>PHI Profile</span>
+              <i class="fa-solid fa-map-location-dot"></i><span>Profile</span>
             </li>
             <li onclick="showContent('Boards',event)">
               <i class="fa-solid fa-chalkboard"></i><span>Boards</span>
@@ -211,7 +211,7 @@
 
   <script src="js/phi/phiInfo.js"></script>
 
-  <script src="js/script.js?v=20260122_1"></script>
+  <script src="js/script.js"></script>
 
   <script src="js/registers/sanitation.js"></script>
   <script src="js/registers/latrineConstruction.js"></script>
@@ -267,17 +267,43 @@
     import { checkAuthStatus, logoutUser } from './js/auth/authService.js';
 
     // Check Authentication
-    checkAuthStatus((user, role) => {
+    // Check Authentication
+    checkAuthStatus((user, role, profileCompleted) => {
       if (!user) {
         // Redirect if not logged in
         window.location.replace('login.html');
+      } else if (!profileCompleted) {
+        window.location.replace('complete_profile.html');
       } else {
         // Update Profile Info
         const profileNames = document.querySelectorAll('.profile-text strong');
         profileNames.forEach(el => el.textContent = user.displayName || user.email);
 
         const profileIdentity = document.querySelectorAll('.profile-text small');
-        profileIdentity.forEach(el => el.textContent = role === 'admin' ? 'Administrator' : 'Public Health Inspector');
+
+        // Get role from PHI Profile for accurate designation
+        const userRole = window.getUserRole ? window.getUserRole() : role;
+        const roleDesignations = {
+          'PHI': 'Public Health Inspector',
+          'PHM': 'Public Health Midwife',
+          'MOH': 'Medical Officer of Health',
+          'SPHI': 'Supervising Public Health Inspector',
+          'SPHM': 'Supervising Public Health Midwife',
+          'AMOH': 'Additional Medical Officer of Health',
+          'PHNS': 'Public Health Nursing Service'
+        };
+
+        let areaLabel = 'Public Health Inspector';
+        const phiArea = localStorage.getItem('phi_info_area') || '';
+
+        if (role === 'admin') {
+          areaLabel = 'Administrator';
+        } else {
+          const designation = roleDesignations[userRole] || roleDesignations[role] || 'Public Health Inspector';
+          areaLabel = phiArea ? `${designation} — ${phiArea}` : designation;
+        }
+
+        profileIdentity.forEach(el => el.textContent = areaLabel);
 
         // Show admin specific controls if needed
         if (role === 'admin') {

@@ -11,7 +11,7 @@
     "Western", "Central", "Southern", "Northern", "Eastern",
     "North Western", "North Central", "Uva", "Sabaragamuwa"
   ];
-  
+
   const RDHS_MAP = {
     "Western": ["Colombo", "Gampaha", "Kalutara"],
     "Central": ["Kandy", "Matale", "Nuwara Eliya"],
@@ -27,7 +27,7 @@
   const MOH_MAP = {
     "Colombo": ["Colombo Municipal Council", "Dehiwala", "Ratmalana", "Moratuwa", "Kotte", "Battaramulla", "Nugegoda", "Maharagama", "Homagama", "Padukka", "Hanwella", "Kolonnawa", "Kaduwela", "Piliyandala", "Kahathuduwa"],
     "Gampaha": ["Gampaha", "Negombo", "Wattala", "Ja-Ela", "Kelaniya", "Mahara", "Biyagama", "Dompe", "Attanagalla", "Mirigama", "Minuwangoda", "Katana", "Divulapitiya", "Seeduwa"],
-    "Kalutara": ["Wadduwa", "Panadura", "Bandaragama", "Horana", "Bulathsinhala", "Madurawala", "Millaniya", "Ingiriya", "Matugama", "Dodangoda",  "Walallawita", "Agalawatta", "Palindanuwara"],
+    "Kalutara": ["Wadduwa", "Panadura", "Bandaragama", "Horana", "Bulathsinhala", "Madurawala", "Millaniya", "Ingiriya", "Matugama", "Dodangoda", "Walallawita", "Agalawatta", "Palindanuwara"],
     "Kandy": ["Kandy Municipal Council", "Gangawatakorale", "Yatinuwara", "Udunuwara", "Doluwa", "Pathadumbara", "Panvila", "Udadumbara", "Kundasale", "Pujapitiya", "Hatharaliyadda", "Akurana", "Harispattuwa", "Galagedara", "Gampola", "Udapalatha", "Ganga Ihala Korale", "Pasbage Korale", "Medadumbara", "Minipe"],
     "Matale": ["Matale", "Yatawatta", "Rattota", "Ukuwela", "Ambanganga Korale", "Laggala-Pallegama", "Wilgamuwa", "Naula", "Pallepola", "Galewela", "Dambulla"],
     "Nuwara Eliya": ["Nuwara Eliya", "Ragala", "Walapane", "Hanguranketha", "Kothmale", "Hatton", "Ambagamuwa", "Maskeliya", "Lindula", "Talawakelle"],
@@ -126,7 +126,22 @@
 
       // Update text lines
       nameEl.textContent = latest && latest.name ? latest.name : 'PHI Name';
-      areaEl.textContent = latest && latest.area ? `Public Health Inspector — ${latest.area}` : 'Public Health Inspector — Area';
+
+      // Role-based designation
+      const roleDesignations = {
+        'PHI': 'Public Health Inspector',
+        'PHM': 'Public Health Midwife',
+        'MOH': 'Medical Officer of Health',
+        'SPHI': 'Supervising Public Health Inspector',
+        'SPHM': 'Supervising Public Health Midwife',
+        'AMOH': 'Additional Medical Officer of Health',
+        'PHNS': 'Public Health Nursing Service'
+      };
+
+      const userRole = latest && latest.role ? latest.role : 'PHI';
+      const designation = roleDesignations[userRole] || 'Public Health Inspector';
+
+      areaEl.textContent = latest && latest.area ? `${designation} — ${latest.area}` : `${designation} — Area`;
     } catch (e) {
       console.warn("updateHeaderInfo failed", e);
     }
@@ -193,7 +208,7 @@
     container.innerHTML = `
       <div style="background:#fff;padding:14px;border-radius:10px;" class="phi-info-container">
         <div style="margin-bottom:10px;">
-          <h3 style="margin:0 0 6px 0;color:#000;">මහජන සෞඛ්‍ය පරීක්ෂක — සාමාන්‍ය තොරතුරු</h3>
+          <h3 style="margin:0 0 6px 0;color:#000;">Personal details</h3>
           <div style="color:#333;font-size:13px;">(latest saved displayed in page header)</div>
         </div>
 
@@ -212,13 +227,20 @@
           <div>
             <div class="phi-info-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
               
-              <!-- 1. Inspector Name -->
+              
+              <!-- 1. Inspector Name with initials -->
               <div>
-                <label for="phi_name" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">පරීක්ෂකගේ නම</label>
+                <label for="phi_name" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">Name with initials</label>
                 <input id="phi_name" style="${baseInputStyle}" value="${latest ? esc(latest.name) : ''}" />
               </div>
 
-              <!-- 1.1 Province -->
+              <!-- 1.1 Role -->
+              <div>
+                <label for="phi_role" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">Role (කාර්යභාරය)</label>
+                <input id="phi_role" style="${baseInputStyle};background:#f5f5f5;cursor:not-allowed;" value="${latest ? esc(latest.role || '') : ''}" placeholder="e.g. PHI, MOH, SPHI" disabled readonly />
+              </div>
+
+              <!-- 1.2 Province -->
               <div>
                 <label for="phi_province" style="font-weight:600;display:block;margin-bottom:6px;color:#000;">පළාත</label>
                 <select id="phi_province" style="${baseInputStyle}">
@@ -337,6 +359,7 @@
                 <tr style="text-align:left;background:#f5f5f5;border-bottom:1px solid #ddd;">
                     <th style="padding:8px;">#</th>
                     <th style="padding:8px;">Inspector Name</th>
+                    <th style="padding:8px;">Role</th>
                     <th style="padding:8px;">Province</th>
                     <th style="padding:8px;">Auth Type</th>
                     <th style="padding:8px;">Auth Name</th>
@@ -359,6 +382,7 @@
                 <tr data-id="${esc(p.id)}" style="border-bottom:1px solid #eee;">
                     <td style="padding:8px;vertical-align:middle">${i + 1}</td>
                     <td style="padding:8px;vertical-align:middle">${esc(p.name)}</td>
+                    <td style="padding:8px;vertical-align:middle">${esc(p.role || '')}</td>
                     <td style="padding:8px;vertical-align:middle">${esc(p.province)}</td>
                     <td style="padding:8px;vertical-align:middle">${esc(p.auth_type)}</td>
                     <td style="padding:8px;vertical-align:middle">${esc(p.auth_name)}</td>
@@ -379,9 +403,9 @@
                         <button class="phi_edit" data-id="${esc(p.id)}" style="margin-right:4px;padding:4px 8px;border-radius:4px;border:1px solid #ccc;background:#f0f0f0;cursor:pointer">Edit</button>
                         <button class="phi_del" data-id="${esc(p.id)}" style="padding:4px 8px;border-radius:4px;border:1px solid #ffdddd;background:#fff0f0;cursor:pointer;color:#d00;">Del</button>
                     </td>
-                </tr>`).join("") : 
-                `<tr><td colspan="17" style="padding:10px;text-align:center;color:#666;">No records</td></tr>`
-              }
+                </tr>`).join("") :
+        `<tr><td colspan="18" style="padding:10px;text-align:center;color:#666;">No records</td></tr>`
+      }
             </tbody>
           </table>
         </div>
@@ -391,7 +415,7 @@
     // --- element refs and handlers ---
     const photoInput = container.querySelector("#phi_photo_input");
     const preview = container.querySelector("#phi_avatar_preview");
-    
+
     // New Refs
     const provSelect = container.querySelector("#phi_province");
     const authTypeSelect = container.querySelector("#phi_auth_type");
@@ -413,120 +437,120 @@
 
     // --- Dynamic Logic ---
     function updateAuthOptions() {
-        const prov = provSelect.value;
-        const current = authTypeSelect.value;
-        
-        let html = '<option value="RDHS">RDHS</option>';
-        if (prov === "Western") {
-            html += '<option value="NIHS">NIHS</option>';
-        }
-        html += '<option value="Local">පළාත් පාලන</option>';
-        
-        authTypeSelect.innerHTML = html;
-        
-        // Restore selection if valid
-        if (current === "NIHS" && prov !== "Western") {
-            authTypeSelect.value = "RDHS";
-        } else {
-             const exists = Array.from(authTypeSelect.options).some(o => o.value === current);
-             authTypeSelect.value = exists ? current : "RDHS";
-        }
+      const prov = provSelect.value;
+      const current = authTypeSelect.value;
+
+      let html = '<option value="RDHS">RDHS</option>';
+      if (prov === "Western") {
+        html += '<option value="NIHS">NIHS</option>';
+      }
+      html += '<option value="Local">පළාත් පාලන</option>';
+
+      authTypeSelect.innerHTML = html;
+
+      // Restore selection if valid
+      if (current === "NIHS" && prov !== "Western") {
+        authTypeSelect.value = "RDHS";
+      } else {
+        const exists = Array.from(authTypeSelect.options).some(o => o.value === current);
+        authTypeSelect.value = exists ? current : "RDHS";
+      }
     }
 
     function populateRdhs(prov) {
-        const list = RDHS_MAP[prov] || [];
-        rdhsSelect.innerHTML = list.map(x => `<option value="${x}">${x}</option>`).join("");
+      const list = RDHS_MAP[prov] || [];
+      rdhsSelect.innerHTML = list.map(x => `<option value="${x}">${x}</option>`).join("");
     }
 
     function populateMoh(source, explicitList = null) {
-        if (explicitList) {
-             mohSelect.innerHTML = explicitList.map(x => `<option value="${x}">${x}</option>`).join("");
-             return;
-        }
-        const list = MOH_MAP[source] || [];
-        mohSelect.innerHTML = list.map(x => `<option value="${x}">${x}</option>`).join("");
+      if (explicitList) {
+        mohSelect.innerHTML = explicitList.map(x => `<option value="${x}">${x}</option>`).join("");
+        return;
+      }
+      const list = MOH_MAP[source] || [];
+      mohSelect.innerHTML = list.map(x => `<option value="${x}">${x}</option>`).join("");
     }
 
     function updateAuthUI() {
-        const type = authTypeSelect.value;
-        rdhsContainer.style.display = "none";
-        nihsContainer.style.display = "none";
-        localContainer.style.display = "none";
+      const type = authTypeSelect.value;
+      rdhsContainer.style.display = "none";
+      nihsContainer.style.display = "none";
+      localContainer.style.display = "none";
 
-        if (type === "RDHS") {
-            rdhsContainer.style.display = "block";
-            if (rdhsSelect.options.length === 0) populateRdhs(provSelect.value);
-            
-            mohSelectContainer.style.display = "block";
-            mohInputContainer.style.display = "none";
-            
-            // Populate MOH logic for RDHS
-            // Only repopulate if list is empty or context changed?
-            // Safer to just repopulate based on current RDHS selection
-            populateMoh(rdhsSelect.value);
+      if (type === "RDHS") {
+        rdhsContainer.style.display = "block";
+        if (rdhsSelect.options.length === 0) populateRdhs(provSelect.value);
 
-        } else if (type === "NIHS") {
-            nihsContainer.style.display = "block";
-            
-            // Logic for NIHS: Show MOH Dropdown with Specific List
-            mohSelectContainer.style.display = "block";
-            mohInputContainer.style.display = "none";
-            
-            populateMoh(null, NIHS_MOH_LIST);
+        mohSelectContainer.style.display = "block";
+        mohInputContainer.style.display = "none";
 
-        } else if (type === "Local") {
-            localContainer.style.display = "block";
-            mohSelectContainer.style.display = "none";
-            mohInputContainer.style.display = "block";
-        }
+        // Populate MOH logic for RDHS
+        // Only repopulate if list is empty or context changed?
+        // Safer to just repopulate based on current RDHS selection
+        populateMoh(rdhsSelect.value);
+
+      } else if (type === "NIHS") {
+        nihsContainer.style.display = "block";
+
+        // Logic for NIHS: Show MOH Dropdown with Specific List
+        mohSelectContainer.style.display = "block";
+        mohInputContainer.style.display = "none";
+
+        populateMoh(null, NIHS_MOH_LIST);
+
+      } else if (type === "Local") {
+        localContainer.style.display = "block";
+        mohSelectContainer.style.display = "none";
+        mohInputContainer.style.display = "block";
+      }
     }
 
     // Init state based on latest or default
     if (latest) {
-        if (latest.province) provSelect.value = latest.province;
-        updateAuthOptions(); // ensure NIHS option availability based on prov
-        
-        populateRdhs(provSelect.value);
-        
-        if (latest.auth_type) {
-             // Check if auth_type is valid (e.g. NIHS but prov changed?)
-             // updateAuthOptions already handles validation/fallback
-             const hasOpt = Array.from(authTypeSelect.options).some(o => o.value === latest.auth_type);
-             if (hasOpt) authTypeSelect.value = latest.auth_type;
-        }
+      if (latest.province) provSelect.value = latest.province;
+      updateAuthOptions(); // ensure NIHS option availability based on prov
 
-        if (latest.auth_type === 'RDHS' || !latest.auth_type) {
-             if (latest.auth_name) rdhsSelect.value = latest.auth_name;
-        } else if (latest.auth_type === 'Local' && latest.auth_name) {
-             localInput.value = latest.auth_name;
-        }
+      populateRdhs(provSelect.value);
 
-        // Run UI update to show correct fields and populate MOH defaults
-        updateAuthUI(); 
+      if (latest.auth_type) {
+        // Check if auth_type is valid (e.g. NIHS but prov changed?)
+        // updateAuthOptions already handles validation/fallback
+        const hasOpt = Array.from(authTypeSelect.options).some(o => o.value === latest.auth_type);
+        if (hasOpt) authTypeSelect.value = latest.auth_type;
+      }
 
-        // Restore MOH Value
-        if (authTypeSelect.value === 'RDHS' || authTypeSelect.value === 'NIHS') {
-             if (latest.moh) mohSelect.value = latest.moh;
-        } else {
-             if (latest.moh) mohInput.value = latest.moh;
-        }
+      if (latest.auth_type === 'RDHS' || !latest.auth_type) {
+        if (latest.auth_name) rdhsSelect.value = latest.auth_name;
+      } else if (latest.auth_type === 'Local' && latest.auth_name) {
+        localInput.value = latest.auth_name;
+      }
+
+      // Run UI update to show correct fields and populate MOH defaults
+      updateAuthUI();
+
+      // Restore MOH Value
+      if (authTypeSelect.value === 'RDHS' || authTypeSelect.value === 'NIHS') {
+        if (latest.moh) mohSelect.value = latest.moh;
+      } else {
+        if (latest.moh) mohInput.value = latest.moh;
+      }
 
     } else {
-        // Defaults
-        provSelect.value = "Western"; 
-        updateAuthOptions();
-        updateAuthUI();
+      // Defaults
+      provSelect.value = "Western";
+      updateAuthOptions();
+      updateAuthUI();
     }
 
     // Event Listeners
     provSelect.addEventListener("change", () => {
-        updateAuthOptions();
-        populateRdhs(provSelect.value);
-        updateAuthUI();
+      updateAuthOptions();
+      populateRdhs(provSelect.value);
+      updateAuthUI();
     });
 
     rdhsSelect.addEventListener("change", () => {
-        populateMoh(rdhsSelect.value);
+      populateMoh(rdhsSelect.value);
     });
 
     authTypeSelect.addEventListener("change", updateAuthUI);
@@ -551,14 +575,15 @@
 
     container.querySelector("#phi_save").addEventListener("click", function () {
       const name = container.querySelector("#phi_name").value.trim();
-      
+      const role = container.querySelector("#phi_role").value.trim();
+
       // Determine MOH based on Auth Type
       let moh = "";
       const atype = authTypeSelect.value;
       if (atype === "RDHS" || atype === "NIHS") {
-          moh = mohSelect.value;
+        moh = mohSelect.value;
       } else {
-          moh = mohInput.value.trim();
+        moh = mohInput.value.trim();
       }
 
       const area = container.querySelector("#phi_area").value.trim();
@@ -575,17 +600,17 @@
       const province = provSelect.value;
       const auth_type = authTypeSelect.value;
       let auth_name = "";
-      
+
       if (auth_type === "RDHS") auth_name = rdhsSelect.value;
       else if (auth_type === "NIHS") auth_name = "Kalutara"; // Fixed
       else if (auth_type === "Local") auth_name = localInput.value.trim();
 
       if (!name || !moh || !area) {
-         if (window.showWarning) {
-            showWarning("පරීක්ෂකගේ නම, සෞඛ්‍ය වෛද්‍ය නිලධාරි කාර්යාලය සහ  ක්ෂේත්‍රය ඇතුළත් කිරීම අනිවාර්ය වේ!\nPlease enter Inspector Name, MOH Office and Area!");
-         } else {
-             alert("පරීක්ෂකගේ නම, සෞඛ්‍ය වෛද්‍ය නිලධාරි කාර්යාලය සහ  ක්ෂේත්‍රය ඇතුළත් කිරීම අනිවාර්ය වේ!\nPlease enter Inspector Name, MOH Office and Area!");
-         }
+        if (window.showWarning) {
+          showWarning("පරීක්ෂකගේ නම, සෞඛ්‍ය වෛද්‍ය නිලධාරි කාර්යාලය සහ  ක්ෂේත්‍රය ඇතුළත් කිරීම අනිවාර්ය වේ!\nPlease enter Inspector Name, MOH Office and Area!");
+        } else {
+          alert("පරීක්ෂකගේ නම, සෞඛ්‍ය වෛද්‍ය නිලධාරි කාර්යාලය සහ  ක්ෂේත්‍රය ඇතුළත් කිරීම අනිවාර්ය වේ!\nPlease enter Inspector Name, MOH Office and Area!");
+        }
         return;
       }
 
@@ -593,6 +618,7 @@
         const arr = loadAll();
         const newObj = {
           name,
+          role,
           province,
           auth_type,
           auth_name,
@@ -646,7 +672,7 @@
       container.querySelector("#phi_vehicle_type").value = "motor_bicycle";
       photoInput.value = "";
       preview.innerHTML = `<div style="font-weight:700;font-size:28px;color:#666;">P</div>`;
-      
+
       // Reset new fields default
       provSelect.value = "Western";
       populateRdhs("Western");
@@ -664,7 +690,18 @@
         const arr = loadAll().filter(x => String(x.id) !== String(id));
         saveAll(arr);
         updateHeaderInfo(arr[0] || null);
-        refresh();
+
+        // If all records are deleted, redirect to complete_profile.html
+        if (arr.length === 0) {
+          if (window.showWarning) {
+            showWarning("Profile data deleted. Please complete your profile again.");
+          }
+          setTimeout(() => {
+            window.location.href = 'complete_profile.html';
+          }, 1500);
+        } else {
+          refresh();
+        }
       });
     });
 
@@ -678,31 +715,32 @@
         currentPhotoData = rec.photo || null;
 
         container.querySelector("#phi_name").value = rec.name || "";
-        
+        container.querySelector("#phi_role").value = rec.role || "";
+
         // Populate new fields
         provSelect.value = rec.province || "Western";
         populateRdhs(provSelect.value); // refresh RDHS list for this prov
-        
+
         authTypeSelect.value = rec.auth_type || "RDHS";
         updateAuthUI(); // Show correct box
 
         // Set value for specific types
         if (rec.auth_type === 'RDHS' || !rec.auth_type) {
-             rdhsSelect.value = rec.auth_name || "";
-             // Ensure MOH list is populated for the selected RDHS
-             populateMoh(rdhsSelect.value); 
-             if (rec.moh) mohSelect.value = rec.moh;
+          rdhsSelect.value = rec.auth_name || "";
+          // Ensure MOH list is populated for the selected RDHS
+          populateMoh(rdhsSelect.value);
+          if (rec.moh) mohSelect.value = rec.moh;
 
         } else if (rec.auth_type === 'NIHS') {
-             // NIHS uses dropdown now
-             if (rec.moh) mohSelect.value = rec.moh;
+          // NIHS uses dropdown now
+          if (rec.moh) mohSelect.value = rec.moh;
 
         } else if (rec.auth_type === 'Local') {
-             localInput.value = rec.auth_name || "";
-             if (rec.moh) mohInput.value = rec.moh;
+          localInput.value = rec.auth_name || "";
+          if (rec.moh) mohInput.value = rec.moh;
         } else {
-             // Fallback
-             if (rec.moh) mohInput.value = rec.moh;
+          // Fallback
+          if (rec.moh) mohInput.value = rec.moh;
         }
 
         container.querySelector("#phi_area").value = rec.area || "";

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sing Up - PHI Office</title>
+    <title>Sign Up - PHI Office</title>
 
     <!-- Fonts and Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
@@ -17,16 +17,15 @@
     <style>
         :root {
             --primary-color: #0b5ea8;
-            --secondary-color: #f3f4f6;
             --glass-bg: rgba(255, 255, 255, 0.85);
             --glass-border: rgba(255, 255, 255, 0.6);
             --text-color: #333;
         }
 
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
         }
 
@@ -42,26 +41,12 @@
         .auth-container {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
             width: 100%;
             max-width: 450px;
             padding: 40px;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .auth-header {
@@ -97,13 +82,11 @@
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             font-size: 15px;
-            transition: all 0.3s ease;
             outline: none;
         }
 
         .form-input:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(11, 94, 168, 0.1);
         }
 
         .btn-primary {
@@ -116,20 +99,17 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
+            transition: all 0.3s;
         }
 
         .btn-primary:hover {
             background: #094b85;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(11, 94, 168, 0.2);
         }
 
         .divider {
             display: flex;
             align-items: center;
-            text-align: center;
             margin: 20px 0;
         }
 
@@ -163,14 +143,11 @@
             border-radius: 10px;
             background: white;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            color: #475569;
+            transition: all 0.3s;
         }
 
         .btn-social:hover {
             background: #f8fafc;
-            border-color: #cbd5e1;
         }
 
         .btn-social.google i {
@@ -192,10 +169,6 @@
             color: var(--primary-color);
             text-decoration: none;
             font-weight: 600;
-        }
-
-        .auth-footer a:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
@@ -254,12 +227,12 @@
             const password = document.getElementById('password').value;
 
             try {
-                // Pass null for role and name, let complete_profile handle it
+                // Register with just email/password, defaults will be set
                 const result = await registerUser(email, password, null, null);
                 Swal.fire({
                     icon: 'success',
                     title: 'Account Created!',
-                    text: `Please complete your profile details.`,
+                    text: 'Please complete your profile details.',
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
@@ -274,47 +247,22 @@
             }
         });
 
-        document.getElementById('googleBtn').addEventListener('click', async () => {
+        const handleSocialLogin = async (method) => {
             try {
-                const { user, role } = await loginWithGoogle();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Welcome!',
-                    text: `Logged in as ${user.displayName}`,
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = role === 'admin' ? 'admin.html' : 'index.html';
-                });
+                const { user, isNewUser } = await method();
+                // Check if profile needs completion (simplified check, real check in complete_profile redirect logic)
+                window.location.href = 'complete_profile.html';
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Google Login Error',
+                    title: 'Login Error',
                     text: error.message
                 });
             }
-        });
+        };
 
-        document.getElementById('facebookBtn').addEventListener('click', async () => {
-            try {
-                const { user, role } = await loginWithFacebook();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Welcome!',
-                    text: `Logged in as ${user.displayName}`,
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = role === 'admin' ? 'admin.html' : 'index.html';
-                });
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Facebook Login Error',
-                    text: error.message
-                });
-            }
-        });
+        document.getElementById('googleBtn').addEventListener('click', () => handleSocialLogin(loginWithGoogle));
+        document.getElementById('facebookBtn').addEventListener('click', () => handleSocialLogin(loginWithFacebook));
     </script>
 </body>
 
