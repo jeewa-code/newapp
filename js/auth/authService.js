@@ -29,15 +29,16 @@ export const registerUser = async (email, password, role, name) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Store user details and role in Firestore
+        // Store basic user details in Firestore (incomplete profile)
         await setDoc(doc(db, "users", user.uid), {
             email: email,
-            role: role,
-            name: name,
+            role: null, // to be set in complete profile
+            name: null, // to be set in complete profile
+            profileCompleted: false,
             createdAt: new Date().toISOString()
         });
 
-        return { user, role };
+        return { user, role: null, profileCompleted: false };
     } catch (error) {
         throw error;
     }
@@ -56,7 +57,12 @@ export const loginUser = async (email, password) => {
             // Check for Super Admin privilege enforcement
             role = await checkAndEnforceSuperAdmin(user, role);
 
-            return { user, role, name: userData.name };
+            return {
+                user,
+                role,
+                name: userData.name,
+                profileCompleted: userData.profileCompleted || false
+            };
         } else {
             // Check if this new/unknown user should be a super admin
             let role = 'user';
@@ -66,7 +72,7 @@ export const loginUser = async (email, password) => {
                 // Ideally, login shouldn't be handling doc creation if register does, but for safety:
                 // Let's just return the role. The checkAndEnforceSuperAdmin needs a doc to update though.
             }
-            return { user, role };
+            return { user, role, profileCompleted: false };
         }
     } catch (error) {
         throw error;
@@ -102,7 +108,11 @@ export const loginWithGoogle = async () => {
             role = await checkAndEnforceSuperAdmin(user, role);
         }
 
-        return { user, role };
+        return {
+            user,
+            role,
+            profileCompleted: userDoc.exists() ? (userDoc.data().profileCompleted || false) : false
+        };
     } catch (error) {
         throw error;
     }
@@ -136,7 +146,11 @@ export const loginWithFacebook = async () => {
             role = await checkAndEnforceSuperAdmin(user, role);
         }
 
-        return { user, role };
+        return {
+            user,
+            role,
+            profileCompleted: userDoc.exists() ? (userDoc.data().profileCompleted || false) : false
+        };
     } catch (error) {
         throw error;
     }
@@ -167,18 +181,20 @@ export const checkAuthStatus = (callback) => {
         if (user) {
             const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists()) {
-                const role = userDoc.data().role;
-                callback(user, role);
+                const data = userDoc.data();
+                const role = data.role;
+                // NEW: Pass profile status
+                callback(user, role, data.profileCompleted);
 
                 // Update lastActive timestamp
                 updateDoc(doc(db, "users", user.uid), {
                     lastActive: new Date().toISOString()
                 }).catch(e => console.error("Error updating presence", e));
             } else {
-                callback(user, 'user');
+                callback(user, 'user', false);
             }
         } else {
-            callback(null, null);
+            callback(null, null, false);
         }
     });
 };

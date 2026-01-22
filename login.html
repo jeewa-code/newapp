@@ -253,7 +253,12 @@
             const password = document.getElementById('password').value;
 
             try {
-                const { user, role } = await loginUser(email, password);
+                const { user, role, profileCompleted } = await loginUser(email, password);
+
+                if (!profileCompleted && role !== 'admin') {
+                    window.location.href = 'complete_profile.html';
+                    return;
+                }
 
                 Swal.fire({
                     icon: 'success',
@@ -263,7 +268,6 @@
                     showConfirmButton: false
                 }).then(() => {
                     if (role === 'admin') {
-                        // Admin-specific redirection
                         window.location.href = 'admin.html';
                     } else {
                         window.location.href = 'index.html';
@@ -280,7 +284,13 @@
 
         document.getElementById('googleBtn').addEventListener('click', async () => {
             try {
-                const { user, role } = await loginWithGoogle();
+                const { user, role, profileCompleted } = await loginWithGoogle();
+
+                if (!profileCompleted && role !== 'admin') {
+                    window.location.href = 'complete_profile.html';
+                    return;
+                }
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Welcome Back!',
@@ -305,7 +315,13 @@
 
         document.getElementById('facebookBtn').addEventListener('click', async () => {
             try {
-                const { user, role } = await loginWithFacebook();
+                const { user, role, profileCompleted } = await loginWithFacebook();
+
+                if (!profileCompleted && role !== 'admin') {
+                    window.location.href = 'complete_profile.html';
+                    return;
+                }
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Welcome Back!',

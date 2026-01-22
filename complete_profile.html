@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Profile - PHI Office</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        :root {
+            --primary-color: #0b5ea8;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --text-color: #333;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--glass-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        select:focus,
+        input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Complete Your Profile</h2>
+        <p style="text-align:center; color:#666; margin-bottom:30px;">Please provide your official details to proceed.
+        </p>
+
+        <form id="profileForm">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="fullName" required placeholder="Dr./Mr./Ms. Name">
+            </div>
+
+            <div class="form-group">
+                <label>Governing Authority</label>
+                <select id="govAuthority" required>
+                    <option value="">Select Authority</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Province</label>
+                <select id="province" required disabled>
+                    <option value="">Select Province</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Health District (RDHS)</label>
+                <select id="district" required disabled>
+                    <option value="">Select District</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>MOH Office</label>
+                <select id="mohOffice" required disabled>
+                    <option value="">Select MOH Office</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Role</label>
+                <select id="role" required>
+                    <option value="">Select Role</option>
+                    <option value="MOH">MOH</option>
+                    <option value="SPHI">SPHI</option>
+                    <option value="PHI">PHI</option>
+                    <option value="visitors">Visitors (Other Staff)</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="phiAreaGroup">
+                <label>PHI Area</label>
+                <input type="text" id="phiArea" placeholder="Enter PHI Area Name (e.g. Nehinna)">
+                <small style="color:#666;">If your area is listed, it will appear here (future feature). For now type
+                    it.</small>
+            </div>
+
+            <div class="form-group hidden" id="visitorRoleGroup">
+                <label>Visitor Designation</label>
+                <select id="visitorRole">
+                    <option value="">Select Designation</option>
+                    <option value="AMOH">AMOH</option>
+                    <option value="PHNS">PHNS</option>
+                    <option value="SPHM">SPHM</option>
+                    <option value="PHM">PHM</option>
+                </select>
+            </div>
+
+            <button type="submit">Save Profile</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="module">
+        import { auth, db } from './js/firebase-config.js';
+        import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { locationData, phiAreas } from './js/data/locationData.js';
+
+        // Populate Governance
+        const govSelect = document.getElementById('govAuthority');
+        Object.keys(locationData).forEach(k => {
+            const op = document.createElement('option');
+            op.value = k;
+            op.innerText = k;
+            govSelect.appendChild(op);
+        });
+
+        // Cascading Dropdowns
+        const provSelect = document.getElementById('province');
+        const distSelect = document.getElementById('district');
+        const mohSelect = document.getElementById('mohOffice');
+
+        govSelect.addEventListener('change', () => {
+            provSelect.innerHTML = '<option value="">Select Province</option>';
+            distSelect.innerHTML = '<option value="">Select District</option>';
+            mohSelect.innerHTML = '<option value="">Select MOH Office</option>';
+            provSelect.disabled = true;
+            distSelect.disabled = true;
+            mohSelect.disabled = true;
+
+            if (govSelect.value && locationData[govSelect.value]) {
+                Object.keys(locationData[govSelect.value]).forEach(k => {
+                    const op = document.createElement('option');
+                    op.value = k;
+                    op.innerText = k;
+                    provSelect.appendChild(op);
+                });
+                provSelect.disabled = false;
+            }
+        });
+
+        provSelect.addEventListener('change', () => {
+            distSelect.innerHTML = '<option value="">Select District</option>';
+            mohSelect.innerHTML = '<option value="">Select MOH Office</option>';
+            distSelect.disabled = true;
+            mohSelect.disabled = true;
+
+            const gov = govSelect.value;
+            const prov = provSelect.value;
+
+            if (gov && prov && locationData[gov][prov]) {
+                Object.keys(locationData[gov][prov]).forEach(k => {
+                    const op = document.createElement('option');
+                    op.value = k;
+                    op.innerText = k;
+                    distSelect.appendChild(op);
+                });
+                distSelect.disabled = false;
+            }
+        });
+
+        distSelect.addEventListener('change', () => {
+            mohSelect.innerHTML = '<option value="">Select MOH Office</option>';
+            mohSelect.disabled = true;
+
+            const gov = govSelect.value;
+            const prov = provSelect.value;
+            const dist = distSelect.value;
+
+            if (gov && prov && dist && locationData[gov][prov][dist]) {
+                locationData[gov][prov][dist].forEach(k => {
+                    const op = document.createElement('option');
+                    op.value = k;
+                    op.innerText = k;
+                    mohSelect.appendChild(op);
+                });
+                mohSelect.disabled = false;
+            }
+        });
+
+        // Role Logic
+        const roleSelect = document.getElementById('role');
+        const phiGroup = document.getElementById('phiAreaGroup');
+        const visitorGroup = document.getElementById('visitorRoleGroup');
+
+        roleSelect.addEventListener('change', () => {
+            phiGroup.classList.add('hidden');
+            visitorGroup.classList.add('hidden');
+
+            if (roleSelect.value === 'PHI') {
+                phiGroup.classList.remove('hidden');
+            } else if (roleSelect.value === 'visitors') {
+                visitorGroup.classList.remove('hidden');
+            }
+        });
+
+        // Auth & Submit
+        let userUid = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.replace('login.html');
+            } else {
+                userUid = user.uid;
+                // Maybe prefill existing data if partial?
+            }
+        });
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const role = roleSelect.value;
+            const visitorRole = document.getElementById('visitorRole').value;
+
+            let finalRole = role;
+            if (role === 'visitors') {
+                if (!visitorRole) {
+                    Swal.fire('Error', 'Please select a visitor designation', 'error');
+                    return;
+                }
+                finalRole = visitorRole;
+            }
+
+            let areaVal = "";
+            if (role === 'PHI') {
+                areaVal = document.getElementById('phiArea').value;
+                if (!areaVal) {
+                    Swal.fire('Error', 'Please enter PHI Area', 'error');
+                    return;
+                }
+            } else {
+                // For others, area is MOH Office name
+                areaVal = document.getElementById('mohOffice').value;
+            }
+
+            const data = {
+                name: document.getElementById('fullName').value,
+                governingAuthority: govSelect.value,
+                province: provSelect.value,
+                district: distSelect.value,
+                mohOffice: document.getElementById('mohOffice').value,
+                role: finalRole,
+                // If PHI, specific area, else their 'area' concept is the MOH Office
+                displayArea: areaVal,
+                profileCompleted: true
+            };
+
+            if (role === 'PHI') {
+                data.phiArea = areaVal;
+            }
+
+            try {
+                await updateDoc(doc(db, "users", userUid), data);
+
+                // Also update localStorage for immediate sidebar reflection (legacy support)
+                localStorage.setItem('phi_info_inspector', data.name);
+                localStorage.setItem('phi_info_area', data.displayArea);
+
+                // Determine Title
+                let title = "Public Health Inspector";
+                if (finalRole === 'MOH') title = "Medical Officer of Health";
+                else if (finalRole === 'SPHI') title = "Supervising PHI";
+                else if (finalRole === 'AMOH') title = "Additional MOH";
+                else if (finalRole === 'PHNS') title = "Public Health Nursing Sister";
+                else if (finalRole === 'SPHM') title = "Supervising PHM";
+                else if (finalRole === 'PHM') title = "Public Health Midwife";
+
+                localStorage.setItem('phi_info_role_title', title);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Profile Saved',
+                    text: 'Your details have been updated.',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.replace('index.html');
+                });
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'Failed to save profile', 'error');
+            }
+        });
+    </script>
+
+</body>
+
+</html>

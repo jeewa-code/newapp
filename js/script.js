@@ -49,9 +49,18 @@
   // -------------------------
   // main view switcher (sidebar)
   // -------------------------
-  window.showContent = function (section, event) {
+  window.showContent = function (section, event, fromHistory = false) {
     const content = document.getElementById("contentArea");
     if (!content) { console.warn("contentArea not found in DOM."); return; }
+
+    // Mobile Back Button Support (History Management)
+    if (!fromHistory) {
+      // Only push if we are changing sections to avoid duplicate history entries
+      if (!history.state || history.state.section !== section) {
+        history.pushState({ section: section }, "", "#" + section);
+      }
+    }
+
     // clear existing
     content.innerHTML = '';
     // set active class on sidebar
@@ -689,19 +698,55 @@
       nameEl.textContent = phiName;
     }
 
-    // Update area
+    // Update area and Role Title
+    const roleTitle = localStorage.getItem('phi_info_role_title') || 'Public Health Inspector';
     const areaEl = sidebarProfile.querySelector('.profile-text small');
     if (areaEl) {
-      areaEl.textContent = `Public Health Inspector — ${phiArea}`;
+      if (roleTitle === 'Public Health Inspector') {
+        areaEl.textContent = `${roleTitle} — ${phiArea}`;
+      } else {
+        // For MOH etc, it might be better to just show Title + Area (MOH Office)
+        areaEl.textContent = `${roleTitle} — ${phiArea}`;
+      }
     }
   }
 
   // Call on page load
+  // Call on page load
   document.addEventListener('DOMContentLoaded', function () {
     updateSidebarPhiInfo();
 
-    // Default to HOME
-    showContent('Home', { currentTarget: document.querySelector("li.active") });
+    // Handle Hardware Back Button (Mobile)
+    window.addEventListener('popstate', function (event) {
+      if (event.state && event.state.section) {
+        window.showContent(event.state.section, null, true);
+      } else {
+        // Fallback (e.g. if hash was manually cleared or initial load)
+        window.showContent('Home', null, true);
+      }
+    });
+
+    // Initial Load - Check Hash or Default to Home
+    const initialSection = location.hash ? location.hash.replace('#', '') : 'Home';
+
+    // Set initial history state so user can go back to it
+    history.replaceState({ section: initialSection }, "", "#" + initialSection);
+
+    // Find active nav item for styling
+    // Basic lookup for the `onclick="showContent('SectionName'..."` style
+    let activeNav = document.querySelector("li.active");
+    if (!activeNav && initialSection) {
+      // Try to find the li that corresponds to this section
+      const allLis = document.querySelectorAll(".sidebar ul li");
+      for (let li of allLis) {
+        if (li.getAttribute('onclick') && li.getAttribute('onclick').includes(`'${initialSection}'`)) {
+          activeNav = li;
+          break;
+        }
+      }
+    }
+
+    showContent(initialSection, { currentTarget: activeNav }, true);
 
     // Listen for storage events (when PHI info is updated in another tab)
     window.addEventListener('storage', function (e) {
