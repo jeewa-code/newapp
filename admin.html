@@ -251,7 +251,8 @@
                     <tr>
                         <th>Name</th>
                         <th>Email</th>
-                        <th>Joined</th>
+                        <th>Status</th>
+                        <th>Last Active</th>
                         <th>Role / Actions</th>
                     </tr>
                 </thead>
@@ -311,11 +312,11 @@
                 });
             } else {
                 document.getElementById('userInfo').innerText = `Welcome, ${user.displayName || user.email}`;
-                loadDashboardData();
+                loadDashboardData(user);
             }
         });
 
-        async function loadDashboardData() {
+        async function loadDashboardData(currentUser) {
             try {
                 const querySnapshot = await getDocs(collection(db, "users"));
                 let totalUsers = 0;
@@ -328,18 +329,37 @@
                     if (userData.role === 'admin') totalAdmins++;
 
                     // Add to table (limit to first 5 for demo)
-                    const isSelf = user.uid === doc.id; // basic check if we had user uid available globally, but we passed user in callback. 
-                    // user variable from checkAuthStatus is available in closure? Yes.
+                    const isSelf = currentUser.uid === doc.id;
 
                     // Actually we need the doc ID (user UID)
                     const userId = doc.id;
                     const currentUserEmail = auth.currentUser ? auth.currentUser.email : '';
 
+                    // Calculate Status
+                    const lastActiveStr = userData.lastActive || userData.createdAt; // Fallback to created
+                    const lastActiveDate = new Date(lastActiveStr);
+                    const now = new Date();
+                    const diffMs = now - lastActiveDate;
+                    const diffMins = Math.floor(diffMs / 60000);
+
+                    const isActive = diffMins < 15; // Active if seen in last 15 mins
+                    const statusHtml = isActive
+                        ? `<span style="color:#10b981; font-weight:600; display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-circle" style="font-size:10px;"></i> Active</span>`
+                        : `<span style="color:#9ca3af; font-weight:500; display:flex; align-items:center; gap:5px;"><i class="fa-regular fa-circle" style="font-size:10px;"></i> Offline</span>`;
+
+                    // Format Last Active
+                    let lastActiveDisplay = lastActiveDate.toLocaleString();
+                    if (diffMins < 60) lastActiveDisplay = `${diffMins} min ago`;
+                    else if (diffMins < 1440) lastActiveDisplay = `${Math.floor(diffMins / 60)} hr ago`;
+
+                    if (!userData.lastActive && !isActive) lastActiveDisplay = "Never"; // Or joined date
+
                     tableHtml += `
                             <tr>
                                 <td>${userData.name || 'N/A'}</td>
                                 <td>${userData.email}</td>
-                                <td>${new Date(userData.createdAt).toLocaleDateString()}</td>
+                                <td>${statusHtml}</td>
+                                <td><small>${lastActiveDisplay}</small></td>
                                 <td>
                                     <div style="display:flex; gap:10px; align-items:center;">
                                         <select onchange="window.handleRoleChange('${userId}', this.value)" 

@@ -166,8 +166,17 @@ export const checkAuthStatus = (callback) => {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const userDoc = await getDoc(doc(db, "users", user.uid));
-            const role = userDoc.exists() ? userDoc.data().role : 'user';
-            callback(user, role);
+            if (userDoc.exists()) {
+                const role = userDoc.data().role;
+                callback(user, role);
+
+                // Update lastActive timestamp
+                updateDoc(doc(db, "users", user.uid), {
+                    lastActive: new Date().toISOString()
+                }).catch(e => console.error("Error updating presence", e));
+            } else {
+                callback(user, 'user');
+            }
         } else {
             callback(null, null);
         }
