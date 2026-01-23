@@ -1,16 +1,41 @@
 // inwardRegister.js (updated layout for full contentArea form + view tab)
 // Ensure this file is included after script.js in PHI.html
 
+import { saveWithSync, deleteWithSync, loadWithSync } from '../services/dataService.js';
+
 (function () {
   const STORAGE_KEY = "inwardRegisterEntries_v1";
+  const COLLECTION_NAME = "inwardRegister";
 
-  function readEntries() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
-    catch (e) { return []; }
+  async function readEntries() {
+    try {
+      return await loadWithSync(COLLECTION_NAME, STORAGE_KEY);
+    } catch (e) {
+      console.error("Error reading entries:", e);
+      // Fallback to localStorage
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+      catch (e2) { return []; }
+    }
   }
-  function writeEntries(arr) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+
+  async function writeEntry(data) {
+    try {
+      await saveWithSync(COLLECTION_NAME, STORAGE_KEY, data.id, data);
+    } catch (e) {
+      console.error("Error writing entry:", e);
+      throw e;
+    }
   }
+
+  async function deleteEntry(id) {
+    try {
+      await deleteWithSync(COLLECTION_NAME, STORAGE_KEY, id);
+    } catch (e) {
+      console.error("Error deleting entry:", e);
+      throw e;
+    }
+  }
+
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function escapeHtml(s) { return (s + "").replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
@@ -123,7 +148,7 @@
 
     // wire tabs
     content.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         content.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
         content.querySelectorAll(".tab-content").forEach(t => t.style.display = "none");
         btn.classList.add("active");
@@ -132,7 +157,7 @@
         if (target) {
           target.style.display = "block";
           // when switching to view tab, refresh table
-          if (id === "tab-view") renderTable();
+          if (id === "tab-view") await renderTable();
         }
       });
     });
@@ -143,8 +168,8 @@
     });
 
     // export filtered
-    document.getElementById("inward_export").addEventListener("click", () => {
-      const rows = getFilteredEntries();
+    document.getElementById("inward_export").addEventListener("click", async () => {
+      const rows = await getFilteredEntries();
       if (!rows.length) return alert("No records to export.");
       const headers = ["Date", "To", "Subject", "ReplyDate", "ActionRequired", "FileName"];
       const csvRows = [headers.join(",")].concat(rows.map(r => {
@@ -162,7 +187,7 @@
 
     // form handling
     const form = document.getElementById("inwardForm");
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const data = {
         id: form.getAttribute("data-edit-id") || uid(),
@@ -177,16 +202,19 @@
         alert("දිනය සහ යවන්නේ කවරෙකු වෙත්ද (Date & To) අවශ්‍ය වේ.");
         return;
       }
-      const entries = readEntries();
-      const idx = entries.findIndex(x => x.id === data.id);
-      if (idx >= 0) entries[idx] = data;
-      else entries.unshift(data);
-      writeEntries(entries);
-      form.reset();
-      form.removeAttribute("data-edit-id");
-      // after save, switch to view tab and refresh
-      document.querySelector('.tab-btn[data-tab="tab-view"]').click();
-      renderTable();
+
+      try {
+        await writeEntry(data);
+        form.reset();
+        form.removeAttribute("data-edit-id");
+        // after save, switch to view tab and refresh
+        document.querySelector('.tab-btn[data-tab="tab-view"]').click();
+        await renderTable();
+        showSuccess("Record saved successfully! / දත්ත සාර්ථකව ගබඩා විය!");
+      } catch (error) {
+        console.error("Error saving:", error);
+        showError("Error saving data. Please try again. / දත්ත සුරැකීමේදී දෝෂයක් සිදුවිය.");
+      }
     });
 
     document.getElementById("inward_clear").addEventListener("click", () => {
@@ -214,8 +242,8 @@
     }, 150);
   } // end buildUI
 
-  function getFilteredEntries() {
-    const all = readEntries();
+  async function getFilteredEntries() {
+    const all = await readEntries();
     const q = (document.getElementById("filter_search") && document.getElementById("filter_search").value || "").toLowerCase().trim();
     const replyFilter = document.getElementById("filter_reply") ? document.getElementById("filter_reply").value : "";
     const from = document.getElementById("filter_from") ? document.getElementById("filter_from").value : "";
@@ -243,10 +271,10 @@
     });
   }
 
-  function renderTable() {
+  async function renderTable() {
     const tbody = document.querySelector("#inward_table tbody");
     if (!tbody) return;
-    const rows = getFilteredEntries();
+    const rows = await getFilteredEntries();
     const countEl = document.getElementById("inward_count");
     if (countEl) countEl.textContent = rows.length;
     if (!rows.length) {
@@ -271,9 +299,9 @@
 
     // wire edit & delete
     tbody.querySelectorAll("button.edit").forEach(b => {
-      b.addEventListener("click", (ev) => {
+      b.addEventListener("click", async (ev) => {
         const id = ev.currentTarget.dataset.id;
-        const entries = readEntries();
+        const entries = await readEntries();
         const item = entries.find(x => x.id === id);
         if (!item) return alert("Record not found.");
         const form = document.getElementById("inwardForm");
@@ -294,9 +322,14 @@
       b.addEventListener("click", async (ev) => {
         const id = ev.currentTarget.dataset.id;
         if (!await showConfirm("Delete this record?")) return;
-        const filteredOut = readEntries().filter(x => x.id !== id);
-        writeEntries(filteredOut);
-        renderTable();
+        try {
+          await deleteEntry(id);
+          await renderTable();
+          showSuccess("Record deleted successfully! / දත්ත සාර්ථකව මකා දමන ලදී!");
+        } catch (error) {
+          console.error("Error deleting:", error);
+          showError("Error deleting data. / දත්ත මකා දැමීමේදී දෝෂයක් සිදුවිය.");
+        }
       });
     });
   }

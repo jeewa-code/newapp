@@ -225,7 +225,7 @@
   <script src="js/registers/healthEducation.js"></script>
   <script src="js/registers/occupationalSafety.js"></script>
   <script src="js/registers/schoolImmunization.js"></script>
-  <script src="js/registers/inwardRegister.js"></script>
+  <script type="module" src="js/registers/inwardRegister.js"></script>
   <script src="js/registers/tradeIndustries.js"></script>
   <script src="js/registers/meatInspection.js"></script>
   <script src="js/registers/disasterPreparedness.js"></script>
@@ -265,16 +265,35 @@
 
   <script type="module">
     import { checkAuthStatus, logoutUser } from './js/auth/authService.js';
+    import { performMigration } from './js/migrationHelper.js';
+    import { initializeStorageWrapper, loadAllFromFirestore } from './js/storageWrapper.js';
+
+    // Initialize storage wrapper FIRST
+    initializeStorageWrapper();
 
     // Check Authentication
-    // Check Authentication
-    checkAuthStatus((user, role, profileCompleted) => {
+    checkAuthStatus(async (user, role, profileCompleted) => {
       if (!user) {
         // Redirect if not logged in
         window.location.replace('login.html');
       } else if (!profileCompleted) {
         window.location.replace('complete_profile.html');
       } else {
+        // Load existing data from Firestore
+        try {
+          await loadAllFromFirestore();
+        } catch (error) {
+          console.error('Load from Firestore error:', error);
+        }
+
+        // Perform one-time data migration from localStorage to Firestore
+        try {
+          await performMigration(false); // Silent migration
+        } catch (error) {
+          console.error('Migration error:', error);
+          // Continue even if migration fails
+        }
+
         // Update Profile Info
         const profileNames = document.querySelectorAll('.profile-text strong');
         profileNames.forEach(el => el.textContent = user.displayName || user.email);
