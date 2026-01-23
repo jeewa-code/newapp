@@ -316,7 +316,8 @@
       _currentInspections.unshift(newRow);
       renderInspectionsTable(true, newRow.id);
     });
-    document.getElementById("ti_clear_inspections_btn").addEventListener("click", async () => { if (!await showConfirm("Clear all inspections?")) return;
+    document.getElementById("ti_clear_inspections_btn").addEventListener("click", async () => {
+      if (!await showConfirm("Clear all inspections?")) return;
       _currentInspections = [];
       renderInspectionsTable();
       tryPersistIfEditing();

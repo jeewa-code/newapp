@@ -30,13 +30,20 @@ const COLLECTION_MAP = {
     'occupationalSafety_v1': 'occupationalSafety',
     'schoolImmunization1_v1': 'schoolImmunization1',
     'schoolImmunization2_v1': 'schoolImmunization2',
-    'tradeIndustries_v1': 'tradeIndustries',
+    'trade_industries_v1': 'tradeIndustries',
+    'trade_food_types_v1': 'tradeFoodTypes',
+    'trade_other_types_v1': 'tradeOtherTypes',
     'meatInspection_v1': 'meatInspection',
     'disasterPreparedness_v1': 'disasterPreparedness',
+    'pocketNotes': 'pocketNoteBook',
     'pocketNoteBook_v1': 'pocketNoteBook',
     'dailySummary_v1': 'dailySummary',
     'keyRegister_v1': 'keyRegister',
-    'monthlySchedule_v1': 'monthlySchedule'
+    'monthlySchedule_v1': 'monthlySchedule',
+    'phi_schools_v1': 'phiSchools',
+    'phi_gns_v1': 'phiGNs',
+    'phi_phm_v1': 'phiPHM',
+    'phi_info_v1': 'phiInfo'
 };
 
 // Check if key should be synced to Firestore
