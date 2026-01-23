@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Sync Test - PHI Office</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #0b5ea8;
+            margin-top: 0;
+        }
+
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        button {
+            background: #0b5ea8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #094a86;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #0b5ea8;
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Sync Test / පරීක්ෂණය</h1>
+
+        <div id="authStatus" class="status info">Checking authentication...</div>
+
+        <div class="test-section">
+            <h3>📝 Test 1: Write Data to Firestore</h3>
+            <p>This will save test data to Firebase Firestore</p>
+            <button onclick="testWrite()" id="btnWrite">Test Write</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📖 Test 2: Read Data from Firestore</h3>
+            <p>This will read all test data from Firebase Firestore</p>
+            <button onclick="testRead()" id="btnRead">Test Read</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🗑️ Test 3: Delete Test Data</h3>
+            <p>This will clean up all test data</p>
+            <button onclick="cleanupTest()" id="btnCleanup">Delete Test Data</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 Test 4: localStorage Sync Test</h3>
+            <p>This tests if localStorage changes sync to Firestore</p>
+            <button onclick="testLocalStorageSync()">Test localStorage Sync</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Test 5: Check Existing Data</h3>
+            <p>Check what data exists in Firestore for your account</p>
+            <button onclick="checkExistingData()">Check All Collections</button>
+        </div>
+
+        <h3>Results:</h3>
+        <div id="results">No tests run yet...</div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from './js/firebase-config.js';
+        import {
+            collection,
+            addDoc,
+            getDocs,
+            deleteDoc,
+            doc,
+            setDoc
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        let currentUser = null;
+
+        // Update auth status
+        auth.onAuthStateChanged(user => {
+            const statusEl = document.getElementById('authStatus');
+            if (user) {
+                currentUser = user;
+                statusEl.className = 'status success';
+                statusEl.innerHTML = `✅ Logged in as: <strong>${user.email}</strong><br>User ID: ${user.uid}`;
+                enableButtons();
+            } else {
+                statusEl.className = 'status error';
+                statusEl.innerHTML = '❌ Not logged in - Redirecting to login page...';
+                disableButtons();
+                setTimeout(() => window.location.href = 'login.html', 2000);
+            }
+        });
+
+        function enableButtons() {
+            document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+        }
+
+        function disableButtons() {
+            document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+        }
+
+        function log(message, type = 'info') {
+            const resultsEl = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            resultsEl.innerHTML += `[${timestamp}] ${icon} ${message}\n`;
+            resultsEl.scrollTop = resultsEl.scrollHeight;
+        }
+
+        // Test 1: Write data
+        window.testWrite = async function () {
+            log('Starting write test...', 'info');
+            try {
+                if (!currentUser) {
+                    log('ERROR: No user logged in', 'error');
+                    return;
+                }
+
+                const testData = {
+                    message: 'Test entry from sync test page',
+                    timestamp: new Date().toISOString(),
+                    deviceInfo: navigator.userAgent,
+                    testId: Math.random().toString(36).substring(7)
+                };
+
+                const testRef = collection(db, `users/${currentUser.uid}/testCollection`);
+                const docRef = await addDoc(testRef, testData);
+
+                log(`SUCCESS: Data written to Firestore!`, 'success');
+                log(`Document ID: ${docRef.id}`, 'info');
+                log(`Path: users/${currentUser.uid}/testCollection/${docRef.id}`, 'info');
+
+            } catch (error) {
+                log(`ERROR: ${error.message}`, 'error');
+                console.error('Write error:', error);
+            }
+        };
+
+        // Test 2: Read data
+        window.testRead = async function () {
+            log('Starting read test...', 'info');
+            try {
+                if (!currentUser) {
+                    log('ERROR: No user logged in', 'error');
+                    return;
+                }
+
+                const testRef = collection(db, `users/${currentUser.uid}/testCollection`);
+                const snapshot = await getDocs(testRef);
+
+                log(`SUCCESS: Read ${snapshot.size} documents from Firestore`, 'success');
+
+                if (snapshot.size > 0) {
+                    snapshot.forEach(doc => {
+                        log(`  - Document ${doc.id}: ${JSON.stringify(doc.data())}`, 'info');
+                    });
+                } else {
+                    log('No documents found. Try running "Test Write" first.', 'info');
+                }
+
+            } catch (error) {
+                log(`ERROR: ${error.message}`, 'error');
+                console.error('Read error:', error);
+            }
+        };
+
+        // Test 3: Cleanup
+        window.cleanupTest = async function () {
+            log('Starting cleanup...', 'info');
+            try {
+                if (!currentUser) {
+                    log('ERROR: No user logged in', 'error');
+                    return;
+                }
+
+                const testRef = collection(db, `users/${currentUser.uid}/testCollection`);
+                const snapshot = await getDocs(testRef);
+
+                const deletePromises = [];
+                snapshot.forEach(document => {
+                    deletePromises.push(deleteDoc(doc(db, `users/${currentUser.uid}/testCollection`, document.id)));
+                });
+
+                await Promise.all(deletePromises);
+
+                log(`SUCCESS: Deleted ${snapshot.size} test documents`, 'success');
+
+            } catch (error) {
+                log(`ERROR: ${error.message}`, 'error');
+                console.error('Cleanup error:', error);
+            }
+        };
+
+        // Test 4: localStorage sync
+        window.testLocalStorageSync = async function () {
+            log('Testing localStorage sync...', 'info');
+            try {
+                if (!currentUser) {
+                    log('ERROR: No user logged in', 'error');
+                    return;
+                }
+
+                // Save to localStorage (should trigger automatic sync)
+                const testData = [{
+                    id: 'sync_test_' + Date.now(),
+                    name: 'localStorage Sync Test',
+                    timestamp: new Date().toISOString()
+                }];
+
+                log('Saving to localStorage: trade_industries_v1', 'info');
+                localStorage.setItem('trade_industries_v1', JSON.stringify(testData));
+
+                log('Waiting 3 seconds for sync to complete...', 'info');
+
+                // Wait for sync
+                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                // Check if it was synced
+                const collectionRef = collection(db, `users/${currentUser.uid}/tradeIndustries`);
+                const snapshot = await getDocs(collectionRef);
+
+                log(`Found ${snapshot.size} documents in Firestore`, 'info');
+
+                const found = snapshot.docs.find(doc => doc.id === testData[0].id);
+                if (found) {
+                    log('SUCCESS: localStorage sync is working! ✅', 'success');
+                } else if (snapshot.size > 0) {
+                    log('INFO: Firestore has data but test entry not found. Check console messages for sync errors.', 'info');
+                } else {
+                    log('WARNING: No sync detected. Check console for errors.', 'error');
+                    log('Make sure storageWrapper is initialized!', 'error');
+                }
+
+            } catch (error) {
+                log(`ERROR: ${error.message}`, 'error');
+                console.error('Sync test error:', error);
+            }
+        };
+
+        // Test 5: Check existing data
+        window.checkExistingData = async function () {
+            log('Checking all collections...', 'info');
+            try {
+                if (!currentUser) {
+                    log('ERROR: No user logged in', 'error');
+                    return;
+                }
+
+                const collections = [
+                    'tradeIndustries', 'tradeFoodTypes', 'tradeOtherTypes',
+                    'inwardRegister', 'healthEducation', 'sanitation',
+                    'pocketNoteBook', 'dailySummary', 'keyRegister'
+                ];
+
+                log(`Checking ${collections.length} collections...`, 'info');
+
+                for (const collectionName of collections) {
+                    try {
+                        const collectionRef = collection(db, `users/${currentUser.uid}/${collectionName}`);
+                        const snapshot = await getDocs(collectionRef);
+
+                        if (snapshot.size > 0) {
+                            log(`  ✅ ${collectionName}: ${snapshot.size} documents`, 'success');
+                        } else {
+                            log(`  ⚪ ${collectionName}: empty`, 'info');
+                        }
+                    } catch (err) {
+                        log(`  ⚠️ ${collectionName}: Error - ${err.message}`, 'error');
+                    }
+                }
+
+                log('--- Check complete ---', 'info');
+
+            } catch (error) {
+                log(`ERROR: ${error.message}`, 'error');
+                console.error('Check data error:', error);
+            }
+        };
+
+        log('Test page loaded. Ready for testing.', 'info');
+    </script>
+</body>
+
+</html>
