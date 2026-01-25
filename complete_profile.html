@@ -483,7 +483,9 @@
 
             try {
                 // Save to Firestore users collection
-                await updateDoc(doc(db, "users", currentUser.uid), {
+                // Using setDoc with merge instead of updateDoc to ensure document exists
+                await setDoc(doc(db, "users", currentUser.uid), {
+                    email: currentUser.email,
                     name: name,
                     province: province,
                     authType: authType,
@@ -497,7 +499,7 @@
                     area: fieldArea, // Unified field for easy display
                     profileCompleted: true,
                     updatedAt: new Date().toISOString()
-                });
+                }, { merge: true });
 
                 // Also save to PHI Profile (phiInfo localStorage)
                 // This ensures the data appears in PHI ගේ විස්තර tab

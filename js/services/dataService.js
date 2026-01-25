@@ -35,7 +35,10 @@ export const saveData = async (collectionName, docId, data) => {
     try {
         const userId = getCurrentUserId();
         const userCollectionRef = collection(db, `users/${userId}/${collectionName}`);
-        const docRef = doc(userCollectionRef, docId);
+
+        // Convert docId to string to ensure compatibility with Firestore
+        const docIdString = String(docId);
+        const docRef = doc(userCollectionRef, docIdString);
 
         await setDoc(docRef, {
             ...data,
@@ -43,7 +46,7 @@ export const saveData = async (collectionName, docId, data) => {
             createdAt: data.createdAt || new Date().toISOString()
         }, { merge: true });
 
-        return { success: true, id: docId };
+        return { success: true, id: docIdString };
     } catch (error) {
         console.error("Error saving data:", error);
         throw error;
@@ -58,7 +61,8 @@ export const saveData = async (collectionName, docId, data) => {
 export const getData = async (collectionName, docId) => {
     try {
         const userId = getCurrentUserId();
-        const docRef = doc(db, `users/${userId}/${collectionName}`, docId);
+        const docIdString = String(docId);
+        const docRef = doc(db, `users/${userId}/${collectionName}`, docIdString);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -102,14 +106,15 @@ export const getAllData = async (collectionName) => {
 export const updateData = async (collectionName, docId, data) => {
     try {
         const userId = getCurrentUserId();
-        const docRef = doc(db, `users/${userId}/${collectionName}`, docId);
+        const docIdString = String(docId);
+        const docRef = doc(db, `users/${userId}/${collectionName}`, docIdString);
 
         await updateDoc(docRef, {
             ...data,
             updatedAt: new Date().toISOString()
         });
 
-        return { success: true, id: docId };
+        return { success: true, id: docIdString };
     } catch (error) {
         console.error("Error updating data:", error);
         throw error;
@@ -124,11 +129,12 @@ export const updateData = async (collectionName, docId, data) => {
 export const deleteData = async (collectionName, docId) => {
     try {
         const userId = getCurrentUserId();
-        const docRef = doc(db, `users/${userId}/${collectionName}`, docId);
+        const docIdString = String(docId);
+        const docRef = doc(db, `users/${userId}/${collectionName}`, docIdString);
 
         await deleteDoc(docRef);
 
-        return { success: true, id: docId };
+        return { success: true, id: docIdString };
     } catch (error) {
         console.error("Error deleting data:", error);
         throw error;

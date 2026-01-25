@@ -355,7 +355,7 @@
 
     const items = type === 'role' ? load(ROLE_KEY) : load(PLACE_KEY);
     const placeholderText = '-- තෝරන්න --';
-    
+
     // Get display text for preserved value
     let displayText = placeholderText;
     if (preservedValue) {
@@ -545,9 +545,9 @@
       const rect = btn.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       const viewportWidth = window.innerWidth;
-      
+
       const isMobile = viewportWidth <= 768;
-      
+
       if (isMobile) {
         menu.style.position = "fixed";
         menu.style.width = "90%";
@@ -569,9 +569,9 @@
 
       const spaceBelow = viewportHeight - rect.bottom;
       const spaceAbove = rect.top;
-      
+
       const minSpaceNeeded = 250;
-      
+
       const availableBelow = Math.max(0, spaceBelow - 10);
       const availableAbove = Math.max(0, spaceAbove - 10);
       const maxMenuHeight = 300;
@@ -585,7 +585,7 @@
       menu.style.margin = "0";
 
       const openUpward = availableAbove > availableBelow || spaceBelow < minSpaceNeeded;
-      
+
       if (openUpward) {
         menu.style.bottom = (viewportHeight - rect.top + 2) + "px";
         menu.style.top = "auto";
@@ -626,7 +626,7 @@
         document.querySelectorAll('.ms-dropdown-menu').forEach(m => {
           if (m !== menu && m.style.display === "block") {
             m.style.display = "none";
-            
+
             if (m.dataset.triggerId) {
               const otherBtn = document.getElementById(m.dataset.triggerId);
               if (otherBtn) {
@@ -667,8 +667,8 @@
           document.body.appendChild(menu);
           menu.style.display = "block";
           arrow.style.transform = "rotate(180deg)";
-          
-          btn.style.backgroundColor = '#90ee90'; 
+
+          btn.style.backgroundColor = '#90ee90';
           btn.style.borderColor = '#006400';
 
           menu.offsetHeight;
@@ -782,7 +782,7 @@
 
     const options = type === 'day' ? dayOptions : timeOptions;
     const placeholderText = '-- තෝරන්න --';
-    
+
     let displayText = placeholderText;
     if (preservedValue) {
       const option = options.find(o => o.value === preservedValue);
@@ -868,9 +868,9 @@
       const rect = btn.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       const viewportWidth = window.innerWidth;
-      
+
       const isMobile = viewportWidth <= 768;
-      
+
       if (isMobile) {
         menu.style.position = "fixed";
         menu.style.width = "90%";
@@ -893,7 +893,7 @@
       const spaceBelow = viewportHeight - rect.bottom;
       const spaceAbove = rect.top;
       const minSpaceNeeded = 250;
-      
+
       const availableBelow = Math.max(0, spaceBelow - 10);
       const availableAbove = Math.max(0, spaceAbove - 10);
       const maxMenuHeight = 300;
@@ -907,7 +907,7 @@
       menu.style.margin = "0";
 
       const openUpward = availableAbove > availableBelow || spaceBelow < minSpaceNeeded;
-      
+
       if (openUpward) {
         menu.style.bottom = (viewportHeight - rect.top + 2) + "px";
         menu.style.top = "auto";
@@ -947,7 +947,7 @@
         document.querySelectorAll('.ms-dropdown-menu').forEach(m => {
           if (m !== menu && m.style.display === "block") {
             m.style.display = "none";
-            
+
             if (m.dataset.triggerId) {
               const otherBtn = document.getElementById(m.dataset.triggerId);
               if (otherBtn) {
@@ -962,7 +962,7 @@
             }
           }
         });
-        
+
         // Close all week dropdown menus (for day/time dropdowns)
         document.querySelectorAll('.week-dropdown-menu.active').forEach(m => {
           m.classList.remove('active');
@@ -988,8 +988,8 @@
           document.body.appendChild(menu);
           menu.style.display = "block";
           arrow.style.transform = "rotate(180deg)";
-          
-          btn.style.backgroundColor = '#90ee90'; 
+
+          btn.style.backgroundColor = '#90ee90';
           btn.style.borderColor = '#006400';
 
           menu.offsetHeight;
@@ -1610,7 +1610,7 @@
   /* ================= WEEK MULTI-SELECT HELPER ================= */
   function createWeekMultiSelect(recordId, selectedWeeks = [], disabled = false) {
     console.log(`Creating week multi-select for ${recordId}, selectedWeeks:`, selectedWeeks, `disabled:`, disabled);
-    
+
     const container = document.createElement('div');
     container.className = 'week-multi-select';
     container.dataset.recordId = recordId;
@@ -1619,7 +1619,7 @@
     button.type = 'button';
     button.className = 'week-select-button';
     button.disabled = disabled;
-    
+
     function updateButtonText() {
       const selected = getSelectedWeeks(recordId);
       console.log(`updateButtonText for ${recordId}, selected:`, selected);
@@ -1632,10 +1632,10 @@
       }
       console.log(`Button text set to: ${button.textContent}`);
     }
-    
+
     const menu = document.createElement('div');
     menu.className = 'week-dropdown-menu';
-    
+
     const weekOptions = [
       { value: '1', label: '1 වන සතිය' },
       { value: '2', label: '2 වන සතිය' },
@@ -1643,66 +1643,66 @@
       { value: '4', label: '4 වන සතිය' },
       { value: '5', label: '5 වන සතිය' }
     ];
-    
+
     weekOptions.forEach(opt => {
       const item = document.createElement('div');
       item.className = 'week-checkbox-item';
-      
+
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.value = opt.value;
       checkbox.checked = selectedWeeks.includes(opt.value);
       checkbox.dataset.recordId = recordId;
       checkbox.className = `week-checkbox-${recordId}`;
-      
+
       checkbox.addEventListener('change', (e) => {
         e.stopPropagation();
         updateButtonText();
       });
-      
+
       const label = document.createElement('label');
       label.textContent = opt.label;
       label.style.cursor = 'pointer';
       label.style.userSelect = 'none';
-      
+
       label.addEventListener('click', (e) => {
         e.stopPropagation();
         checkbox.checked = !checkbox.checked;
         updateButtonText();
       });
-      
+
       item.appendChild(checkbox);
       item.appendChild(label);
       menu.appendChild(item);
     });
-    
+
     // Position menu function
     const positionMenu = () => {
       if (!menu.classList.contains('active')) return;
-      
+
       const rect = button.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       const viewportWidth = window.innerWidth;
-      
+
       const isMobile = viewportWidth <= 768;
-      
+
       if (isMobile) {
         // Mobile: centered modal (handled by CSS)
         return;
       }
-      
+
       // Desktop positioning
       menu.style.position = 'fixed';
       const spaceBelow = viewportHeight - rect.bottom;
       const spaceAbove = rect.top;
       const minSpaceNeeded = 250;
-      
+
       menu.style.width = Math.max(rect.width, 220) + "px";
       menu.style.left = rect.left + "px";
       menu.style.right = "auto";
-      
+
       const openUpward = spaceAbove > spaceBelow || spaceBelow < minSpaceNeeded;
-      
+
       if (openUpward) {
         menu.style.bottom = (viewportHeight - rect.top + 2) + "px";
         menu.style.top = "auto";
@@ -1712,7 +1712,7 @@
         menu.style.bottom = "auto";
         menu.style.maxHeight = Math.min(300, spaceBelow - 10) + "px";
       }
-      
+
       // Adjust if menu goes off screen horizontally
       setTimeout(() => {
         const menuRect = menu.getBoundingClientRect();
@@ -1724,12 +1724,12 @@
         }
       }, 0);
     };
-    
+
     button.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!button.disabled) {
         const wasActive = menu.classList.contains('active');
-        
+
         // Close all other week menus
         document.querySelectorAll('.week-dropdown-menu.active').forEach(m => {
           if (m !== menu) {
@@ -1741,19 +1741,19 @@
             }
           }
         });
-        
+
         // Close all ms-dropdown-menu (role, place, day, time)
         document.querySelectorAll('.ms-dropdown-menu').forEach(m => {
           if (m.style.display === "block") {
             m.style.display = "none";
-            
+
             // Reset button style
             if (m.dataset.triggerId) {
               const otherBtn = document.getElementById(m.dataset.triggerId);
               if (otherBtn) {
                 const arrow = otherBtn.querySelector('span:last-child');
                 if (arrow) arrow.style.transform = "rotate(0deg)";
-                
+
                 if (otherBtn.dataset.value) {
                   otherBtn.style.backgroundColor = 'rgb(92, 227, 245)';
                   otherBtn.style.borderColor = '#000000ff';
@@ -1763,7 +1763,7 @@
                 }
               }
             }
-            
+
             // Move back to wrapper
             const wrapperParent = m.parentElement;
             if (wrapperParent === document.body) {
@@ -1777,7 +1777,7 @@
             }
           }
         });
-        
+
         if (wasActive) {
           menu.classList.remove('active');
           if (menu._cleanup) menu._cleanup();
@@ -1791,21 +1791,21 @@
             document.body.appendChild(menu);
             menu.dataset.menuFor = recordId;
           }
-          
+
           menu.classList.add('active');
-          
+
           // Position after display and paint
           requestAnimationFrame(() => {
             positionMenu();
           });
-          
+
           // Add scroll/resize handlers
           const scrollHandler = () => {
             requestAnimationFrame(() => positionMenu());
           };
           window.addEventListener('scroll', scrollHandler, true);
           window.addEventListener('resize', scrollHandler);
-          
+
           menu._cleanup = () => {
             window.removeEventListener('scroll', scrollHandler, true);
             window.removeEventListener('resize', scrollHandler);
@@ -1813,7 +1813,7 @@
         }
       }
     });
-    
+
     // Close menu when clicking outside
     document.addEventListener('click', (e) => {
       if (!container.contains(e.target) && !menu.contains(e.target)) {
@@ -1827,10 +1827,10 @@
         }
       }
     });
-    
+
     container.appendChild(button);
     container.appendChild(menu);
-    
+
     // Initial button text update - use selectedWeeks parameter directly
     if (selectedWeeks.length === 0) {
       button.textContent = 'සතිය තෝරන්න';
@@ -1840,7 +1840,7 @@
       button.textContent = selectedWeeks.map(w => `${w} වන`).join(', ');
     }
     console.log(`Initial button text set to: ${button.textContent} for recordId: ${recordId}`);
-    
+
     return container;
   }
 
@@ -2103,19 +2103,19 @@
     if (addBtn) {
       addBtn.addEventListener("click", function () {
         console.log("=== Add Fixed Date Button Clicked ===");
-        
+
         const roleCell = $("fd_new_role_cell");
         const placeCell = $("fd_new_place_cell");
         const dayCell = $("fd_new_day_cell");
         const timeCell = $("fd_new_time_cell");
-        
+
         console.log("Cells found:", {
           roleCell: !!roleCell,
           placeCell: !!placeCell,
           dayCell: !!dayCell,
           timeCell: !!timeCell
         });
-        
+
         const roleWrapper = roleCell ? roleCell.querySelector(".fd-new-role-wrapper") : null;
         const placeWrapper = placeCell ? placeCell.querySelector(".fd-new-place-wrapper") : null;
         const dayWrapper = dayCell ? dayCell.querySelector("div") : null;
@@ -2147,14 +2147,14 @@
           console.log("Validation failed: No role or place selected");
           return window.showWarning ? showWarning("රාජකාරිය හෝ ස්ථානය අවම වශයෙන් එකක් තෝරන්න\nSelect at least role OR place") : alert("Select at least role OR place");
         }
-        
+
         // Validate: day, week, and time are mandatory
         if (!day || weeks.length === 0 || !time) {
           return window.showWarning ? showWarning("දවස, සතිය සහ වෙලාව අනිවාර්‍යයි\nDay, week, and time are mandatory") : alert("Day, week, and time are mandatory");
         }
 
         const arr = load(FIXED_DATES_KEY);
-        
+
         // Create single entry with multiple weeks
         arr.push({
           id: uid(),
@@ -2185,7 +2185,7 @@
           const placeCell = row.querySelector(".fd-place-cell");
           const dayCell = row.querySelector(".fd-day-cell");
           const timeCell = row.querySelector(".fd-time-cell");
-          
+
           const roleWrapper = roleCell ? roleCell.querySelector(`.fd-${id}-role-wrapper`) : null;
           const placeWrapper = placeCell ? placeCell.querySelector(`.fd-${id}-place-wrapper`) : null;
           const dayWrapper = dayCell ? dayCell.querySelector("div") : null;
@@ -2201,7 +2201,7 @@
           if (!roleId && !placeId) {
             return window.showWarning ? showWarning("රාජකාරිය හෝ ස්ථානය අවම වශයෙන් එකක් තෝරන්න\nSelect at least role OR place") : alert("Select at least role OR place");
           }
-          
+
           // Validate: day, week, and time are mandatory
           if (!day || weeks.length === 0 || !time) {
             return window.showWarning ? showWarning("දවස, සතිය සහ වෙලාව අනිවාර්‍යයි\nDay, week, and time are mandatory") : alert("Day, week, and time are mandatory");
@@ -2232,7 +2232,7 @@
           const placeCell = row.querySelector(".fd-place-cell");
           const dayCell = row.querySelector(".fd-day-cell");
           const timeCell = row.querySelector(".fd-time-cell");
-          
+
           if (roleCell) {
             const roleBtn = roleCell.querySelector("button");
             if (roleBtn) {
