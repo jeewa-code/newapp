@@ -209,13 +209,13 @@
     document.head.appendChild(style);
   </script>
 
-  <script src="js/phi/phiInfo.js"></script>
+  <script type="module" src="js/phi/phiInfo.js"></script>
 
   <script src="js/script.js"></script>
 
   <script src="js/registers/sanitation.js"></script>
   <script src="js/registers/latrineConstruction.js"></script>
-  <script src="js/registers/infectious.js?v=20260116_2"></script>
+  <script type="module" src="js/registers/infectious.js?v=20260127_firebase"></script>
   <script src="js/registers/nonCommunicable.js"></script>
   <script src="js/registers/notices.js"></script>
   <script src="js/registers/foodAnalysis.js"></script>
@@ -234,8 +234,8 @@
 
 
   <script src="js/phi/phiMapViewer.js"></script>
-  <script src="js/phi/phiMeta.js"></script>
-  <script src="js/phi/phiKeyMap.js"></script>
+  <script type="module" src="js/phi/phiMeta.js"></script>
+  <script type="module" src="js/phi/phiKeyMap.js"></script>
 
   <!-- Government Holidays Data (must load before pocketNoteEntry) -->
   <script src="js/reports/governmentHolidays.js"></script>
@@ -276,8 +276,6 @@
       if (!user) {
         // Redirect if not logged in
         window.location.replace('login.html');
-      } else if (!profileCompleted) {
-        window.location.replace('complete_profile.html');
       } else {
         // Load existing data from Firestore
         try {

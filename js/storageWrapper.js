@@ -43,7 +43,7 @@ const COLLECTION_MAP = {
     'phi_schools_v1': 'phiSchools',
     'phi_gns_v1': 'phiGNs',
     'phi_phm_v1': 'phiPHM',
-    'phi_info_v1': 'phiInfo'
+    'phi_phm_v1': 'phiPHM'
 };
 
 // Check if key should be synced to Firestore

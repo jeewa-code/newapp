@@ -76,8 +76,6 @@
           
           <p style="color:#ffffff !important;">මෙය මහජන සෞඛ්‍ය පරීක්ෂකවරුන්ගේ කාර්යාල කටයුතු පහසු කිරීම වෙනුවෙන් නිර්මාණය කරන ලද Web Application එකකි.</p>
 
-          <p style="color:#ffffff !important;">තවමත් මෙය නිර්මාණ කටයුතු කරගෙන යන බැවින් මෙහි ඇතුලත් කරන කිසිඳු දත්තයක් save කිරීම සිදු නොවේ. නමුත් මෙය open කරන web browser එකේ පමණක් ඔබ ඇතුලත් කරන දත්තයන් save වීම සිදු වේ.</p>
-
           <p style="color:#ed6f6f !important;">දැනට ඕනෑම කෙනෙක්ට <strong>ඉදිරි කාලසටහන (Advance Program)</strong> මෙය මගින් නිර්මාණය කර ගැනීමේ පහසුව ලබා දී ඇත.මෙය reports යටතේ ඇත.නමුත් පළමුව PHI Profile  යටතේ ඇති PHI info සහ key map update කර ගත යුතුයි. </p>
 
           <p style="color:#ffffff !important;">මහජන සෞඛ්‍ය පරීක්ෂක වරුන්ට <strong>Books</strong> යටතේ ඇති <strong>Pocket Note Book</strong> සම්පුර්ණ කිරීම මගින් පහත දැක්වෙන දෑ  ස්වයංක්‍රියව නිර්මාණය කර ගැනීමට පහසුකම ලබා ගත හැක:</p>
@@ -684,20 +682,25 @@
     const sidebarProfile = document.querySelector('.sidebar-profile');
     if (!sidebarProfile) return;
 
-    // Get PHI data from localStorage
-    const phiName = localStorage.getItem('phi_info_inspector') || 'PHI Name';
-    const phiArea = localStorage.getItem('phi_info_area') || 'Area';
-    const phiPhoto = localStorage.getItem('phi_info_photo');
+    // Get PHI data from global memory (loaded from Firebase)
+    const phiData = (window.PHIInfo && typeof window.PHIInfo.getData === 'function')
+      ? window.PHIInfo.getData()
+      : (window.PHIInfo && window.PHIInfo.currentData) || null;
+
+    const phiName = (phiData && phiData.name) ? phiData.name : 'PHI Name';
+    const phiArea = (phiData && phiData.area) ? phiData.area : 'Area';
+    const phiPhoto = (phiData && phiData.photo) ? phiData.photo : null;
+    const phiRole = (phiData && phiData.role) ? phiData.role : 'PHI';
 
     // Update logo
     const logoEl = sidebarProfile.querySelector('.logo');
     if (logoEl) {
       if (phiPhoto) {
         // Show uploaded photo as background
+        logoEl.innerHTML = ''; // clear text
         logoEl.style.backgroundImage = `url(${phiPhoto})`;
         logoEl.style.backgroundSize = 'cover';
         logoEl.style.backgroundPosition = 'center';
-        logoEl.textContent = '';
       } else {
         // Show first letter of name
         logoEl.style.backgroundImage = 'none';
@@ -714,7 +717,11 @@
     }
 
     // Get user role and determine designation
-    const userRole = getUserRole();
+    // Use role from PHI Data if available, else firebase/auth role
+    // const userRole = getUserRole(); // this might be from authService, keep using it for permission check
+    // But for display, use phiData.role if we want what's in the profile
+
+    // Using simple mapping based on phiData to be consistent with header
     const roleDesignations = {
       'PHI': 'Public Health Inspector',
       'PHM': 'Public Health Midwife',
@@ -725,7 +732,7 @@
       'PHNS': 'Public Health Nursing Service'
     };
 
-    const designation = roleDesignations[userRole] || 'Public Health Inspector';
+    const designation = roleDesignations[phiRole] || 'Public Health Inspector';
 
     // Update area with role-based designation
     const areaEl = sidebarProfile.querySelector('.profile-text small');
@@ -734,15 +741,27 @@
     }
   }
 
+  // Listen for custom event (for same-window updates)
+  // Moved outside DOMContentLoaded to ensure we don't miss early events
+  window.addEventListener('phiInfoUpdated', function () {
+    updateSidebarPhiInfo();
+  });
+
   // Call on page load
   document.addEventListener('DOMContentLoaded', function () {
-    // Check if PHI Profile data exists, if not redirect to complete_profile
+    // Check if PHI Profile data exists, if not redirect to complete_profile 
+    // (Redirect logic removed, but function call kept for potential future use)
     checkPhiProfileData();
 
     // Apply role-based access restrictions
     applyRoleBasedAccess();
 
     updateSidebarPhiInfo();
+
+    // retry once after short delay to catch fast-async loads
+    setTimeout(updateSidebarPhiInfo, 1000);
+    // and again
+    setTimeout(updateSidebarPhiInfo, 3000); // safety fallback
 
     // Handle Hardware Back Button (Mobile)
     window.addEventListener('popstate', function (event) {
@@ -783,47 +802,24 @@
       }
     });
 
-    // Listen for custom event (for same-window updates)
-    window.addEventListener('phiInfoUpdated', function () {
-      updateSidebarPhiInfo();
-    });
+
   });
 
   // Function to check if PHI Profile data exists
   function checkPhiProfileData() {
-    try {
-      const phiInfoKey = 'phi_info_v1';
-      const phiInfoData = localStorage.getItem(phiInfoKey);
-
-      if (!phiInfoData) {
-        // No data at all, redirect to complete_profile
-        window.location.href = 'complete_profile.html';
-        return;
-      }
-
-      const phiArray = JSON.parse(phiInfoData);
-      if (!Array.isArray(phiArray) || phiArray.length === 0) {
-        // Empty array, redirect to complete_profile
-        window.location.href = 'complete_profile.html';
-        return;
-      }
-    } catch (e) {
-      console.error('Error checking PHI Profile data:', e);
-      // If there's an error reading the data, redirect to be safe
-      window.location.href = 'complete_profile.html';
-    }
+    // Legacy localStorage check removed.
+    // We rely on async Firebase data now. 
+    // If data is missing, the user sees default "PHI Name" 
+    // and can navigate to Profile to setup.
+    // Redirecting here would cause a loop/race condition with async data.
   }
 
   // Function to get user role from PHI Profile
   function getUserRole() {
     try {
-      const phiInfoKey = 'phi_info_v1';
-      const phiInfoData = localStorage.getItem(phiInfoKey);
-      if (!phiInfoData) return null;
-
-      const phiArray = JSON.parse(phiInfoData);
-      if (phiArray && phiArray.length > 0 && phiArray[0].role) {
-        return phiArray[0].role;
+      if (window.PHIInfo && typeof window.PHIInfo.getData === 'function') {
+        const data = window.PHIInfo.getData();
+        if (data && data.role) return data.role;
       }
       return null;
     } catch (e) {

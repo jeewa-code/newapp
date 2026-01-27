@@ -14,7 +14,7 @@
         return e;
     }
 
-    function loadOnce(src) {
+    function loadOnce(src, type = 'text/javascript') {
         return new Promise(resolve => {
             if (document.querySelector(`script[src="${src}"]`) ||
                 document.querySelector(`script[data-src="${src}"]`)) {
@@ -22,6 +22,7 @@
             }
             const s = document.createElement("script");
             s.src = src;
+            s.type = type;
             s.async = true;
             s.setAttribute("data-src", src);
             s.onload = () => resolve();
@@ -44,7 +45,7 @@
 
         // Clear any existing content completely
         realContent.innerHTML = "";
-        
+
         // Add CSS for animated cards
         if (!document.getElementById("monthly-schedule-animated-cards-css")) {
             const style = document.createElement("style");
@@ -239,7 +240,7 @@
             // Clear content area - DON'T show loading message
             contentArea.innerHTML = "";
 
-            await loadOnce("js/reports/monthlySchedule.js");
+            await loadOnce("js/reports/monthlySchedule.js", "module");
 
             if (typeof window.openMonthlyScheduleReport !== "function") {
                 contentArea.innerHTML = "<div style='padding:20px;text-align:center;color:#c33;'>Editor module not found</div>";
@@ -324,7 +325,7 @@
         });
 
         // Expose function to directly open editor (for external calls like from Key Map)
-        window.openMonthlyScheduleEditor = function() {
+        window.openMonthlyScheduleEditor = function () {
             loadEditor();
         };
 

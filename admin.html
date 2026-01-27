@@ -245,23 +245,47 @@
         </div>
 
         <div class="content-card">
-            <h2>Recent Registrations</h2>
-            <table class="user-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th>Last Active</th>
-                        <th>Role / Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="userTableBody">
-                    <tr>
-                        <td colspan="4">Loading data...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <h2>User Management</h2>
+
+            <!-- Filters -->
+            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                <select id="filterRole" onchange="window.filterUsers()"
+                    style="padding: 8px; border-radius: 6px; border: 1px solid #ddd;">
+                    <option value="">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="PHI">PHI</option>
+                    <option value="SPHI">SPHI</option>
+                    <option value="MOH">MOH</option>
+                    <option value="PHM">PHM</option>
+                    <option value="Visitors">Visitors</option>
+                </select>
+                <select id="filterMOH" onchange="window.filterUsers()"
+                    style="padding: 8px; border-radius: 6px; border: 1px solid #ddd; min-width: 150px;">
+                    <option value="">All MOH Offices</option>
+                </select>
+                <input type="text" id="filterArea" onkeyup="window.filterUsers()" placeholder="Search Area / Name..."
+                    style="padding: 8px; border-radius: 6px; border: 1px solid #ddd;">
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>MOH Office</th>
+                            <th>Area</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center;">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -270,30 +294,87 @@
 
     <script type="module">
         import { checkAuthStatus, logoutUser, updateUserRole } from './js/auth/authService.js';
-        import { getDocs, collection, getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getDocs, collection, getFirestore, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { auth, db } from './js/firebase-config.js';
 
-        // Expose function to window for the onchange event
-        window.handleRoleChange = async (userId, newRole) => {
-            try {
-                const result = await Swal.fire({
-                    title: 'Update Role?',
-                    text: `Are you sure you want to change this user's role to ${newRole}?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, Update',
-                    cancelButtonText: 'Cancel'
-                });
+        let allUsers = [];
+        let currentUserData = null;
 
-                if (result.isConfirmed) {
-                    await updateUserRole(userId, newRole);
-                    Swal.fire('Updated!', 'User role has been updated.', 'success');
-                } else {
-                    location.reload();
+        // Filter Function
+        window.filterUsers = () => {
+            const roleFilter = document.getElementById('filterRole').value.toLowerCase();
+            const mohFilter = document.getElementById('filterMOH').value;
+            const areaFilter = document.getElementById('filterArea').value.toLowerCase();
+
+            const filtered = allUsers.filter(user => {
+                const role = (user.role || '').toLowerCase();
+                const moh = (user.mohOffice || '').toLowerCase();
+                const area = (user.area || user.fieldArea || '').toLowerCase();
+                const name = (user.name || '').toLowerCase();
+
+                const roleMatch = !roleFilter || role.includes(roleFilter);
+                const mohMatch = !mohFilter || user.mohOffice === mohFilter;
+                const areaMatch = !areaFilter || area.includes(areaFilter) || name.includes(areaFilter);
+
+                return roleMatch && mohMatch && areaMatch;
+            });
+
+            renderUserTable(filtered);
+        };
+
+        // Block / Unblock User
+        window.toggleBlockUser = async (userId, currentStatus) => {
+            const action = currentStatus ? 'Unblock' : 'Block';
+            const confirm = await Swal.fire({
+                title: `${action} User?`,
+                text: `Are you sure you want to ${action.toLowerCase()} this user?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: currentStatus ? '#10b981' : '#ef4444',
+                confirmButtonText: `Yes, ${action}`
+            });
+
+            if (confirm.isConfirmed) {
+                try {
+                    await updateDoc(doc(db, "users", userId), {
+                        isBlocked: !currentStatus
+                    });
+
+                    // Update local data
+                    const user = allUsers.find(u => u.id === userId);
+                    if (user) user.isBlocked = !currentStatus;
+
+                    window.filterUsers(); // Re-render
+                    Swal.fire('Success', `User has been ${action.toLowerCase()}ed.`, 'success');
+                } catch (error) {
+                    Swal.fire('Error', error.message, 'error');
                 }
-            } catch (error) {
-                console.error("Error updating role:", error);
-                Swal.fire('Error', 'Failed to update role: ' + error.message, 'error');
+            }
+        };
+
+        // Delete User
+        window.deleteUser = async (userId) => {
+            const confirm = await Swal.fire({
+                title: 'Delete User?',
+                text: "This action cannot be undone!",
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Yes, Delete'
+            });
+
+            if (confirm.isConfirmed) {
+                try {
+                    await deleteDoc(doc(db, "users", userId));
+
+                    // Update local data
+                    allUsers = allUsers.filter(u => u.id !== userId);
+
+                    window.filterUsers(); // Re-render
+                    Swal.fire('Deleted!', 'User has been deleted.', 'success');
+                } catch (error) {
+                    Swal.fire('Error', error.message, 'error');
+                }
             }
         };
 
@@ -311,6 +392,7 @@
                     window.location.replace('index.html');
                 });
             } else {
+                currentUserData = user;
                 document.getElementById('userInfo').innerText = `Welcome, ${user.displayName || user.email}`;
                 loadDashboardData(user);
             }
@@ -319,70 +401,105 @@
         async function loadDashboardData(currentUser) {
             try {
                 const querySnapshot = await getDocs(collection(db, "users"));
-                let totalUsers = 0;
-                let totalAdmins = 0;
-                let tableHtml = '';
+                allUsers = [];
+                let adminsCount = 0;
+                let mohSet = new Set();
 
                 querySnapshot.forEach((doc) => {
-                    const userData = doc.data();
-                    totalUsers++;
-                    if (userData.role === 'admin') totalAdmins++;
+                    const data = doc.data();
+                    data.id = doc.id; // Store ID
+                    allUsers.push(data);
 
-                    // Add to table (limit to first 5 for demo)
-                    const isSelf = currentUser.uid === doc.id;
-
-                    // Actually we need the doc ID (user UID)
-                    const userId = doc.id;
-                    const currentUserEmail = auth.currentUser ? auth.currentUser.email : '';
-
-                    // Calculate Status
-                    const lastActiveStr = userData.lastActive || userData.createdAt; // Fallback to created
-                    const lastActiveDate = new Date(lastActiveStr);
-                    const now = new Date();
-                    const diffMs = now - lastActiveDate;
-                    const diffMins = Math.floor(diffMs / 60000);
-
-                    const isActive = diffMins < 15; // Active if seen in last 15 mins
-                    const statusHtml = isActive
-                        ? `<span style="color:#10b981; font-weight:600; display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-circle" style="font-size:10px;"></i> Active</span>`
-                        : `<span style="color:#9ca3af; font-weight:500; display:flex; align-items:center; gap:5px;"><i class="fa-regular fa-circle" style="font-size:10px;"></i> Offline</span>`;
-
-                    // Format Last Active
-                    let lastActiveDisplay = lastActiveDate.toLocaleString();
-                    if (diffMins < 60) lastActiveDisplay = `${diffMins} min ago`;
-                    else if (diffMins < 1440) lastActiveDisplay = `${Math.floor(diffMins / 60)} hr ago`;
-
-                    if (!userData.lastActive && !isActive) lastActiveDisplay = "Never"; // Or joined date
-
-                    tableHtml += `
-                            <tr>
-                                <td>${userData.name || 'N/A'}</td>
-                                <td>${userData.email}</td>
-                                <td>${statusHtml}</td>
-                                <td><small>${lastActiveDisplay}</small></td>
-                                <td>
-                                    <div style="display:flex; gap:10px; align-items:center;">
-                                        <select onchange="window.handleRoleChange('${userId}', this.value)" 
-                                                class="role-select" 
-                                                style="padding:5px; border-radius:4px; border:1px solid #ddd; ${userData.email === currentUserEmail ? 'opacity:0.5;pointer-events:none;' : ''}"
-                                                ${userData.email === currentUserEmail ? 'disabled' : ''}>
-                                            <option value="user" ${userData.role === 'user' ? 'selected' : ''}>User (PHI)</option>
-                                            <option value="admin" ${userData.role === 'admin' ? 'selected' : ''}>Admin</option>
-                                        </select>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
+                    if (data.role === 'admin') adminsCount++;
+                    if (data.mohOffice) mohSet.add(data.mohOffice);
                 });
 
-                document.getElementById('totalUsers').innerText = totalUsers;
-                document.getElementById('totalAdmins').innerText = totalAdmins;
-                document.getElementById('userTableBody').innerHTML = tableHtml;
+                document.getElementById('totalUsers').innerText = allUsers.length;
+                document.getElementById('totalAdmins').innerText = adminsCount;
+
+                // Populate MOH Filter
+                const mohSelect = document.getElementById('filterMOH');
+                mohSelect.innerHTML = '<option value="">All MOH Offices</option>';
+                [...mohSet].sort().forEach(moh => {
+                    const option = document.createElement('option');
+                    option.value = moh;
+                    option.textContent = moh;
+                    mohSelect.appendChild(option);
+                });
+
+                // Initial Render
+                renderUserTable(allUsers);
 
             } catch (error) {
                 console.error("Error fetching users: ", error);
-                document.getElementById('userTableBody').innerHTML = '<tr><td colspan="4">Error loading data.</td></tr>';
+                document.getElementById('userTableBody').innerHTML = '<tr><td colspan="6">Error loading data.</td></tr>';
             }
+        }
+
+        function renderUserTable(users) {
+            const tbody = document.getElementById('userTableBody');
+
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">No users found.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            users.forEach(user => {
+                const isMe = currentUserData.uid === user.id;
+
+                // Status Logic
+                const lastActiveStr = user.lastActive || user.createdAt;
+                const isActive = (new Date() - new Date(lastActiveStr)) < (15 * 60 * 1000); // 15 mins
+
+                let statusBadge = isActive
+                    ? `<span style="color:#10b981; font-weight:600;"><i class="fa-solid fa-circle" style="font-size:8px;"></i> Active</span>`
+                    : `<span style="color:#9ca3af;"><i class="fa-regular fa-circle" style="font-size:8px;"></i> Offline</span>`;
+
+                if (user.isBlocked) {
+                    statusBadge = `<span style="color:#ef4444; font-weight:700; background:#fee2e2; padding:2px 6px; border-radius:4px;">BLOCKED</span>`;
+                }
+
+                const roleDisplay = user.role ? user.role.toUpperCase() : 'USER';
+                const mohDisplay = user.mohOffice || '-';
+                const areaDisplay = user.area || user.fieldArea || '-';
+
+                // Actions
+                let actionButtons = `
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="window.toggleBlockUser('${user.id}', ${user.isBlocked ? true : false})" 
+                                style="background:${user.isBlocked ? '#10b981' : '#f59e0b'}; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" 
+                                title="${user.isBlocked ? 'Unblock' : 'Block'}">
+                            <i class="fa-solid ${user.isBlocked ? 'fa-lock-open' : 'fa-ban'}"></i>
+                        </button>
+                        <button onclick="window.deleteUser('${user.id}')" 
+                                style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" 
+                                title="Delete User">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+
+                if (isMe) {
+                    actionButtons = `<span style="color:#ccc; font-style:italic;">(You)</span>`;
+                }
+
+                html += `
+                    <tr style="${user.isBlocked ? 'background:#fff1f2;' : ''}">
+                        <td>
+                            <div style="font-weight:600; color:#374151;">${user.name || 'Unknown'}</div>
+                            <div style="font-size:12px; color:#6b7280;">${user.email}</div>
+                        </td>
+                        <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px; font-size:12px; font-weight:600;">${roleDisplay}</span></td>
+                        <td>${mohDisplay}</td>
+                        <td>${areaDisplay}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actionButtons}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
         }
 
         document.getElementById('logoutBtn').addEventListener('click', async () => {

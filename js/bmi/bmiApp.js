@@ -98,92 +98,142 @@
                 gradeOptions += `<option value="${i}">Grade ${i}</option>`;
             }
 
-            // Injected Styles for Mobile Responsiveness
+            // Injected Styles for Mobile Responsiveness (Compact Mode)
             const styles = `
               <style>
                 .bmi-container {
                    max-width: 900px;
-                   margin: 30px auto;
-                   padding: 30px;
-                   border-radius: 16px;
+                   margin: 20px auto;
+                   padding: 25px;
+                   border-radius: 12px;
                 }
                 .bmi-grid-container {
                   display: grid;
                   grid-template-columns: 1fr;
-                  gap: 15px;
+                  gap: 10px;
                   margin-bottom: 20px;
                 }
                 .bmi-charts-container {
                    display: grid;
-                   grid-template-columns: 1fr 1fr; 
-                   gap: 20px;
+                   grid-template-columns: 1fr; 
+                   gap: 15px;
                 }
                 .bmi-gender-group {
                     display: flex;
-                    gap: 20px;
+                    gap: 15px;
                 }
                 .bmi-chart-card {
                    background: white; 
-                   padding: 15px; 
-                   border-radius: 10px; 
-                   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                   padding: 10px; 
+                   border-radius: 8px; 
+                   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
                 }
                 .bmi-chart-wrapper {
                    position: relative;
-                   height: 600px;
+                   height: 500px;
                    width: 100%;
                 }
+                
+                /* Tablet & Mobile */
                 @media (max-width: 768px) {
-                  .bmi-grid-container, .bmi-charts-container {
+                  .bmi-charts-container {
                     grid-template-columns: 1fr !important;
                   }
                   .bmi-container { 
-                    margin: 15px 10px; 
-                    padding: 15px; 
-                  }
-                  #bmiGrade, #bmiDOB, #bmiHeight, #bmiWeight, #bmiExamDate {
-                      font-size: 14px !important; /* Smaller font for mobile */
-                      padding: 10px !important;
+                    margin: 10px; 
+                    padding: 12px; 
                   }
                   .bmi-header {
                       font-size: 18px !important;
-                      margin-bottom: 15px !important;
+                      margin-bottom: 12px !important;
                   }
-                  .bmi-grid-container {
-                      gap: 10px !important; /* Reduced row gap */
-                      margin-bottom: 15px !important;
+                  /* Try to keep 2 cols for some inputs on tablet/large mobile to save vertical space */
+                  .bmi-input-row-mobile {
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 8px;
                   }
-                  label {
-                      font-size: 13px !important;
-                      margin-bottom: 5px !important;
-                  }
-                  /* Mobile chart height adjustments */
                   .bmi-chart-wrapper {
-                      height: 400px !important; 
+                      height: 350px !important; 
                   }
                 }
+
+                /* Small Mobile (Mobile First strict) */
                 @media (max-width: 480px) {
-                    /* Specific styles for small screens */
                     .bmi-container {
-                        margin: 5px 2px !important; /* Minimal margin */
-                        padding: 10px !important;
+                        margin: 4px !important; 
+                        padding: 8px !important;
                     }
-                    .bmi-chart-card {
-                        padding: 5px !important; /* Reduce card padding */
+                    /* Compact inputs */
+                    label {
+                        font-size: 11px !important;
+                        margin-bottom: 2px !important;
+                    }
+                    input, select {
+                        padding: 6px !important;
+                        font-size: 12px !important;
+                        height: 32px; /* Force compact height */
+                    }
+                    .bmi-header {
+                        font-size: 16px !important;
+                        margin-bottom: 8px !important;
+                        padding-bottom: 4px;
+                        border-bottom: 1px solid rgba(255,255,255,0.1);
                     }
                     .bmi-gender-group {
-                        flex-direction: row !important; /* Keep gender on one row */
-                        gap: 10px;
+                        gap: 5px;
                     }
                     .bmi-gender-group label {
-                        flex: 1;
-                        justify-content: center;
-                        padding: 8px !important;
-                        font-size: 12px !important;
+                        padding: 0 8px !important;
+                        font-size: 11px !important;
+                        height: 32px;
                     }
-                     /* Smaller chart height for 320px screens */
+                    /* Force 2 columns even on small screens for these inputs to save vertical scroll */
+                    .bmi-compact-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 6px;
+                    }
+                    .bmi-grid-container {
+                        gap: 6px !important;
+                        margin-bottom: 10px !important;
+                    }
+                    
+                    /* Result area compact */
+                    #bmiResult {
+                        margin-top: 15px !important; 
+                        padding: 10px !important;
+                    }
+                    #bmiPreviewLink {
+                        margin-bottom: 8px !important;
+                    }
+                    #bmiPreviewVal {
+                        font-size: 28px !important;
+                    }
+                }
+                /* 320px Handling */
+                /* 320px & 375px Handling */
+                @media (max-width: 380px) {
+                    input, select {
+                        padding: 6px !important;
+                        font-size: 13px !important;
+                    }
+                    .bmi-header {
+                        font-size: 16px !important;
+                    }
+                    /* Ensure chart fits within container */
                     .bmi-chart-wrapper {
-                        height: 300px !important; 
+                        height: 250px !important;
+                        width: 100% !important;
+                        overflow: hidden;
+                    }
+                    .bmi-chart-card {
+                        padding: 5px !important;
+                        overflow: hidden;
+                    }
+                    .bmi-container {
+                        padding: 5px !important;
+                        margin: 2px !important;
                     }
                 }
               </style>
@@ -192,59 +242,64 @@
             container.innerHTML = `
         ${styles}
         <div class="glass bmi-container">
-          <h2 class="bmi-header" style="color: #ffffff; text-align: center; margin-bottom: 25px; font-size: 24px; font-weight: 600;">
-            <i class="fa-solid fa-child-reaching" style="margin-right:10px;"></i>පාසල් සෞඛ්‍ය සඳහා BMI calculator
+          <h2 class="bmi-header" style="color: #ffffff; text-align: center; margin-bottom: 20px; font-size: 22px; font-weight: 600;">
+            <i class="fa-solid fa-child-reaching" style="margin-right:8px;"></i>පාසල් සෞඛ්‍ය BMI
           </h2>
           
           <div class="bmi-grid-container">
-             <!-- Exam Date -->
-             <div>
-               <label style="display: block; color: #ffffff; margin-bottom: 10px; font-weight: 500;">මූලික පරීක්ෂාව කල දිනය </label>
-               <input type="date" id="bmiExamDate" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 15px;">
+             <!-- Row 1: Date & Gender -->
+             <div class="bmi-compact-grid">
+                 <div>
+                   <label style="display: block; color: #ffffff; margin-bottom: 4px; font-weight: 500;">පරීක්ෂා දිනය</label>
+                   <input type="date" id="bmiExamDate" style="width: 100%; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9);">
+                 </div>
+                 <div>
+                    <label style="display: block; color: #ffffff; margin-bottom: 4px; font-weight: 500;">ස්ත්‍රී/පුරුෂ</label>
+                    <div class="bmi-gender-group">
+                        <label style="cursor: pointer; display: flex; align-items: center; justify-content:center; color: white; background: rgba(255,255,255,0.1); border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); width:100%;">
+                            <input type="radio" name="bmiGender" value="male" checked style="margin-right: 4px;"> M
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; justify-content:center; color: white; background: rgba(255,255,255,0.1); border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); width:100%;">
+                            <input type="radio" name="bmiGender" value="female" style="margin-right: 4px;"> F
+                        </label>
+                    </div>
+                 </div>
              </div>
 
-             <!-- Gender -->
-             <div>
-                <label style="display: block; color: #ffffff; margin-bottom: 10px; font-weight: 500;">ස්ත්‍රී / පුරුෂ භාවය </label>
-                <div class="bmi-gender-group">
-                    <label style="cursor: pointer; display: flex; align-items: center; color: white; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3);">
-                        <input type="radio" name="bmiGender" value="male" checked style="margin-right: 8px; transform: scale(1.2);"> පිරිමි 
-                    </label>
-                    <label style="cursor: pointer; display: flex; align-items: center; color: white; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3);">
-                        <input type="radio" name="bmiGender" value="female" style="margin-right: 8px; transform: scale(1.2);"> ගැහැණු 
-                    </label>
-                </div>
+             <!-- Row 2: Grade & DOB -->
+             <div class="bmi-compact-grid">
+                 <div>
+                   <label style="display: block; color: #ffffff; margin-bottom: 4px; font-weight: 500;">ශ්‍රේණිය</label>
+                   <select id="bmiGrade" style="width: 100%; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9);">
+                       ${gradeOptions}
+                   </select>
+                 </div>
+                 <div>
+                   <label style="display: block; color: #ffffff; margin-bottom: 4px; font-weight: 500;">උපන් දිනය</label>
+                   <input type="date" id="bmiDOB" style="width: 100%; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9);">
+                 </div>
              </div>
-
-             <!-- Grade -->
-             <div>
-               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">ශ්‍රේණිය </label>
-               <select id="bmiGrade" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 15px;">
-                   ${gradeOptions}
-               </select>
-             </div>
-
-             <!-- DOB -->
-             <div>
-               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">උපන් දිනය </label>
-               <input type="date" id="bmiDOB" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 15px;">
-               <div id="liveAgeDisplay" style="margin-top: 5px; font-size: 13px; color: #d0d0d0; font-style: italic; min-height: 20px;"></div>
-             </div>
+             <div id="liveAgeDisplay" style="text-align:right; font-size: 11px; color: #eee; margin-top:-5px; font-style: italic; min-height: 15px;"></div>
              
-             <!-- Height -->
-             <div>
-               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">උස (cm)</label>
-               <input type="number" id="bmiHeight" placeholder="Ex: 135" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 15px;">
-             </div>
-             
-             <!-- Weight -->
-             <div>
-               <label style="display: block; color: #ffffff; margin-bottom: 8px; font-weight: 500;">බර (kg) </label>
-               <input type="number" id="bmiWeight" placeholder="Ex: 28" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 15px;">
+             <!-- Row 3: Height & Weight -->
+             <div class="bmi-compact-grid">
+                 <div>
+                   <label style="display: block; color: #ffffff; margin-bottom: 4px; font-weight: 500;">උස (cm) <span id="heightStatusSimple" style="display:block; font-weight:700; color:#ffeb3b; font-size:11px; text-transform: uppercase;"></span></label>
+                   <input type="number" id="bmiHeight" placeholder="cm" style="width: 100%; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9);">
+                 </div>
+                 <div>
+                   <label style="display: block; color: #ffffff; margin-bottom: 4px; font-weight: 500;">බර (kg) <span id="weightStatusSimple" style="display:block; font-weight:700; color:#ffeb3b; font-size:11px; text-transform: uppercase;"></span></label>
+                   <input type="number" id="bmiWeight" placeholder="kg" style="width: 100%; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9);">
+                 </div>
              </div>
           </div>
           
-          <button id="btnCalculateBMI" style="width: 100%; padding: 14px; background: #1b5e20; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+          <div id="bmiPreviewLink" style="text-align:center; margin-bottom:15px; display:none; animation: fadeIn 0.5s;">
+             <div style="font-size:14px; color:white; opacity:0.9;">BMI Value</div>
+             <div id="bmiPreviewVal" style="font-size:36px; font-weight:800; color:#fff; text-shadow:0 2px 5px rgba(0,0,0,0.3);"></div>
+          </div>
+
+          <button id="btnCalculateBMI" style="width: 100%; padding: 12px; background: #1b5e20; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
             <i class="fa-solid fa-calculator" style="margin-right:8px;"></i> BMI ගණනය කරන්න
           </button>
 
@@ -257,8 +312,8 @@
                     <strong id="displayAge" style="font-size: 16px; color: #333;">-</strong>
                  </div>
                  <div>
-                    <span style="font-size: 14px; color: #777;">BMI අගය:</span>
-                    <strong id="bmiValueDisplay" style="font-size: 24px; color: #1b5e20;">0.0</strong>
+                    <span style="font-size: 14px; color: #777;">BMI:</span>
+                    <strong id="bmiValueDisplay" style="font-size: 20px; color: #1b5e20;">0.0</strong>
                  </div>
              </div>
 
@@ -423,26 +478,32 @@
             const limitObese = refBMI[5]; // +2SD
 
             let bmiStatus = "", bmiColor = "", bmiBg = "", weightRecommendation = "";
+            let simpleWeightStatus = ""; // English only
+
             const minNormalWeight = (limitThin * heightM * heightM).toFixed(1);
             const maxNormalWeight = (limitNormalHigh * heightM * heightM).toFixed(1);
 
             if (bmi < limitThin) {
-                bmiStatus = "අඩු බර (Underweight)";
+                bmiStatus = "Underweight";
+                simpleWeightStatus = "Underweight";
                 bmiColor = "#d35400"; bmiBg = "#fadbd8";
                 const diff = (minNormalWeight - weightKg).toFixed(1);
                 weightRecommendation = `<p style="margin:5px 0 0 0; font-size:13px; color:#c0392b;">නිරෝගී බරක් වීමට <strong>${diff} kg</strong> ක් වත් වැඩි කර ගත යුතුය.<br>(ඉලක්කය: ${minNormalWeight} kg - ${maxNormalWeight} kg)</p>`;
             } else if (bmi > limitObese) {
-                bmiStatus = "ස්ථුලතාවය (Obesity)";
+                bmiStatus = "Obesity";
+                simpleWeightStatus = "Obesity";
                 bmiColor = "#c0392b"; bmiBg = "#f2d7d5";
                 const diff = (weightKg - maxNormalWeight).toFixed(1);
                 weightRecommendation = `<p style="margin:5px 0 0 0; font-size:13px; color:#c0392b;">නිරෝගී බරක් වීමට <strong>${diff} kg</strong> ක් වත් අඩු කර ගත යුතුය.<br>(ඉලක්කය: ${minNormalWeight} kg - ${maxNormalWeight} kg)</p>`;
             } else if (bmi > limitNormalHigh) {
-                bmiStatus = "අධි බර (Overweight)";
+                bmiStatus = "Overweight";
+                simpleWeightStatus = "Overweight";
                 bmiColor = "#f39c12"; bmiBg = "#fce8d6";
                 const diff = (weightKg - maxNormalWeight).toFixed(1);
                 weightRecommendation = `<p style="margin:5px 0 0 0; font-size:13px; color:#d35400;">නිරෝගී බරක් වීමට <strong>${diff} kg</strong> ක් වත් අඩු කර ගත යුතුය.<br>(ඉලක්කය: ${minNormalWeight} kg - ${maxNormalWeight} kg)</p>`;
             } else {
-                bmiStatus = "නිරෝගී (Normal)";
+                bmiStatus = "Normal Weight";
+                simpleWeightStatus = "Normal Weight";
                 bmiColor = "#27ae60"; bmiBg = "#d5f5e3";
                 weightRecommendation = `<p style="margin:5px 0 0 0; font-size:13px; color:#27ae60;">ඔබගේ බර <strong>නිවැරදි මට්ටමේ (Normal)</strong> පවතී.<br>(පරාසය: ${minNormalWeight} kg - ${maxNormalWeight} kg)</p>`;
             }
@@ -450,14 +511,17 @@
             // Height Logic
             const limitStunting = refHeight[1]; // -2SD
             let heightStatus = "", heightColor = "", heightBg = "", heightRecommendation = "";
+            let simpleHeightStatus = ""; // English only
 
             if (heightCm < limitStunting) {
-                heightStatus = "මිටි (Stunting)";
+                heightStatus = "Stunting";
+                simpleHeightStatus = "Stunting";
                 heightColor = "#c0392b"; heightBg = "#f2d7d5";
                 const diff = (limitStunting - heightCm).toFixed(1);
                 heightRecommendation = `<p style="margin:5px 0 0 0; font-size:13px; color:#c0392b;">සාමාන්‍ය උස මට්ටමට ළඟා වීමට තව <strong>${diff} cm</strong> ක් අවශ්‍ය වේ.<br>(අවම සාමාන්‍ය උස: ${limitStunting} cm)</p>`;
             } else {
-                heightStatus = "සාමාන්‍ය උස (Normal)";
+                heightStatus = "Normal Height";
+                simpleHeightStatus = "Normal Height";
                 heightColor = "#27ae60"; heightBg = "#d5f5e3";
                 heightRecommendation = `<p style="margin:5px 0 0 0; font-size:13px; color:#27ae60;">උස සාමාන්‍ය මට්ටමේ පවතී.</p>`;
             }
@@ -466,6 +530,29 @@
             document.getElementById("bmiResult").style.display = "block";
             document.getElementById("displayAge").textContent = displayAgeStr;
             document.getElementById("bmiValueDisplay").textContent = bmiFixed;
+
+            // Updated Simple Status Tags
+            const hTag = document.getElementById("heightStatusSimple");
+            if (hTag) {
+                hTag.textContent = simpleHeightStatus;
+                hTag.style.color = (simpleHeightStatus === 'Normal Height') ? '#4caf50' : '#ff5252';
+            }
+
+            const wTag = document.getElementById("weightStatusSimple");
+            if (wTag) {
+                wTag.textContent = simpleWeightStatus;
+                wTag.style.color = (simpleWeightStatus === 'Normal Weight') ? '#4caf50' : (simpleWeightStatus === 'Overweight' ? '#ff9800' : '#ff5252');
+            }
+
+            // Update BMI Preview Above Button
+            const bmiPreview = document.getElementById("bmiPreviewLink");
+            const bmiPreviewVal = document.getElementById("bmiPreviewVal");
+            if (bmiPreview && bmiPreviewVal) {
+                bmiPreview.style.display = 'block';
+                bmiPreviewVal.textContent = bmiFixed;
+                // dynamic color for preview
+                bmiPreviewVal.style.color = (bmiColor === '#27ae60') ? '#66bb6a' : (bmiColor === '#f39c12' ? '#ffcc80' : '#ef9a9a');
+            }
 
             const bmiEl = document.getElementById("bmiStatusText");
             bmiEl.innerHTML = `<span>${bmiStatus}</span><div style="margin-top:8px; border-top:1px solid rgba(0,0,0,0.05); padding-top:5px;">${weightRecommendation}</div>`;
@@ -501,6 +588,15 @@
             const bmiLines = getLines(dsBMI);
             const heightLines = getLines(dsHeight);
 
+            // Responsive Config
+            const isSmallMobile = window.innerWidth <= 380;
+            const isMobile = window.innerWidth <= 480;
+
+            const fontSizeLegend = isSmallMobile ? 9 : (isMobile ? 10 : 10);
+            const fontSizeAxis = isSmallMobile ? 9 : (isMobile ? 10 : 11);
+            const fontSizeTitle = isSmallMobile ? 10 : (isMobile ? 11 : 12);
+            const pointRadiusUser = isSmallMobile ? 5 : 8;
+
             // Common config
             const commonConfig = { pointRadius: 0, borderWidth: 1.5, tension: 0.4 };
 
@@ -509,7 +605,7 @@
                 data: {
                     labels: ages,
                     datasets: [
-                        { label: 'You', data: [{ x: currentAge, y: currentBMI }], type: 'scatter', backgroundColor: '#0000FF', borderColor: '#fff', borderWidth: 2, pointRadius: 8, order: 0 },
+                        { label: 'You', data: [{ x: currentAge, y: currentBMI }], type: 'scatter', backgroundColor: '#0000FF', borderColor: '#fff', borderWidth: 2, pointRadius: pointRadiusUser, order: 0 },
                         { label: '+3 SD', data: bmiLines[6], borderColor: '#c0392b', ...commonConfig, borderDash: [2, 2] },
                         { label: '+2 SD (Obesity)', data: bmiLines[5], borderColor: '#c0392b', ...commonConfig, fill: { target: '+1', above: 'rgba(192, 57, 43, 0.15)' } },
                         { label: '+1 SD (Overweight)', data: bmiLines[4], borderColor: '#f39c12', ...commonConfig, fill: { target: '+1', above: 'rgba(243, 156, 18, 0.2)' } },
@@ -523,15 +619,28 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { type: 'linear', min: 5, max: 19, title: { display: true, text: 'Age (Years)' } },
-                        // Y-axis fixed to NOT start at zero, giving expanded view
+                        x: {
+                            type: 'linear', min: 5, max: 19,
+                            title: { display: !isSmallMobile, text: 'Age (Years)', font: { size: fontSizeTitle } },
+                            ticks: { font: { size: fontSizeAxis } }
+                        },
                         y: {
-                            title: { display: true, text: 'BMI' },
+                            title: { display: !isSmallMobile, text: 'BMI', font: { size: fontSizeTitle } },
                             beginAtZero: false,
-                            grace: '10%'
+                            grace: '5%',
+                            ticks: { font: { size: fontSizeAxis } }
                         }
                     },
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: isSmallMobile ? 8 : 10, font: { size: fontSizeLegend }, padding: isSmallMobile ? 4 : 10 }
+                        },
+                        tooltip: {
+                            bodyFont: { size: fontSizeAxis },
+                            titleFont: { size: fontSizeTitle }
+                        }
+                    }
                 }
             });
 
@@ -540,7 +649,7 @@
                 data: {
                     labels: ages,
                     datasets: [
-                        { label: 'You', data: [{ x: currentAge, y: currentHeight }], type: 'scatter', backgroundColor: '#0000FF', borderColor: '#fff', borderWidth: 2, pointRadius: 8, order: 0 },
+                        { label: 'You', data: [{ x: currentAge, y: currentHeight }], type: 'scatter', backgroundColor: '#0000FF', borderColor: '#fff', borderWidth: 2, pointRadius: pointRadiusUser, order: 0 },
                         { label: '+3 SD', data: heightLines[6], borderColor: '#27ae60', ...commonConfig, borderDash: [2, 2] },
                         { label: '+2 SD', data: heightLines[5], borderColor: '#27ae60', ...commonConfig },
                         { label: '+1 SD', data: heightLines[4], borderColor: '#27ae60', ...commonConfig },
@@ -554,15 +663,28 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { type: 'linear', min: 5, max: 19, title: { display: true, text: 'Age (Years)' } },
-                        // Y-axis fixed to NOT start at zero
+                        x: {
+                            type: 'linear', min: 5, max: 19,
+                            title: { display: !isSmallMobile, text: 'Age (Years)', font: { size: fontSizeTitle } },
+                            ticks: { font: { size: fontSizeAxis } }
+                        },
                         y: {
-                            title: { display: true, text: 'Height (cm)' },
+                            title: { display: !isSmallMobile, text: 'Height (cm)', font: { size: fontSizeTitle } },
                             beginAtZero: false,
-                            grace: '10%'
+                            grace: '5%',
+                            ticks: { font: { size: fontSizeAxis } }
                         }
                     },
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: isSmallMobile ? 8 : 10, font: { size: fontSizeLegend }, padding: isSmallMobile ? 4 : 10 }
+                        },
+                        tooltip: {
+                            bodyFont: { size: fontSizeAxis },
+                            titleFont: { size: fontSizeTitle }
+                        }
+                    }
                 }
             });
         }

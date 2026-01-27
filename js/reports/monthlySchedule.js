@@ -1,9 +1,15 @@
 
-// js/reports/monthlySchedule.js  (UPDATED: detects phiInfo changes without modifying phiInfo.js)
+// js/reports/monthlySchedule.js  (UPDATED: Real-time Firebase sync for KeyMap data)
 // - Adds month-aware day locking and Sunday behavior per user request.
 // - UPDATED: Auto-fill schedule from fixed dates table with correct week calculation
 // - UPDATED: Holiday type selection for non-Sunday days
 // - UPDATED: Print/PDF user input in bold blue pen-like color
+// - UPDATED: Real-time Firebase sync using DirectFirebaseService
+
+// Import DirectFirebaseService for real-time sync
+import { DirectFirebaseService } from '../services/directFirebaseService.js';
+import { auth } from '../firebase-config.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 (function () {
   "use strict";
@@ -23,23 +29,81 @@
   function escapeHtml(s) { if (s === null || s === undefined) return ""; return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
   function ptToPx(pt) { return Math.round(pt * (96 / 72)); }
 
-  // KeyMap localStorage keys (updated to match new structure)
-  const ROLES_KEY = "phi_roles_tree_final";
-  const PLACES_KEY = "phi_places_tree_final";
-  const FIXED_DATES_KEY = "phi_fixed_dates_v1";
-  const HOLIDAY_KEY = "phi_holidays_final";
+  // In-memory cache for KeyMap data (synced from Firebase)
+  let keyMapCache = {
+    roles: [],
+    places: [],
+    holidays: [],
+    fixedDates: []
+  };
 
+  // Subscription handles
+  let subscriptions = {
+    roles: null,
+    places: null,
+    holidays: null,
+    fixedDates: null
+  };
+
+  // Start Firebase subscriptions
+  function startKeyMapSubscriptions() {
+    if (subscriptions.roles) return; // Already subscribed
+
+    console.log('[monthlySchedule] Starting KeyMap subscriptions...');
+
+    subscriptions.roles = DirectFirebaseService.subscribe('keymap_roles', (data) => {
+      keyMapCache.roles = data || [];
+      console.log('[monthlySchedule] Roles updated:', keyMapCache.roles.length);
+    });
+
+    subscriptions.places = DirectFirebaseService.subscribe('keymap_places', (data) => {
+      keyMapCache.places = data || [];
+      console.log('[monthlySchedule] Places updated:', keyMapCache.places.length);
+    });
+
+    subscriptions.holidays = DirectFirebaseService.subscribe('keymap_holidays', (data) => {
+      keyMapCache.holidays = data || [];
+      console.log('[monthlySchedule] Holidays updated:', keyMapCache.holidays.length);
+    });
+
+    subscriptions.fixedDates = DirectFirebaseService.subscribe('keymap_fixed_dates', (data) => {
+      keyMapCache.fixedDates = data || [];
+      console.log('[monthlySchedule] Fixed dates updated:', keyMapCache.fixedDates.length);
+    });
+  }
+
+  // Stop subscriptions on logout
+  function stopKeyMapSubscriptions() {
+    if (subscriptions.roles) { subscriptions.roles(); subscriptions.roles = null; }
+    if (subscriptions.places) { subscriptions.places(); subscriptions.places = null; }
+    if (subscriptions.holidays) { subscriptions.holidays(); subscriptions.holidays = null; }
+    if (subscriptions.fixedDates) { subscriptions.fixedDates(); subscriptions.fixedDates = null; }
+    keyMapCache = { roles: [], places: [], holidays: [], fixedDates: [] };
+  }
+
+  // Listen to auth state
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log('[monthlySchedule] User authenticated, starting subscriptions');
+      startKeyMapSubscriptions();
+    } else {
+      console.log('[monthlySchedule] User signed out, stopping subscriptions');
+      stopKeyMapSubscriptions();
+    }
+  });
+
+  // Updated load functions to use in-memory cache instead of localStorage
   function loadKeyRoles() {
-    try { return JSON.parse(localStorage.getItem(ROLES_KEY) || "[]"); } catch (e) { return []; }
+    return keyMapCache.roles;
   }
   function loadKeyPlaces() {
-    try { return JSON.parse(localStorage.getItem(PLACES_KEY) || "[]"); } catch (e) { return []; }
+    return keyMapCache.places;
   }
   function loadFixedDates() {
-    try { return JSON.parse(localStorage.getItem(FIXED_DATES_KEY) || "[]"); } catch (e) { return []; }
+    return keyMapCache.fixedDates;
   }
   function loadHolidays() {
-    try { return JSON.parse(localStorage.getItem(HOLIDAY_KEY) || "[]"); } catch (e) { return []; }
+    return keyMapCache.holidays;
   }
   function getRoleNameById(id) {
     if (!id) return "";
@@ -440,12 +504,11 @@
 
   // read PHI info from localStorage (phiInfo.js provides these keys)
   function readPhiShortKeys() {
-    try {
-      return {
-        inspector: localStorage.getItem("phi_info_inspector") || "",
-        area: localStorage.getItem("phi_info_area") || ""
-      };
-    } catch (e) { return { inspector: "", area: "" }; }
+    if (window.PHIInfo && typeof window.PHIInfo.getData === 'function') {
+      const data = window.PHIInfo.getData();
+      if (data) return { inspector: data.name || "", area: data.area || "" };
+    }
+    return { inspector: "", area: "" };
   }
 
   // We'll keep last-known values and poll + listen for updates
@@ -626,8 +689,12 @@
 
   window.openMonthlyScheduleReport = function (title = "මාසික ඉදිරි කාලසටහන (Exact)") {
     // Check for PHI Info
-    const pName = localStorage.getItem("phi_info_inspector");
-    const pArea = localStorage.getItem("phi_info_area");
+    // Check for PHI Info
+    let pName = "", pArea = "";
+    if (window.PHIInfo && typeof window.PHIInfo.getData === 'function') {
+      const d = window.PHIInfo.getData();
+      if (d) { pName = d.name; pArea = d.area; }
+    }
     if (!pName || !pArea) {
       Swal.fire({
         icon: 'warning',
@@ -757,13 +824,15 @@
     // Get user's role from PHI Profile
     const getUserDesignation = () => {
       try {
-        const phiInfoKey = 'phi_info_v1';
-        const phiInfoData = localStorage.getItem(phiInfoKey);
-        if (!phiInfoData) return null;
+        let phiData = null;
+        if (window.PHIInfo && typeof window.PHIInfo.getData === 'function') {
+          phiData = window.PHIInfo.getData();
+        }
 
-        const phiArray = JSON.parse(phiInfoData);
-        if (phiArray && phiArray.length > 0 && phiArray[0].role) {
-          const userRole = phiArray[0].role;
+        if (!phiData) return null;
+
+        if (phiData.role) {
+          const userRole = phiData.role;
           const roleToDesignationMap = {
             'PHI': 'මහජන සෞඛ්‍ය පරීක්ෂක',
             'PHM': 'පවුල් සෞඛ්‍ය සේවා නිලධාරිනි',

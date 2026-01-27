@@ -27,7 +27,12 @@ console.log("[otReport] loaded", new Date().toISOString());
   }
 
   function getInspectorName() {
-    return localStorage.getItem("phi_info_inspector") || "";
+    if (window.PHIInfo && window.PHIInfo.getData) {
+      const data = window.PHIInfo.getData();
+      if (data && data.name) return data.name;
+    }
+    // Fallback if data not yet loaded (though it should be)
+    return "";
   }
 
   /* ---------------- English Number Arrays ---------------- */
@@ -260,70 +265,70 @@ console.log("[otReport] loaded", new Date().toISOString());
     notes.forEach(n => {
       const date = new Date(n.date);
       const dayOfWeek = date.getDay(); // 0=Sunday, 6=Saturday
-      
+
       // Get times
       const depAM = n.officeDeparture?.morning;
       const arrPM = n.officeArrival?.afternoon;
       const depAMMin = timeToMinutes(depAM);
       const arrPMMin = timeToMinutes(arrPM);
-      
+
       // Check if it's a Sunday or government holiday with work
       const isSunday = dayOfWeek === 0;
       const isGovHoliday = n.dayType === 'government_holiday';
       const workedOnHoliday = (isSunday || isGovHoliday) && n.workOnHoliday;
-      
+
       let otMinutes = 0;
       let isHolidayOT = false;
-      
+
       // Calculate OT based on day type
       if (workedOnHoliday) {
         // Sunday or government holiday: Count all working time as OT
         isHolidayOT = true;
-        
+
         // Calculate total working time from field arrival to field departure
         const fieldArrAM = timeToMinutes(n.fieldArrival?.morning);
         const fieldDepAM = timeToMinutes(n.fieldDeparture?.morning);
         const fieldArrPM = timeToMinutes(n.fieldArrival?.afternoon);
         const fieldDepPM = timeToMinutes(n.fieldDeparture?.afternoon);
-        
+
         // Morning session
         if (fieldArrAM && fieldDepAM) {
           otMinutes += (fieldDepAM - fieldArrAM);
         }
-        
+
         // Afternoon session
         if (fieldArrPM && fieldDepPM) {
           otMinutes += (fieldDepPM - fieldArrPM);
         }
-        
+
       } else if (dayOfWeek === 6) {
         // Saturday: OT after 1:00 PM
         if (arrPMMin && arrPMMin > saturdayEnd) {
           otMinutes = arrPMMin - saturdayEnd;
         }
-        
+
       } else if (dayOfWeek >= 1 && dayOfWeek <= 5) {
         // Weekdays (Monday-Friday)
-        
+
         // Check early morning OT (before 7:00 AM)
         if (depAMMin && depAMMin <= earlyStartThreshold) {
           otMinutes += (weekdayStart - depAMMin);
         }
-        
+
         // Check evening OT (after 4:30 PM)
         if (arrPMMin && arrPMMin > weekdayEnd) {
           otMinutes += (arrPMMin - weekdayEnd);
         }
       }
-      
+
       // Only add row if OT is at least 30 minutes
       if (otMinutes >= minOTMinutes) {
         const dec = minutesToDecimal(otMinutes);
         totalHours += dec;
-        
+
         // Determine row color (red for holidays)
         const rowStyle = isHolidayOT ? 'background-color: #ffcccc; color: #cc0000;' : '';
-        
+
         rows.push(`
           <tr style="${rowStyle}">
             <td>${esc(n.date)}</td>
@@ -573,25 +578,30 @@ console.log("[otReport] loaded", new Date().toISOString());
     /* -------- defaults -------- */
     // Helper to get full PHI info
     let phi = {};
-    try {
-        const stored = JSON.parse(localStorage.getItem("phi_info_v1") || "[]");
-        if (stored.length) phi = stored[0];
-    } catch(e) {}
+    if (window.PHIInfo && typeof window.PHIInfo.getData === 'function') {
+      phi = window.PHIInfo.getData() || {};
+    } else if (window.PHIInfo && window.PHIInfo.currentData) {
+      phi = window.PHIInfo.currentData || {};
+    } else {
+      // Fallback or wait? 
+      // For now, assume data is loaded or header would have failed
+      // We could also try reading from inMemoryData if exposed, but window.PHIInfo is the standard we set.
+    }
 
     // Name
     document.getElementById("applicantName").value = phi.name || getInspectorName();
 
     // Duty Station: "MOH Office - [MOH]"
     if (phi.moh) {
-        document.getElementById("dutyStation").value = "MOH Office - " + phi.moh;
+      document.getElementById("dutyStation").value = "MOH Office - " + phi.moh;
     }
 
     // Paying Branch
     const pBranch = document.getElementById("payingBranch");
     if (phi.auth_type === "NIHS") {
-        pBranch.value = "Account Branch - NIHS Kalutara";
+      pBranch.value = "Account Branch - NIHS Kalutara";
     } else if (phi.auth_type === "RDHS" && phi.auth_name) {
-        pBranch.value = "Account Branch - RDHS " + phi.auth_name;
+      pBranch.value = "Account Branch - RDHS " + phi.auth_name;
     }
 
     // Salary & Rate

@@ -1,19 +1,13 @@
 /* =======================================================
-   infectious.js — Firebase Real-time Sync Version
-   - Converted from localStorage to Firebase DirectFirebaseService
-   - Real-time data syncing across devices
-   - Tab-fix version (other behavior preserved)
+   infectious.js — Tab-fix version (other behavior preserved)
+   - Fixes tab switching so all three tabs reliably open.
+   - Keeps previous features: termination date shown under termination,
+     patientId shown under disease select, house thumbnail, top scrollbar, etc.
    ======================================================= */
 
-import { DirectFirebaseService } from '../services/directFirebaseService.js';
-import { auth } from '../firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
 (() => {
-  // Firebase collection keys
-  const DISEASE_STORAGE_KEY = "register_infectious_diseases";
-  const PATIENT_STORAGE_KEY = "register_infectious_patients";
-  const GNS_KEY = "phi_gns_v2";
+  const DISEASE_STORAGE_KEY = "infectiousDiseases";
+  const PATIENT_STORAGE_KEY = "infectiousPatients";
 
   const defaultDiseases = [
     { name: "Chickenpox", code: "CP", group: "B" },
@@ -43,73 +37,32 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
     { name: "Yellow Fever", code: "YF", group: "A" },
   ];
 
-  // In-memory cache (synced from Firebase)
-  let diseases = [];
-  let infectiousPatients = [];
-  let gnDivisions = [];
-
-  // Subscription handles
-  let subscriptions = {
-    diseases: null,
-    patients: null,
-    gns: null
-  };
-
-  console.log('[infectious] Module loaded');
-
-
-  // Start Firebase subscriptions
-  function startSubscriptions() {
-    if (subscriptions.diseases) return; // Already subscribed
-
-    console.log('[infectious] Starting Firebase subscriptions...');
-
-    subscriptions.diseases = DirectFirebaseService.subscribe(DISEASE_STORAGE_KEY, (data) => {
-      let newDiseases = data || [];
-
-      // Merge with defaults if needed
-      const existingCodes = new Set(newDiseases.map(d => d.code));
-      const missing = defaultDiseases.filter(d => !existingCodes.has(d.code));
-      if (missing.length > 0) {
-        newDiseases = [...newDiseases, ...missing];
-        DirectFirebaseService.save(DISEASE_STORAGE_KEY, newDiseases);
-      }
-
-      diseases = newDiseases;
-      console.log('[infectious] Diseases updated:', diseases.length);
-    });
-
-    subscriptions.patients = DirectFirebaseService.subscribe(PATIENT_STORAGE_KEY, (data) => {
-      infectiousPatients = data || [];
-      console.log('[infectious] Patients updated:', infectiousPatients.length);
-    });
-
-    subscriptions.gns = DirectFirebaseService.subscribe(GNS_KEY, (data) => {
-      gnDivisions = data || [];
-      console.log('[infectious] GN Divisions updated:', gnDivisions.length);
-    });
-  }
-
-  // Stop subscriptions
-  function stopSubscriptions() {
-    if (subscriptions.diseases) { subscriptions.diseases(); subscriptions.diseases = null; }
-    if (subscriptions.patients) { subscriptions.patients(); subscriptions.patients = null; }
-    if (subscriptions.gns) { subscriptions.gns(); subscriptions.gns = null; }
-    diseases = [];
-    infectiousPatients = [];
-    gnDivisions = [];
-  }
-
-  // Auth state listener
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      console.log('[infectious] User authenticated, starting subscriptions');
-      startSubscriptions();
-    } else {
-      console.log('[infectious] User signed out, stopping subscriptions');
-      stopSubscriptions();
+  // load/merge disease definitions
+  let diseases = JSON.parse(localStorage.getItem(DISEASE_STORAGE_KEY) || "[]");
+  try {
+    const existingCodes = new Set(diseases.map(d => d.code));
+    const missing = defaultDiseases.filter(d => !existingCodes.has(d.code));
+    if (missing.length) {
+      diseases = [...diseases, ...missing];
+      localStorage.setItem(DISEASE_STORAGE_KEY, JSON.stringify(diseases));
     }
-  });
+  } catch (e) {
+    diseases = defaultDiseases.slice();
+    localStorage.setItem(DISEASE_STORAGE_KEY, JSON.stringify(diseases));
+  }
+
+  // Load GN Divisions from PHI Profile
+  const GNS_KEY = "phi_gns_v2";
+  function loadGNDivisions() {
+    try {
+      return JSON.parse(localStorage.getItem(GNS_KEY) || "[]");
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // load patients
+  let infectiousPatients = JSON.parse(localStorage.getItem(PATIENT_STORAGE_KEY) || "[]");
 
   let selectedPatientIndex = null;
   let selectedDiseaseIndex = null;
@@ -136,7 +89,8 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
   window.openInfectious = function (title = "Infectious Diseases Register") {
     const content = document.getElementById("contentArea");
 
-    // Get GN Divisions for dropdown (from in-memory cache)
+    // Get GN Divisions for dropdown
+    const gnDivisions = loadGNDivisions();
     const gnOptions = gnDivisions.length
       ? gnDivisions.map(g => {
         const display = g.no && g.name ? `${g.no} - ${g.name}` : (g.no || g.name || g.id);
@@ -152,9 +106,6 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
     const occupationOptions = uniqueOccupations.length
       ? uniqueOccupations.map(occ => `<option value="${occ}">${occ}</option>`).join("")
       : '';
-    const phiAreaName = localStorage.getItem("phi_info_area") || "Nehinna";
-    const phiLabel = `PHI ${phiAreaName}`;
-
     requestAnimationFrame(() => {
       content.innerHTML = `
       <h2>${title}</h2>
@@ -195,7 +146,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
               <div class="field-group">
                 <label>පරික්ෂා කලේ කව්ද:</label>
                 <select name="examinedBy">
-                  <option value="${phiLabel}" selected>${phiLabel}</option>
+                  <option value="PHI Nehinna" selected>PHI Nehinna</option>
                   <option value="Other area PHI">Other area PHI</option>
                   <option value="SPHI">SPHI</option>
                   <option value="MOH">MOH</option>
@@ -518,18 +469,6 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
       const clearDiseaseBtn = document.getElementById("clearDiseaseBtn");
 
       const patientLogTbody = document.querySelector("#patientLogTable tbody");
-
-      // Event Delegation for Log Table click handling
-      if (patientLogTbody) {
-        patientLogTbody.addEventListener('click', (e) => {
-          const tr = e.target.closest('tr[data-index]');
-          if (!tr) return;
-          const idx = parseInt(tr.dataset.index, 10);
-          if (!isNaN(idx) && idx >= 0 && infectiousPatients[idx]) {
-            showPatientDetailsPopup(infectiousPatients[idx], idx);
-          }
-        });
-      }
       const filterYear = document.getElementById("filterYear");
       const filterDisease = document.getElementById("filterDisease");
       const filterAgeMin = document.getElementById("filterAgeMin");
@@ -603,75 +542,16 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 
       // ---------- disease definitions ----------
       function renderDiseaseDefinitionTable() {
-        diseaseDefinitionTbody.innerHTML = diseases.map((d, i) => `<tr data-index="${i}" style="cursor:pointer;"><td>${i + 1}</td><td>${d.name}</td><td>${d.code}</td><td>${d.group}</td></tr>`).join("");
+        diseaseDefinitionTbody.innerHTML = diseases.map((d, i) => `<tr data-index="${i}"><td>${i + 1}</td><td>${d.name}</td><td>${d.code}</td><td>${d.group}</td></tr>`).join("");
         diseaseDefinitionTbody.querySelectorAll("tr").forEach(row => {
           row.onclick = () => {
             selectedDiseaseIndex = +row.dataset.index;
             const dd = diseases[selectedDiseaseIndex];
-            showDiseaseDetailsPopup(dd, selectedDiseaseIndex);
+            diseaseDefinitionForm.name.value = dd.name;
+            diseaseDefinitionForm.code.value = dd.code;
+            groupSelect.value = dd.group;
           };
         });
-      }
-
-      // Show disease details in SweetAlert popup with edit/delete options
-      function showDiseaseDetailsPopup(disease, idx) {
-        if (!disease) return;
-
-        const details = `
-          <div style="text-align:left; font-size: 14px;">
-            <div style="display:grid; grid-template-columns: 150px 1fr; gap: 12px;">
-              <strong>Disease Name:</strong><span style="font-size: 16px;">${disease.name || '-'}</span>
-              <strong>Code:</strong><span style="font-size: 16px; font-weight: 600; color: #0b5ea8;">${disease.code || '-'}</span>
-              <strong>Group:</strong><span style="font-size: 16px; padding: 4px 12px; background: ${disease.group === 'A' ? '#ffebee' : '#e3f2fd'}; color: ${disease.group === 'A' ? '#c62828' : '#1565c0'}; border-radius: 4px; display: inline-block;">${disease.group || '-'}</span>
-            </div>
-          </div>
-        `;
-
-        Swal.fire({
-          title: '<strong>Disease Definition</strong>',
-          html: details,
-          icon: 'info',
-          width: '600px',
-          showCancelButton: true,
-          showDenyButton: true,
-          confirmButtonText: '<i class="fas fa-edit"></i> Edit',
-          denyButtonText: '<i class="fas fa-trash"></i> Delete',
-          cancelButtonText: 'Close',
-          confirmButtonColor: '#0b5ea8',
-          denyButtonColor: '#d33',
-          cancelButtonColor: '#6c757d'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            // Edit - populate form
-            loadDiseaseIntoForm(disease, idx);
-          } else if (result.isDenied) {
-            // Delete
-            deleteDiseaseConfirm(idx);
-          }
-        });
-      }
-
-      // Load disease data into form for editing
-      function loadDiseaseIntoForm(disease, idx) {
-        selectedDiseaseIndex = idx;
-        diseaseDefinitionForm.name.value = disease.name;
-        diseaseDefinitionForm.code.value = disease.code;
-        groupSelect.value = disease.group;
-
-        // Scroll to form
-        diseaseDefinitionForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-
-      // Delete disease with confirmation
-      async function deleteDiseaseConfirm(idx) {
-        if (await showConfirm("Delete this disease definition?", "Confirm Delete")) {
-          diseases.splice(idx, 1);
-          DirectFirebaseService.save(DISEASE_STORAGE_KEY, diseases);
-          updateDiseaseSelectOptions();
-          renderDiseaseDefinitionTable();
-          selectedDiseaseIndex = null;
-          showSuccess("Disease definition deleted successfully!");
-        }
       }
 
       diseaseDefinitionForm.onsubmit = (e) => {
@@ -679,8 +559,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
         const d = { name: diseaseDefinitionForm.name.value.trim(), code: diseaseDefinitionForm.code.value.trim(), group: diseaseDefinitionForm.group.value.trim() };
         if (selectedDiseaseIndex !== null) diseases[selectedDiseaseIndex] = d;
         else diseases.push(d);
-        DirectFirebaseService.save(DISEASE_STORAGE_KEY, diseases);
-        showSuccess(selectedDiseaseIndex !== null ? "Disease definition updated successfully!" : "Disease definition added successfully!");
+        localStorage.setItem(DISEASE_STORAGE_KEY, JSON.stringify(diseases));
         updateDiseaseSelectOptions();
         renderDiseaseDefinitionTable();
         diseaseDefinitionForm.reset();
@@ -688,14 +567,12 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
       };
 
       deleteDiseaseBtn.onclick = async () => {
-        if (selectedDiseaseIndex !== null && await showConfirm("Delete this disease definition?", "Confirm Delete")) {
+        if (selectedDiseaseIndex !== null && await showConfirm("Delete this disease definition?")) {
           diseases.splice(selectedDiseaseIndex, 1);
-          DirectFirebaseService.save(DISEASE_STORAGE_KEY, diseases);
+          localStorage.setItem(DISEASE_STORAGE_KEY, JSON.stringify(diseases));
           updateDiseaseSelectOptions();
           renderDiseaseDefinitionTable();
           selectedDiseaseIndex = null;
-          showSuccess("Disease definition deleted successfully!");
-          diseaseDefinitionForm.reset();
         }
       };
       clearDiseaseBtn.onclick = () => { diseaseDefinitionForm.reset(); selectedDiseaseIndex = null; };
@@ -745,150 +622,69 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
           row.onclick = () => {
             selectedPatientIndex = +row.dataset.index;
             const p = infectiousPatients[selectedPatientIndex];
-            showPatientDetailsPopup(p, selectedPatientIndex);
+            try {
+              patientForm.dateOfReceipt.value = p.dateOfReceipt || "";
+              patientForm.droDivision.value = p.droDivision || "";
+              patientForm.locality.value = p.locality || "";
+              patientForm.patientName.value = p.patientName || "";
+              patientForm.age.value = p.age ?? "";
+              patientForm.sex.value = p.sex || "";
+              patientForm.race.value = p.race || "";
+              patientForm.occupation.value = p.occupation || "";
+              patientForm.religion.value = p.religion || "";
+              patientForm.dateOfNotification.value = p.dateOfNotification || "";
+              patientForm.byWhomNotified.value = p.byWhomNotified || "";
+              patientForm.examinedBy.value = p.examinedBy || "PHI Nehinna";
+              patientForm.labResults.value = p.labResults || "";
+              patientForm.isolation.value = p.isolation || "";
+              patientForm.terminationStatus.value = p.terminationStatus || "";
+              if (p.terminationStatus === "Death" || p.terminationStatus === "Recovery") {
+                reserveShow(terminationDateContainer);
+                terminationDateInput.required = true;
+                patientForm.terminationDate.value = p.terminationDate || "";
+              } else {
+                reserveHide(terminationDateContainer);
+                terminationDateInput.required = false;
+                patientForm.terminationDate.value = "";
+              }
+              patientForm.sourceOfInfection.value = p.sourceOfInfection || "";
+              patientForm.remarks.value = p.remarks || "";
+              patientForm.natureOfDisease.value = p.natureOfDisease || "";
+              patientForm.dateOfOnset.value = p.dateOfOnset || "";
+              patientForm.dateOfDischarge.value = p.dateOfDischarge || "";
+
+              if (p.patientId) {
+                reserveShow(patientIdContainer);
+                patientIdInput.value = p.patientId;
+                patientIdInput.readOnly = true;
+              } else {
+                reserveHide(patientIdContainer);
+                patientIdInput.value = "";
+              }
+
+              if (p.houseX && p.houseY) {
+                houseXInput.value = p.houseX;
+                houseYInput.value = p.houseY;
+                houseImgWInput.value = p.houseImgWidth || "";
+                houseImgHInput.value = p.houseImgHeight || "";
+                houseCoordReadout.textContent = `House: ${p.houseImgWidth ? pxPercent(p.houseX, p.houseImgWidth) : '?'} , ${p.houseImgHeight ? pxPercent(p.houseY, p.houseImgHeight) : '?'}`;
+                // try to show thumbnail if possible:
+                buildHouseThumbnailFromMap(p).catch(() => { });
+              } else {
+                houseCoordReadout.textContent = "(No location)";
+                houseXInput.value = "";
+                houseYInput.value = "";
+                houseImgWInput.value = "";
+                houseImgHInput.value = "";
+                hideHouseThumb();
+              }
+
+              updatePatientIdField();
+            } catch (err) {
+              console.error("Populate form error:", err);
+            }
           };
         });
-      }
-
-      // Show patient details in SweetAlert popup with edit/delete options
-      function showPatientDetailsPopup(p, idx) {
-        if (!p) return;
-
-        const px = (p.houseX && p.houseImgWidth) ? pxPercent(p.houseX, p.houseImgWidth) : '-';
-        const py = (p.houseY && p.houseImgHeight) ? pxPercent(p.houseY, p.houseImgHeight) : '-';
-
-        const details = `
-          <div style="text-align:left; max-height:60vh; overflow-y:auto;">
-            <div style="display:grid; grid-template-columns: 200px 1fr; gap: 8px; font-size: 14px;">
-              <strong>Patient ID:</strong><span>${p.patientId || '-'}</span>
-              <strong>Date of Receipt:</strong><span>${p.dateOfReceipt || '-'}</span>
-              <strong>GN Division:</strong><span>${p.droDivision || '-'}</span>
-              <strong>Address:</strong><span>${p.locality || '-'}</span>
-              <strong>Name:</strong><span>${p.patientName || '-'}</span>
-              <strong>Age:</strong><span>${p.age ?? '-'}</span>
-              <strong>Sex:</strong><span>${p.sex || '-'}</span>
-              <strong>Race:</strong><span>${p.race || '-'}</span>
-              <strong>Occupation:</strong><span>${p.occupation || '-'}</span>
-              <strong>Religion:</strong><span>${p.religion || '-'}</span>
-              <strong>Date of Notification:</strong><span>${p.dateOfNotification || '-'}</span>
-              <strong>By Whom Notified:</strong><span>${p.byWhomNotified || '-'}</span>
-              <strong>Examined By:</strong><span>${p.examinedBy || '-'}</span>
-              <strong>Disease:</strong><span>${p.natureOfDisease || '-'}</span>
-              <strong>Date of Onset:</strong><span>${p.dateOfOnset || '-'}</span>
-              <strong>Date of Discharge:</strong><span>${p.dateOfDischarge || '-'}</span>
-              <strong>Lab Results:</strong><span>${p.labResults || '-'}</span>
-              <strong>Isolation:</strong><span>${p.isolation || '-'}</span>
-              <strong>Termination Status:</strong><span>${p.terminationStatus || '-'}</span>
-              <strong>Termination Date:</strong><span>${p.terminationDate || '-'}</span>
-              <strong>Source of Infection:</strong><span>${p.sourceOfInfection || '-'}</span>
-              <strong>House Location:</strong><span>${px}, ${py}</span>
-              <strong>Remarks:</strong><span>${(p.remarks || '-').replace(/\n/g, '<br>')}</span>
-            </div>
-          </div>
-        `;
-
-        Swal.fire({
-          title: '<strong>Patient Details</strong>',
-          html: details,
-          icon: 'info',
-          width: '800px',
-          showCancelButton: true,
-          showDenyButton: true,
-          confirmButtonText: '<i class="fas fa-edit"></i> Edit',
-          denyButtonText: '<i class="fas fa-trash"></i> Delete',
-          cancelButtonText: 'Close',
-          confirmButtonColor: '#0b5ea8',
-          denyButtonColor: '#d33',
-          cancelButtonColor: '#6c757d'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            // Edit - populate form
-            loadPatientIntoForm(p, idx);
-          } else if (result.isDenied) {
-            // Delete
-            deletePatientConfirm(idx);
-          }
-        });
-      }
-
-      // Load patient data into form for editing
-      function loadPatientIntoForm(p, idx) {
-        selectedPatientIndex = idx;
-        try {
-          patientForm.dateOfReceipt.value = p.dateOfReceipt || "";
-          patientForm.droDivision.value = p.droDivision || "";
-          patientForm.locality.value = p.locality || "";
-          patientForm.patientName.value = p.patientName || "";
-          patientForm.age.value = p.age ?? "";
-          patientForm.sex.value = p.sex || "";
-          patientForm.race.value = p.race || "";
-          patientForm.occupation.value = p.occupation || "";
-          patientForm.religion.value = p.religion || "";
-          patientForm.dateOfNotification.value = p.dateOfNotification || "";
-          patientForm.byWhomNotified.value = p.byWhomNotified || "";
-          patientForm.examinedBy.value = p.examinedBy || phiLabel;
-          patientForm.labResults.value = p.labResults || "";
-          patientForm.isolation.value = p.isolation || "";
-          patientForm.terminationStatus.value = p.terminationStatus || "";
-          if (p.terminationStatus === "Death" || p.terminationStatus === "Recovery") {
-            reserveShow(terminationDateContainer);
-            terminationDateInput.required = true;
-            patientForm.terminationDate.value = p.terminationDate || "";
-          } else {
-            reserveHide(terminationDateContainer);
-            terminationDateInput.required = false;
-            patientForm.terminationDate.value = "";
-          }
-          patientForm.sourceOfInfection.value = p.sourceOfInfection || "";
-          patientForm.remarks.value = p.remarks || "";
-          patientForm.natureOfDisease.value = p.natureOfDisease || "";
-          patientForm.dateOfOnset.value = p.dateOfOnset || "";
-          patientForm.dateOfDischarge.value = p.dateOfDischarge || "";
-
-          if (p.patientId) {
-            reserveShow(patientIdContainer);
-            patientIdInput.value = p.patientId;
-            patientIdInput.readOnly = true;
-          } else {
-            reserveHide(patientIdContainer);
-            patientIdInput.value = "";
-          }
-
-          if (p.houseX && p.houseY) {
-            houseXInput.value = p.houseX;
-            houseYInput.value = p.houseY;
-            houseImgWInput.value = p.houseImgWidth || "";
-            houseImgHInput.value = p.houseImgHeight || "";
-            houseCoordReadout.textContent = `House: ${p.houseImgWidth ? pxPercent(p.houseX, p.houseImgWidth) : '?'} , ${p.houseImgHeight ? pxPercent(p.houseY, p.houseImgHeight) : '?'}`;
-            buildHouseThumbnailFromMap(p).catch(() => { });
-          } else {
-            houseCoordReadout.textContent = "(No location)";
-            houseXInput.value = "";
-            houseYInput.value = "";
-            houseImgWInput.value = "";
-            houseImgHInput.value = "";
-            hideHouseThumb();
-          }
-
-          updatePatientIdField();
-
-          // Scroll to form
-          patientForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } catch (err) {
-          console.error("Populate form error:", err);
-        }
-      }
-
-      // Delete patient with confirmation
-      async function deletePatientConfirm(idx) {
-        if (await showConfirm("Delete this patient record?", "Confirm Delete")) {
-          infectiousPatients.splice(idx, 1);
-          DirectFirebaseService.save(PATIENT_STORAGE_KEY, infectiousPatients);
-          renderPatientEntryTable();
-          renderPatientLogTable();
-          selectedPatientIndex = null;
-          showSuccess("Patient record deleted successfully!");
-        }
       }
 
       function renderPatientLogTable() {
@@ -913,8 +709,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
         tbody.innerHTML = rows.map((p, i) => {
           const px = (p.houseX && p.houseImgWidth) ? pxPercent(p.houseX, p.houseImgWidth) : (p.houseX ? 'n/a' : '');
           const py = (p.houseY && p.houseImgHeight) ? pxPercent(p.houseY, p.houseImgHeight) : (p.houseY ? 'n/a' : '');
-          const originalIdx = infectiousPatients.findIndex(patient => patient.patientId === p.patientId);
-          return `<tr data-index="${originalIdx}" style="cursor:pointer;">
+          return `<tr>
           <td>${i + 1}</td>
           <td>${p.patientId || ''}</td>
           <td>${p.dateOfReceipt || ''}</td>
@@ -942,24 +737,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
           <td>${p.dateOfDischarge || ''}</td>
         </tr>`;
         }).join("");
-
-        // Add click handlers to log table rows
-        const rowsWithIndex = tbody.querySelectorAll("tr[data-index]");
-        console.log('[infectious] Log table: Found rows with data-index:', rowsWithIndex.length);
-        rowsWithIndex.forEach(row => {
-          row.onclick = () => {
-            const idx = +row.dataset.index;
-            console.log('[infectious] Row clicked, index:', idx);
-            if (idx >= 0 && infectiousPatients[idx]) {
-              const p = infectiousPatients[idx];
-              showPatientDetailsPopup(p, idx);
-            } else {
-              console.warn('[infectious] Invalid index or patient not found:', idx);
-            }
-          };
-        });
       }
-
 
       // ---------- thumbnail helpers (same as earlier) ----------
       async function buildHouseThumbnailFromMap(recordOrPayload) {
@@ -1131,7 +909,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
         if (isDup) { showError("Patient ID already exists. Choose another."); return; }
         if (selectedPatientIndex !== null) infectiousPatients[selectedPatientIndex] = rec;
         else infectiousPatients.push(rec);
-        DirectFirebaseService.save(PATIENT_STORAGE_KEY, infectiousPatients);
+        localStorage.setItem(PATIENT_STORAGE_KEY, JSON.stringify(infectiousPatients));
         renderPatientEntryTable(); renderPatientLogTable();
         patientForm.reset(); reserveHide(patientIdContainer); patientIdInput.value = ""; houseCoordReadout.textContent = "(No location)"; hideHouseThumb();
         selectedPatientIndex = null; reserveHide(terminationDateContainer); terminationDateInput.required = false; terminationDateInput.value = "";
@@ -1142,7 +920,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
         if (selectedPatientIndex !== null) {
           if (await showConfirm("Delete this record?")) {
             infectiousPatients.splice(selectedPatientIndex, 1);
-            DirectFirebaseService.save(PATIENT_STORAGE_KEY, infectiousPatients);
+            localStorage.setItem(PATIENT_STORAGE_KEY, JSON.stringify(infectiousPatients));
             renderPatientEntryTable(); renderPatientLogTable();
             patientForm.reset(); selectedPatientIndex = null; houseCoordReadout.textContent = "(No location)"; hideHouseThumb();
             reserveHide(patientIdContainer); reserveHide(terminationDateContainer);

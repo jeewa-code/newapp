@@ -192,6 +192,7 @@
         import { auth, db } from './js/firebase-config.js';
         import { doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { DirectFirebaseService } from './js/services/directFirebaseService.js';
 
         let currentUser = null;
 
@@ -544,6 +545,12 @@
                     localStorage.setItem('phi_info_inspector', name);
                     localStorage.setItem('phi_info_area', fieldArea);
                     window.dispatchEvent(new Event('phiInfoUpdated'));
+
+                    // Also save to DirectFirebaseService for real-time sync
+                    // This ensures the data is available in the phi_data/info path
+                    DirectFirebaseService.save('info', phiInfoArray).catch(err => {
+                        console.error('Error saving to DirectFirebaseService:', err);
+                    });
                 } catch (e) {
                     console.error('Error saving to PHI Profile:', e);
                 }

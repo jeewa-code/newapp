@@ -1,17 +1,95 @@
-/* phiMeta.js
+/* phiMeta.js - Firebase Real-time Sync Version
    Tab: PHI ක්ෂේත්‍ර දත්ත (Schools / GN Division / PHM Areas)
-   - Storage keys:
+   - Converted from localStorage to Firebase DirectFirebaseService
+   - Real-time data syncing across devices
+   - Firebase collections:
        - phi_schools_v2
        - phi_gns_v2
        - phi_phm_v1
    - Exposes: window.renderPhiMetaTab(container)
 */
+
+import { DirectFirebaseService } from '../services/directFirebaseService.js';
+import { auth } from '../firebase-config.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 (function () {
+  // Firebase collection keys
   const SCHOOLS_KEY = "phi_schools_v2";
   const GNS_KEY = "phi_gns_v2";
   const PHM_KEY = "phi_phm_v1";
-  function load(k) { try { return JSON.parse(localStorage.getItem(k) || "[]"); } catch (e) { return []; } }
-  function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+
+  // In-memory cache (synced from Firebase)
+  let schools = [];
+  let gns = [];
+  let phms = [];
+
+  // Subscription handles
+  let subscriptions = {
+    schools: null,
+    gns: null,
+    phms: null
+  };
+
+  console.log('[phiMeta] Module loaded');
+
+  // Track current container for re-rendering
+  let currentContainer = null;
+
+  // Start Firebase subscriptions
+  function startSubscriptions() {
+    if (subscriptions.schools) return; // Already subscribed
+
+    console.log('[phiMeta] Starting Firebase subscriptions...');
+
+    subscriptions.schools = DirectFirebaseService.subscribe(SCHOOLS_KEY, (data) => {
+      schools = data || [];
+      console.log('[phiMeta] Schools updated:', schools.length);
+      if (currentContainer) refreshUI();
+    });
+
+    subscriptions.gns = DirectFirebaseService.subscribe(GNS_KEY, (data) => {
+      gns = data || [];
+      console.log('[phiMeta] GN Divisions updated:', gns.length);
+      if (currentContainer) refreshUI();
+    });
+
+    subscriptions.phms = DirectFirebaseService.subscribe(PHM_KEY, (data) => {
+      phms = data || [];
+      console.log('[phiMeta] PHM Areas updated:', phms.length);
+      if (currentContainer) refreshUI();
+    });
+  }
+
+  // Refresh UI when data changes
+  function refreshUI() {
+    if (currentContainer) {
+      window.renderPhiMetaTab(currentContainer);
+    }
+  }
+
+  // Stop subscriptions
+  function stopSubscriptions() {
+    if (subscriptions.schools) { subscriptions.schools(); subscriptions.schools = null; }
+    if (subscriptions.gns) { subscriptions.gns(); subscriptions.gns = null; }
+    if (subscriptions.phms) { subscriptions.phms(); subscriptions.phms = null; }
+    schools = [];
+    gns = [];
+    phms = [];
+  }
+
+  // Auth state listener
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log('[phiMeta] User authenticated, starting subscriptions');
+      startSubscriptions();
+    } else {
+      console.log('[phiMeta] User signed out, stopping subscriptions');
+      stopSubscriptions();
+    }
+  });
+
+  // Helper functions
   function uid() { return Date.now() + Math.floor(Math.random() * 9999); }
   function esc(s) { if (s == null) return ""; return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
   const input = "width:100%;padding:9px;border:1px solid #d0d6db;border-radius:8px;box-sizing:border-box;font-size:14px;";
@@ -19,9 +97,9 @@
   window.renderPhiMetaTab = function (container) {
     if (typeof container === "string") container = document.getElementById(container);
     if (!container) return console.warn("container not found");
-    const schools = load(SCHOOLS_KEY);
-    const gns = load(GNS_KEY);
-    const phms = load(PHM_KEY);
+
+    // Store container for auto-refresh on data updates
+    currentContainer = container;
 
     const gnOptions = gns.length ? gns.map(g => `<option value="${esc(g.id)}">${esc(g.no || g.id)}${g.name ? ' - ' + esc(g.name) : ''}</option>`).join("") : `<option disabled>No GN</option>`;
 
@@ -96,28 +174,47 @@
       const name = container.querySelector("#m_school_name").value.trim();
       const reg = container.querySelector("#m_school_reg").value.trim();
       const phone = container.querySelector("#m_school_phone").value.trim();
-      if (!name && !reg) { alert("Enter school name or reg."); return; }
-      const arr = load(SCHOOLS_KEY);
+      if (!name && !reg) { showError("Enter school name or reg."); return; }
+      const arr = schools.slice();
       if (!schoolEdit) arr.unshift({ id: uid(), name, reg, phone }); else {
         const idx = arr.findIndex(x => x.id === schoolEdit);
         if (idx >= 0) arr[idx] = { id: schoolEdit, name, reg, phone }; else arr.unshift({ id: schoolEdit, name, reg, phone });
       }
-      save(SCHOOLS_KEY, arr); renderPhiMetaTab(container);
+      DirectFirebaseService.save(SCHOOLS_KEY, arr);
+      showSuccess(schoolEdit ? "School updated successfully!" : "School added successfully!");
+      schoolEdit = null;
+      container.querySelector("#m_school_name").value = "";
+      container.querySelector("#m_school_reg").value = "";
+      container.querySelector("#m_school_phone").value = "";
     });
     container.querySelector("#m_school_clear").addEventListener("click", () => { schoolEdit = null;["#m_school_name", "#m_school_reg", "#m_school_phone"].forEach(s => container.querySelector(s).value = ""); });
 
-    container.querySelectorAll(".m_del_school").forEach(b => b.addEventListener("click", () => {
-      if (!confirm("Delete this school?")) return;
+    container.querySelectorAll(".m_del_school").forEach(b => b.addEventListener("click", async () => {
+      if (!await showConfirm("Delete this school?", "Confirm Delete")) return;
       const id = Number(b.dataset.id);
-      const arr = load(SCHOOLS_KEY).filter(x => x.id !== id);
-      save(SCHOOLS_KEY, arr); renderPhiMetaTab(container);
+      const arr = schools.filter(x => x.id !== id);
+      DirectFirebaseService.save(SCHOOLS_KEY, arr);
+      showSuccess("School deleted successfully!");
     }));
     container.querySelectorAll(".m_edit_school").forEach(b => b.addEventListener("click", () => {
-      const id = Number(b.dataset.id); const rec = load(SCHOOLS_KEY).find(x => x.id === id); if (!rec) return;
+      const id = Number(b.dataset.id); const rec = schools.find(x => x.id === id); if (!rec) return;
       schoolEdit = id; container.querySelector("#m_school_name").value = rec.name || ""; container.querySelector("#m_school_reg").value = rec.reg || ""; container.querySelector("#m_school_phone").value = rec.phone || "";
     }));
     container.querySelectorAll(".m_view_school").forEach(b => b.addEventListener("click", () => {
-      const id = Number(b.dataset.id); const rec = load(SCHOOLS_KEY).find(x => x.id === id); if (!rec) return alert(JSON.stringify(rec, null, 2));
+      const id = Number(b.dataset.id); const rec = schools.find(x => x.id === id);
+      if (!rec) return;
+      const details = `<div style="text-align:left;">
+        <p><strong>Name:</strong> ${esc(rec.name || '-')}</p>
+        <p><strong>Reg No:</strong> ${esc(rec.reg || '-')}</p>
+        <p><strong>Phone:</strong> ${esc(rec.phone || '-')}</p>
+      </div>`;
+      Swal.fire({
+        title: 'School Details',
+        html: details,
+        icon: 'info',
+        confirmButtonText: 'Close',
+        confirmButtonColor: '#0b5ea8'
+      });
     }));
 
     // handlers for gns
@@ -127,26 +224,47 @@
       const name = container.querySelector("#m_gn_name").value.trim();
       const officer = container.querySelector("#m_gn_officer").value.trim();
       const phone = container.querySelector("#m_gn_phone").value.trim();
-      if (!no && !name) { alert("Enter GN no or name"); return; }
-      const arr = load(GNS_KEY);
+      if (!no && !name) { showError("Enter GN no or name"); return; }
+      const arr = gns.slice();
       if (!gnEdit) arr.unshift({ id: uid(), no, name, officer, phone }); else {
         const idx = arr.findIndex(x => x.id === gnEdit);
         if (idx >= 0) arr[idx] = { id: gnEdit, no, name, officer, phone }; else arr.unshift({ id: gnEdit, no, name, officer, phone });
       }
-      save(GNS_KEY, arr); renderPhiMetaTab(container);
+      DirectFirebaseService.save(GNS_KEY, arr);
+      showSuccess(gnEdit ? "GN Division updated successfully!" : "GN Division added successfully!");
+      gnEdit = null;
+      container.querySelector("#m_gn_no").value = "";
+      container.querySelector("#m_gn_name").value = "";
+      container.querySelector("#m_gn_officer").value = "";
+      container.querySelector("#m_gn_phone").value = "";
     });
     container.querySelector("#m_gn_clear").addEventListener("click", () => { gnEdit = null;["#m_gn_no", "#m_gn_name", "#m_gn_officer", "#m_gn_phone"].forEach(s => container.querySelector(s).value = ""); });
 
-    container.querySelectorAll(".m_del_gn").forEach(b => b.addEventListener("click", () => {
-      if (!confirm("Delete this GN?")) return;
-      const id = Number(b.dataset.id); const arr = load(GNS_KEY).filter(x => x.id !== id); save(GNS_KEY, arr); renderPhiMetaTab(container);
+    container.querySelectorAll(".m_del_gn").forEach(b => b.addEventListener("click", async () => {
+      if (!await showConfirm("Delete this GN Division?", "Confirm Delete")) return;
+      const id = Number(b.dataset.id); const arr = gns.filter(x => x.id !== id); DirectFirebaseService.save(GNS_KEY, arr);
+      showSuccess("GN Division deleted successfully!");
     }));
     container.querySelectorAll(".m_edit_gn").forEach(b => b.addEventListener("click", () => {
-      const id = Number(b.dataset.id); const rec = load(GNS_KEY).find(x => x.id === id); if (!rec) return;
+      const id = Number(b.dataset.id); const rec = gns.find(x => x.id === id); if (!rec) return;
       gnEdit = id; container.querySelector("#m_gn_no").value = rec.no || ""; container.querySelector("#m_gn_name").value = rec.name || ""; container.querySelector("#m_gn_officer").value = rec.officer || ""; container.querySelector("#m_gn_phone").value = rec.phone || "";
     }));
     container.querySelectorAll(".m_view_gn").forEach(b => b.addEventListener("click", () => {
-      const id = Number(b.dataset.id); const rec = load(GNS_KEY).find(x => x.id === id); if (!rec) return alert(JSON.stringify(rec, null, 2));
+      const id = Number(b.dataset.id); const rec = gns.find(x => x.id === id);
+      if (!rec) return;
+      const details = `<div style="text-align:left;">
+        <p><strong>GN No:</strong> ${esc(rec.no || '-')}</p>
+        <p><strong>GN Name:</strong> ${esc(rec.name || '-')}</p>
+        <p><strong>Officer:</strong> ${esc(rec.officer || '-')}</p>
+        <p><strong>Phone:</strong> ${esc(rec.phone || '-')}</p>
+      </div>`;
+      Swal.fire({
+        title: 'GN Division Details',
+        html: details,
+        icon: 'info',
+        confirmButtonText: 'Close',
+        confirmButtonColor: '#0b5ea8'
+      });
     }));
 
     // handlers for phm
@@ -156,34 +274,54 @@
       const selected = Array.from(container.querySelector("#m_phm_gns").selectedOptions).map(o => o.value);
       const phmName = container.querySelector("#m_phm_name").value.trim();
       const phone = container.querySelector("#m_phm_phone").value.trim();
-      if (!area) { alert("PHM Area name required"); return; }
-      const arr = load(PHM_KEY);
+      if (!area) { showError("PHM Area name required"); return; }
+      const arr = phms.slice();
       if (!phmEdit) arr.unshift({ id: uid(), areaName: area, gnValues: selected, phmName, phone }); else {
         const idx = arr.findIndex(x => x.id === phmEdit);
         if (idx >= 0) arr[idx] = { id: phmEdit, areaName: area, gnValues: selected, phmName, phone }; else arr.unshift({ id: phmEdit, areaName: area, gnValues: selected, phmName, phone });
       }
-      save(PHM_KEY, arr); renderPhiMetaTab(container);
+      DirectFirebaseService.save(PHM_KEY, arr);
+      showSuccess(phmEdit ? "PHM Area updated successfully!" : "PHM Area added successfully!");
+      phmEdit = null;
+      container.querySelector("#m_phm_area").value = "";
+      container.querySelector("#m_phm_name").value = "";
+      container.querySelector("#m_phm_phone").value = "";
+      Array.from(container.querySelector("#m_phm_gns").options).forEach(o => o.selected = false);
     });
     container.querySelector("#m_phm_clear").addEventListener("click", () => { phmEdit = null;["#m_phm_area", "#m_phm_name", "#m_phm_phone"].forEach(s => container.querySelector(s).value = ""); Array.from(container.querySelector("#m_phm_gns").options).forEach(o => o.selected = false); });
 
-    container.querySelectorAll(".m_del_phm").forEach(b => b.addEventListener("click", () => {
-      if (!confirm("Delete this PHM area?")) return;
-      const id = Number(b.dataset.id); const arr = load(PHM_KEY).filter(x => x.id !== id); save(PHM_KEY, arr); renderPhiMetaTab(container);
+    container.querySelectorAll(".m_del_phm").forEach(b => b.addEventListener("click", async () => {
+      if (!await showConfirm("Delete this PHM area?", "Confirm Delete")) return;
+      const id = Number(b.dataset.id); const arr = phms.filter(x => x.id !== id); DirectFirebaseService.save(PHM_KEY, arr);
+      showSuccess("PHM Area deleted successfully!");
     }));
     container.querySelectorAll(".m_edit_phm").forEach(b => b.addEventListener("click", () => {
-      const id = Number(b.dataset.id); const rec = load(PHM_KEY).find(x => x.id === id); if (!rec) return;
+      const id = Number(b.dataset.id); const rec = phms.find(x => x.id === id); if (!rec) return;
       phmEdit = id; container.querySelector("#m_phm_area").value = rec.areaName || ""; container.querySelector("#m_phm_name").value = rec.phmName || ""; container.querySelector("#m_phm_phone").value = rec.phone || "";
       const sel = container.querySelector("#m_phm_gns");
       Array.from(sel.options).forEach(o => o.selected = rec.gnValues && rec.gnValues.includes(o.value));
     }));
     container.querySelectorAll(".m_view_phm").forEach(b => b.addEventListener("click", () => {
-      const id = Number(b.dataset.id); const rec = load(PHM_KEY).find(x => x.id === id); if (!rec) return alert(JSON.stringify(rec, null, 2));
+      const id = Number(b.dataset.id); const rec = phms.find(x => x.id === id);
+      if (!rec) return;
+      const gnLabels = (rec.gnValues || []).map(v => {
+        const g = gns.find(x => String(x.id) === String(v));
+        return g ? (g.no ? `${g.no}${g.name ? ' - ' + g.name : ''}` : (g.name || v)) : v;
+      }).join(", ");
+      const details = `<div style="text-align:left;">
+        <p><strong>PHM Area:</strong> ${esc(rec.areaName || '-')}</p>
+        <p><strong>GN Divisions:</strong> ${esc(gnLabels || '-')}</p>
+        <p><strong>PHM Name:</strong> ${esc(rec.phmName || '-')}</p>
+        <p><strong>Phone:</strong> ${esc(rec.phone || '-')}</p>
+      </div>`;
+      Swal.fire({
+        title: 'PHM Area Details',
+        html: details,
+        icon: 'info',
+        confirmButtonText: 'Close',
+        confirmButtonColor: '#0b5ea8'
+      });
     }));
-
-    // ensure keys exist
-    if (!localStorage.getItem(SCHOOLS_KEY)) localStorage.setItem(SCHOOLS_KEY, JSON.stringify([]));
-    if (!localStorage.getItem(GNS_KEY)) localStorage.setItem(GNS_KEY, JSON.stringify([]));
-    if (!localStorage.getItem(PHM_KEY)) localStorage.setItem(PHM_KEY, JSON.stringify([]));
   };
 
 })();

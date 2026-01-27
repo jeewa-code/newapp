@@ -53,6 +53,12 @@ export const loginUser = async (email, password) => {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
             const userData = userDoc.data();
+
+            if (userData.isBlocked) {
+                await signOut(auth);
+                throw new Error("Account is blocked. Please contact administrator.");
+            }
+
             let role = userData.role;
             // Check for Super Admin privilege enforcement
             role = await checkAndEnforceSuperAdmin(user, role);
@@ -82,6 +88,11 @@ export const loginWithGoogle = async () => {
         // Check if user exists in Firestore, if not create as 'user'
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists() && userDoc.data().isBlocked) {
+            await signOut(auth);
+            throw new Error("Account is blocked. Please contact administrator.");
+        }
 
         let role = 'user';
 
@@ -116,6 +127,11 @@ export const loginWithFacebook = async () => {
 
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists() && userDoc.data().isBlocked) {
+            await signOut(auth);
+            throw new Error("Account is blocked. Please contact administrator.");
+        }
 
         let role = 'user';
 
