@@ -13,6 +13,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
 
 (function () {
   "use strict";
+  window.monthlySchedule = window.monthlySchedule || {};
 
   // helpers
   function q(sel, ctx = document) { return ctx.querySelector(sel); }
@@ -43,6 +44,17 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
     places: null,
     holidays: null,
     fixedDates: null
+  };
+
+  // Subscription handle for monthly schedule
+  let activeMonthSubscription = null;
+
+  window.monthlySchedule.stopMonthSubscription = function () {
+    if (activeMonthSubscription) {
+      activeMonthSubscription();
+      activeMonthSubscription = null;
+      console.log('[monthlySchedule] Month subscription stopped');
+    }
   };
 
   // Start Firebase subscriptions
@@ -1712,37 +1724,8 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
       // NEW: Auto-fill from fixed dates when month changes
       autoFillScheduleFromFixedDates(monthInput.value);
 
-      // NEW: Check if saved data exists for this month and load it
-      const selectedMonth = monthInput.value;
-      console.log("Month selected:", selectedMonth);
-      if (selectedMonth) {
-        const key = `monthlySchedule_exact_template_${selectedMonth}`;
-        console.log("Looking for key:", key);
-        const stored = localStorage.getItem(key);
-        console.log("Stored data found:", !!stored);
-        if (stored) {
-          try {
-            const payload = JSON.parse(stored);
-            console.log("Found saved data for month:", selectedMonth);
-
-            // Optional PHI check - if PHI info is available, verify it matches
-            const phiInfo = window.phiMeta ? window.phiMeta.getPhiInfo() : null;
-            const phiName = phiInfo && phiInfo.name ? phiInfo.name.toUpperCase() : "";
-
-            if (phiName && payload.phi && payload.phi !== phiName) {
-              console.log("PHI mismatch - not loading data. Saved PHI:", payload.phi, "Current PHI:", phiName);
-              return;
-            }
-
-            console.log("Auto-loading saved data for month:", selectedMonth);
-            setTimeout(() => {
-              populateFromPayload_local(payload);
-            }, 100);
-          } catch (e) {
-            console.error("Error loading saved data:", e);
-          }
-        }
-      }
+      // Real-time sync with Firebase
+      subscribeToMonth(monthInput.value);
     });
     monthInput.addEventListener("change", function () {
       // Remove red highlight when month is selected
@@ -1755,37 +1738,8 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
       // NEW: Auto-fill from fixed dates when month changes
       autoFillScheduleFromFixedDates(monthInput.value);
 
-      // NEW: Check if saved data exists for this month and load it
-      const selectedMonth = monthInput.value;
-      console.log("Month changed:", selectedMonth);
-      if (selectedMonth) {
-        const key = `monthlySchedule_exact_template_${selectedMonth}`;
-        console.log("Looking for key:", key);
-        const stored = localStorage.getItem(key);
-        console.log("Stored data found:", !!stored);
-        if (stored) {
-          try {
-            const payload = JSON.parse(stored);
-            console.log("Found saved data for month:", selectedMonth);
-
-            // Optional PHI check - if PHI info is available, verify it matches
-            const phiInfo = window.phiMeta ? window.phiMeta.getPhiInfo() : null;
-            const phiName = phiInfo && phiInfo.name ? phiInfo.name.toUpperCase() : "";
-
-            if (phiName && payload.phi && payload.phi !== phiName) {
-              console.log("PHI mismatch - not loading data. Saved PHI:", payload.phi, "Current PHI:", phiName);
-              return;
-            }
-
-            console.log("Auto-loading saved data for month:", selectedMonth);
-            setTimeout(() => {
-              populateFromPayload_local(payload);
-            }, 100);
-          } catch (e) {
-            console.error("Error loading saved data:", e);
-          }
-        }
-      }
+      // Real-time sync with Firebase
+      subscribeToMonth(monthInput.value);
     });
 
     // Designation change listener
@@ -2163,18 +2117,59 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
     };
 
     // Save behaviour
+    // Save behaviour - Firebase only
     saveBtn.onclick = async function () {
       const payload = collectPayload();
-      if (!payload.month) {
-        if (!await showConfirm("Month not selected. Save without month key? (It will be stored under 'unspecified')")) return;
-      }
-      const key = storageKeyForMonth(payload.month);
 
-      // Always save/overwrite without confirmation
-      localStorage.setItem(key, JSON.stringify(payload));
-      showSuccess("Saved successfully.");
-      window.dispatchEvent(new CustomEvent("monthlyScheduleSaved", { detail: { month: payload.month } }));
+      if (!payload.month) {
+        Swal.fire({ icon: 'warning', title: 'මාසය තෝරන්න', text: 'Please select a month before saving.' });
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+      saveBtn.style.opacity = "0.7";
+
+      try {
+        await DirectFirebaseService.save(`monthly_schedule_${payload.month}`, payload);
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Saved!',
+          text: 'Data saved to Firebase successfully.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+
+        window.dispatchEvent(new CustomEvent("monthlyScheduleSaved", { detail: { month: payload.month } }));
+      } catch (err) {
+        console.error("Save failed:", err);
+        Swal.fire({ icon: 'error', title: 'Save Failed', text: err.message });
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save";
+        saveBtn.style.opacity = "1";
+      }
     };
+
+    // Internal helper to subscribe to monthly schedule updates
+    function subscribeToMonth(month) {
+      if (activeMonthSubscription) {
+        activeMonthSubscription();
+        activeMonthSubscription = null;
+      }
+      if (!month) return;
+
+      console.log('[monthlySchedule] Subscribing to month:', month);
+
+      activeMonthSubscription = DirectFirebaseService.subscribe(`monthly_schedule_${month}`, (data) => {
+        if (data) {
+          console.log('[monthlySchedule] Received real-time update');
+          // Update UI
+          populateFromPayload_local(data);
+        }
+      });
+    }
 
     // backBtn.onclick = ()=> window.showContent && window.showContent('Reports', null);
 
@@ -2885,7 +2880,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
       w.document.write('<!DOCTYPE html><html lang="si"><head><meta charset="UTF-8"><title>මාසික ඉදිරි කාලසටහන - ' + monthName + ' ' + year + '</title>');
       w.document.write('<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600&display=swap" rel="stylesheet">');
       w.document.write('<style>@page{size:legal portrait;margin:0}html,body{margin:0;padding:0;width:816px;height:1344px}.page{position:relative;width:816px;height:1344px;font-family:"Noto Sans Sinhala","Noto Sans Tamil",Arial,sans-serif}.bg-image{position:absolute;top:0;left:0;width:816px;height:1344px;z-index:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.field{position:absolute;color:#0b5cff;font-weight:900;font-family:"Times New Roman","Noto Sans Sinhala","Liberation Serif",Georgia,serif;font-style:normal;z-index:1;white-space:nowrap;letter-spacing:0.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}#phi-name{top:85px;left:250px;font-size:14px;width:500px;letter-spacing:0.5px}#month-field{top:145px;left:365px;font-size:15px;letter-spacing:0.5px}#year-field{top:145px;left:575px;font-size:15px;letter-spacing:0.5px}.row-morning{left:110px;width:310px;font-size:12px;font-weight:900;text-align:center;letter-spacing:0.5px}.row-afternoon{left:450px;width:310px;font-size:12px;font-weight:900;text-align:center;letter-spacing:0.5px}.ms-sunday{color:#b71c1c;font-weight:900;letter-spacing:0.5px}.ms-holiday{color:#b71c1c;font-weight:900;letter-spacing:0.5px}@media print{html,body,.page{width:816px!important;height:1344px!important;overflow:hidden!important}}</style></head><body>');
-      w.document.write('<div class="page"><img src="assets/advance program.jpg" class="bg-image" alt="Monthly Schedule Background">');
+      w.document.write('<div class="page"><img src="' + window.location.origin + '/frontend/assets/advance program.jpg" class="bg-image" alt="Monthly Schedule Background">');
       w.document.write('<div id="phi-name" class="field">' + phiHTML + '</div>');
       w.document.write('<div id="month-field" class="field">' + escapeHtml(monthName) + '</div>');
       w.document.write('<div id="year-field" class="field">' + (year && year.length >= 2 ? escapeHtml(year.substring(2)) : "") + '</div>');

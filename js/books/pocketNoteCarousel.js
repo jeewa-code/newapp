@@ -1079,7 +1079,7 @@ function renderNotePage(note) {
                     <th style="padding: 8px; border: 1px solid #ddd; width: 35%; color: #000000;">පස්වරු</th>
                 </tr>
                 
-                ${renderTableRow('සේවා ස්ථානය', note.serviceLocation?.morning, note.serviceLocation?.afternoon)}
+                ${renderTableRow('සේවා ස්ථානය', formatServiceLocations(note.serviceLocation?.morning), formatServiceLocations(note.serviceLocation?.afternoon))}
                 ${renderTableRow('කාර්යාලයෙන් පිටත්වීම', note.officeDeparture?.morning, note.officeDeparture?.afternoon)}
                 ${renderTableRow('ක්ෂේත්‍රයට ලගා වීම', note.fieldArrival?.morning, note.fieldArrival?.afternoon)}
                 ${renderTableRow('ක්ෂේත්‍රයෙන් පිටත්වීම', note.fieldDeparture?.morning, note.fieldDeparture?.afternoon)}
@@ -1226,3 +1226,37 @@ window.changeCalendarMonth = function (year, month) {
         calendarContent.innerHTML = renderCalendarView(year, month, notes);
     }
 };
+
+// Helper to format service locations (strips IDs and joins multiple locations)
+function formatServiceLocations(locations) {
+    if (!locations) return '-';
+    // Handle array or single string
+    const locArray = Array.isArray(locations) ? locations : [locations];
+
+    // Filter empty and map
+    const formatted = locArray.map(loc => {
+        if (!loc) return '';
+        if (typeof loc !== 'string') return '';
+
+        // Handle ID:Name format (e.g. mkvq9ogym51i:Name)
+        if (loc.includes(':')) {
+            const parts = loc.split(':');
+            const name = parts[1] ? parts[1].trim() : '';
+            return name;
+        }
+
+        // Handle plain ID (Main Item) - Try to lookup if global accessor is available
+        if (typeof window.getKeyMapPlaces === 'function') {
+            const places = window.getKeyMapPlaces();
+            if (Array.isArray(places)) {
+                const mainItem = places.find(p => p.id === loc);
+                if (mainItem) return mainItem.main || mainItem.id;
+            }
+        }
+
+        return loc;
+    }).filter(str => str && str.trim().length > 0);
+
+    if (formatted.length === 0) return '-';
+    return formatted.join(', ');
+}

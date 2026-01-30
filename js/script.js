@@ -76,7 +76,7 @@
           
           <p style="color:#ffffff !important;">මෙය මහජන සෞඛ්‍ය පරීක්ෂකවරුන්ගේ කාර්යාල කටයුතු පහසු කිරීම වෙනුවෙන් නිර්මාණය කරන ලද Web Application එකකි.</p>
 
-          <p style="color:#ed6f6f !important;">දැනට ඕනෑම කෙනෙක්ට <strong>ඉදිරි කාලසටහන (Advance Program)</strong> මෙය මගින් නිර්මාණය කර ගැනීමේ පහසුව ලබා දී ඇත.මෙය reports යටතේ ඇත.නමුත් පළමුව PHI Profile  යටතේ ඇති PHI info සහ key map update කර ගත යුතුයි. </p>
+          <p style="color:#ed6f6f !important;">දැනට ඕනෑම කෙනෙක්ට <strong>ඉදිරි කාලසටහන (Advance Program)</strong> මෙය මගින් නිර්මාණය කර ගැනීමේ පහසුව ලබා දී ඇත.මෙය Input Forms යටතේ ඇත.නමුත් පළමුව PHI Profile  යටතේ ඇති PHI info සහ key map update කර ගත යුතුයි. </p>
 
           <p style="color:#ffffff !important;">මහජන සෞඛ්‍ය පරීක්ෂක වරුන්ට <strong>Books</strong> යටතේ ඇති <strong>Pocket Note Book</strong> සම්පුර්ණ කිරීම මගින් පහත දැක්වෙන දෑ  ස්වයංක්‍රියව නිර්මාණය කර ගැනීමට පහසුකම ලබා ගත හැක:</p>
           <ul style="list-style-type:none;margin-left:0;padding-left:20px;margin-bottom:20px;color:#000 !important;">
@@ -148,6 +148,35 @@
           <div class="card book-card" onclick="openSummaryOfActivities()"><i class="fas fa-clipboard-check"></i><p>Summary of Activities</p></div>
         </div>
       `;
+    } else if (section === "InputForms") {
+      content.innerHTML = `
+        <h2>Input Forms</h2>
+        <div class="cards">
+          <div class="card" style="cursor:default; display:flex; flex-direction:column; justify-content:space-between; padding:15px; min-height:160px;">
+            <div style="cursor:default; display:flex; flex-direction:column; align-items:center; flex-grow:1;">
+                <i class="fa-solid fa-calendar-days fa-2x"></i>
+                <p style="margin-top:10px;">මාසික ඉදිරි කාලසටහන</p>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:center; width:100%; margin-top:10px;">
+                 <div class="codepen-button" onclick="event.stopPropagation(); openReport('මාසික ඉදිරි කාලසටහන', 'editor')" style="margin:0;">
+                      <span style="padding: 6px 16px; font-size: 13px;">Editor</span>
+                 </div>
+                 <div class="codepen-button" onclick="event.stopPropagation(); openReport('මාසික ඉදිරි කාලසටහන', 'saved')" style="margin:0;">
+                      <span style="padding: 6px 16px; font-size: 13px;">Saved</span>
+                 </div>
+            </div>
+          </div>
+
+          <div class="card" onclick="openReport('වාර්ෂික ඉදිරි වැඩසටහන්')">
+             <i class="fa-solid fa-calendar-alt fa-2x"></i>
+             <p>වාර්ෂික ඉදිරි වැඩසටහන්</p>
+          </div>
+          <div class="card" onclick="openReport('පාසල් සෞඛ්‍ය')">
+             <i class="fa-solid fa-school fa-2x"></i>
+             <p>පාසල් සෞඛ්‍ය</p>
+          </div>
+        </div>
+      `;
     } else if (section === "Reports") {
       // Check if user is visitor
       const isVisitor = window.isVisitorRole && window.isVisitorRole();
@@ -156,10 +185,6 @@
       content.innerHTML = `
         <h2>Reports</h2>
         <div class="cards">
-          <div class="card" onclick="openReport('මාසික ඉදිරි කාලසටහන')">
-            <i class="fa-solid fa-calendar-days fa-2x"></i>
-            <p>මාසික ඉදිරි කාලසටහන</p>
-          </div>
           ${!isVisitor ? `
           <div class="card" onclick="openReport('මාසික වාර්තාව')">
             <i class="fa-solid fa-file-lines fa-2x"></i>
@@ -296,7 +321,7 @@
   // =====================================================
   // Reports opener (dynamic loader).
   // =====================================================
-  window.openReport = function (title) {
+  window.openReport = function (title, subView) {
     const content = document.getElementById("contentArea");
     if (!content) return;
 
@@ -307,7 +332,7 @@
     const mapping = {
       // IMPORTANT: monthlyScheduleModule provides the tabbed Editor+Saved UI and calls monthlySchedule.js internally.
       "මාසික ඉදිරි කාලසටහන": { path: "js/reports/monthlyScheduleModule.js", fn: "openMonthlyScheduleModule" },
-      // "මාසික වාර්තාව": { path: "js/reports/monthlyReport.js", fn: "openMonthlyReport" }, // Temporarily disabled - file not created yet
+      "මාසික වාර්තාව": { path: "js/reports/monthlyReport.js", fn: "openMonthlyReport" },
       "OT": { path: "js/reports/otReport.js", fn: "openOTReport" },
       "CT": { path: "js/reports/ctReport.js", fn: "openCTReport" },
       "වෙනත්": { path: "js/reports/otherReports.js", fn: "openOtherReports" }
@@ -319,12 +344,12 @@
       const fnName = mapping[title].fn;
 
       if (typeof window[fnName] === "function") {
-        try { return window[fnName](title); } catch (e) { console.error(e); content.innerHTML = `<h2>${escapeHtml(title)}</h2><div style="padding:18px">Report module present but initialization failed.</div>`; return; }
+        try { return window[fnName](title, subView); } catch (e) { console.error(e); content.innerHTML = `<h2>${escapeHtml(title)}</h2><div style="padding:18px">Report module present but initialization failed.</div>`; return; }
       }
 
       dynamicLoadScript(path, () => {
         if (typeof window[fnName] === "function") {
-          try { window[fnName](title); }
+          try { window[fnName](title, subView); }
           catch (e) { console.error(e); content.innerHTML = `<h2>${escapeHtml(title)}</h2><div style="padding:18px">Report module loaded but initialization failed.</div>`; }
         } else {
           // If the module file loaded but didn't expose the expected function - show default content

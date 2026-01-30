@@ -33,7 +33,7 @@
     // Global cleanup tracker
     let currentCleanupFunction = null;
 
-    window.openMonthlyScheduleModule = async function (title) {
+    window.openMonthlyScheduleModule = async function (title, subView) {
         const realContent = document.getElementById("contentArea");
         if (!realContent) return showError("contentArea not found");
 
@@ -88,19 +88,19 @@
             text: title || "මාසික ඉදිරි කාලසටහන"
         }));
 
-        // Back button to Reports
+        // Back button to Input Forms
         const reportsBackBtn = el("button", {
             id: "ms_reports_back_btn",
             style: "padding:8px 16px;border-radius:8px;border:none;background:var(--primary);color:white;cursor:pointer;font-weight:600;",
-            html: '<i class="fas fa-arrow-left"></i> Reports වෙත'
+            html: '<i class="fas fa-arrow-left"></i> Input Forms වෙත'
         });
-        reportsBackBtn.onclick = () => window.showContent && window.showContent('Reports', null);
+        reportsBackBtn.onclick = () => window.showContent && window.showContent('InputForms', null);
 
-        // Back button (for use inside sub-views to return to cards)
+        // Back button (for use inside sub-views to return to Input Forms)
         const backBtn = el("button", {
             id: "ms_back_btn",
             style: "display:none;padding:8px 16px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:14px;",
-            html: '<i class="fas fa-arrow-left"></i> Back '
+            html: '<i class="fas fa-arrow-left"></i> Input Forms වෙත'
         });
 
         header.appendChild(reportsBackBtn);
@@ -190,6 +190,15 @@
                     window.stopPhiPoller();
                 } catch (e) {
                     console.warn("Error stopping phi poller:", e);
+                }
+            }
+
+            // Stop real-time sync
+            if (window.monthlySchedule && typeof window.monthlySchedule.stopMonthSubscription === "function") {
+                try {
+                    window.monthlySchedule.stopMonthSubscription();
+                } catch (e) {
+                    console.warn("Error stopping month subscription:", e);
                 }
             }
 
@@ -309,7 +318,14 @@
 
         addEventHandler(editorTracker, "click", loadEditor);
         addEventHandler(savedTracker, "click", loadSaved);
-        addEventHandler(backBtn, "click", showCardsView);
+        addEventHandler(backBtn, "click", () => window.showContent && window.showContent('InputForms', null));
+
+        // Handle subView argument for direct navigation
+        if (subView === 'editor') {
+            loadEditor();
+        } else if (subView === 'saved') {
+            loadSaved();
+        }
 
         // Listen for save events to refresh the saved list if it's currently active
         function handleScheduleSaved() {
