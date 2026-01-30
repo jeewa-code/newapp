@@ -540,7 +540,7 @@
 
       <div style="display:flex; gap:10px; margin-bottom:15px;">
         <button id="tab_daily_summary" class="tab active" style="padding:8px 12px;">Daily Summary</button>
-        <button id="tab_keys" class="tab" style="padding:8px 12px;">Keys</button>
+        ${window.currentUserRole === 'admin' ? '<button id="tab_keys" class="tab" style="padding:8px 12px;">Keys</button>' : ''}
       </div>
 
       <div id="summaryTabsContainer"></div>
@@ -596,7 +596,9 @@
     }
 
     document.getElementById("tab_daily_summary").addEventListener("click", loadDailySummaryTab);
-    document.getElementById("tab_keys").addEventListener("click", loadKeysTab);
+    if (document.getElementById("tab_keys")) {
+      document.getElementById("tab_keys").addEventListener("click", loadKeysTab);
+    }
 
     // default open Daily Summary
     loadDailySummaryTab();

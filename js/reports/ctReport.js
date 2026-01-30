@@ -9,12 +9,13 @@
   // -------------------------------
   // Pocket Note data helpers
   // -------------------------------
-  function getPocketNotes() {
-    return JSON.parse(localStorage.getItem("pocketNotes") || "[]");
-  }
+  // -------------------------------
+  // Pocket Note data helpers
+  // -------------------------------
+
 
   function getCTRowsByMonth(year, month) {
-    return getPocketNotes().filter(n => {
+    return (window.getPocketNotes ? window.getPocketNotes() : []).filter(n => {
       if (!n.date) return false;
       const d = new Date(n.date);
       return d.getFullYear() === year && (d.getMonth() + 1) === month;
@@ -107,10 +108,9 @@
             </tr>
           </thead>
           <tbody>
-            ${
-              rows.length === 0
-                ? `<tr><td colspan="9" style="text-align:center;padding:12px;">දත්ත නොමැත</td></tr>`
-                : rows.map(r => `
+            ${rows.length === 0
+        ? `<tr><td colspan="9" style="text-align:center;padding:12px;">දත්ත නොමැත</td></tr>`
+        : rows.map(r => `
                   <tr>
                     <td>${r.date}</td>
                     <td>${r.outTime}</td>
@@ -123,7 +123,7 @@
                     <td>${r.walk}</td>
                   </tr>
                 `).join("")
-            }
+      }
           </tbody>
         </table>
       </div>

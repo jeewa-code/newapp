@@ -369,13 +369,47 @@ function refreshActiveViewIfPossible() {
   }
 }
 
+const save = (k, v) => {
+  // Update cache immediately for responsiveness
+  cache[k] = v;
+
+  // Map key to firebase path
+  let path = '';
+  if (k === ROLE_KEY) path = 'keymap_roles';
+  else if (k === PLACE_KEY) path = 'keymap_places';
+  else if (k === HOLIDAY_KEY) path = 'keymap_holidays';
+  else if (k === FIXED_DATES_KEY) path = 'keymap_fixed_dates';
+
+  if (path) DirectFirebaseService.save(path, v);
+};
+
+// Global Accessors
+window.getKeyMapRoles = () => cache[ROLE_KEY] || [];
+window.getKeyMapPlaces = () => cache[PLACE_KEY] || [];
+window.getKeyMapHolidays = () => cache[HOLIDAY_KEY] || [];
+window.getKeyMapFixedDates = () => cache[FIXED_DATES_KEY] || [];
+
 function startSubscriptions() {
   if (roleUnsub) return; // already subscribed
 
-  roleUnsub = DirectFirebaseService.subscribe('keymap_roles', d => { cache[ROLE_KEY] = d || []; refreshActiveViewIfPossible(); });
-  placeUnsub = DirectFirebaseService.subscribe('keymap_places', d => { cache[PLACE_KEY] = d || []; refreshActiveViewIfPossible(); });
-  holidayUnsub = DirectFirebaseService.subscribe('keymap_holidays', d => { cache[HOLIDAY_KEY] = d || []; refreshActiveViewIfPossible(); });
-  fdUnsub = DirectFirebaseService.subscribe('keymap_fixed_dates', d => { cache[FIXED_DATES_KEY] = d || []; refreshActiveViewIfPossible(); });
+  roleUnsub = DirectFirebaseService.subscribe('keymap_roles', d => {
+    cache[ROLE_KEY] = d || [];
+    refreshActiveViewIfPossible();
+    window.dispatchEvent(new CustomEvent('keyMapRolesUpdated', { detail: cache[ROLE_KEY] }));
+  });
+  placeUnsub = DirectFirebaseService.subscribe('keymap_places', d => {
+    cache[PLACE_KEY] = d || [];
+    refreshActiveViewIfPossible();
+    window.dispatchEvent(new CustomEvent('keyMapPlacesUpdated', { detail: cache[PLACE_KEY] }));
+  });
+  holidayUnsub = DirectFirebaseService.subscribe('keymap_holidays', d => {
+    cache[HOLIDAY_KEY] = d || [];
+    refreshActiveViewIfPossible();
+  });
+  fdUnsub = DirectFirebaseService.subscribe('keymap_fixed_dates', d => {
+    cache[FIXED_DATES_KEY] = d || [];
+    refreshActiveViewIfPossible();
+  });
 }
 
 function stopSubscriptions() {
@@ -407,19 +441,7 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 // New Load/Save using Cache/Firebase
 const load = k => cache[k] || [];
 
-const save = (k, v) => {
-  // Update cache immediately for responsiveness
-  cache[k] = v;
-
-  // Map key to firebase path
-  let path = '';
-  if (k === ROLE_KEY) path = 'keymap_roles';
-  else if (k === PLACE_KEY) path = 'keymap_places';
-  else if (k === HOLIDAY_KEY) path = 'keymap_holidays';
-  else if (k === FIXED_DATES_KEY) path = 'keymap_fixed_dates';
-
-  if (path) DirectFirebaseService.save(path, v);
-};
+// (Removed duplicate save function)
 
 const esc = t => { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; };
 

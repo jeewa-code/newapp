@@ -1,13 +1,78 @@
-// pocketNoteEntry.js - UPDATED to show removable sub-duty chips between dropdown and textarea
-// Based on original: :contentReference[oaicite:2]{index=2}
+// Import dependencies
+import { DirectFirebaseService } from '../services/directFirebaseService.js';
+import { auth } from '../firebase-config.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Global function to get pocket notes from localStorage
+// Global data cache
+window.pocketNotesData = [];
+let unsubscribePocketNotes = null;
+
+// Subscribe to Firebase data when user is logged in
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // Unsubscribe from previous if exists
+        if (unsubscribePocketNotes) unsubscribePocketNotes();
+
+        // Subscribe to pocketNotes
+        console.log('Subscribing to Pocket Notes...');
+        unsubscribePocketNotes = DirectFirebaseService.subscribe('pocketNotes', (data) => {
+            if (data && Array.isArray(data) && data.length > 0) {
+                window.pocketNotesData = data;
+                console.log('Pocket Notes synced from cloud:', window.pocketNotesData.length);
+            } else {
+                // Cloud is empty. Check for local data to migrate.
+                console.log('Cloud Pocket Notes empty. Checking local storage...');
+                try {
+                    const local = JSON.parse(localStorage.getItem('pocketNotes') || '[]');
+                    if (local.length > 0) {
+                        console.log(`Migrating ${local.length} pocket notes to Cloud...`);
+                        // Save to cloud
+                        DirectFirebaseService.save('pocketNotes', local).then(() => {
+                            console.log('Migration complete.');
+                        });
+                        // Use local data immediately
+                        window.pocketNotesData = local;
+                    } else {
+                        window.pocketNotesData = [];
+                    }
+                } catch (e) {
+                    console.warn('Error checking local pocketNotes:', e);
+                    window.pocketNotesData = [];
+                }
+            }
+
+            // Trigger UI updates
+            if (typeof window.renderPNBCarousel === 'function' && document.getElementById('noteCarousel')) {
+                // If carousel is visible, refresh it
+                const carouselContainer = document.querySelector('[id*="pnbTabContainer"], #contentArea');
+                if (carouselContainer) {
+                    // Refresh view if needed
+                }
+            }
+
+            // If form is open, we might want to update status indicators?
+            if (document.getElementById('pocketNoteForm')) {
+                if (typeof window.checkDayTypeAndUpdateTable === 'function') {
+                    window.checkDayTypeAndUpdateTable();
+                }
+            }
+
+            // Dispatch custom event for other components
+            window.dispatchEvent(new CustomEvent('pocketNotesUpdated', { detail: window.pocketNotesData }));
+        });
+    } else {
+        window.pocketNotesData = [];
+        if (unsubscribePocketNotes) unsubscribePocketNotes();
+    }
+});
+
+// Global function to get pocket notes from memory cache (Sync)
 window.getPocketNotes = function () {
-    return JSON.parse(localStorage.getItem('pocketNotes') || '[]');
+    return window.pocketNotesData || [];
 };
 
-window.savePocketNote = function (data) {
-    const notes = window.getPocketNotes();
+window.savePocketNote = async function (data) {
+    const notes = [...window.getPocketNotes()];
     const existingIndex = notes.findIndex(note => note.date === data.date);
 
     if (existingIndex >= 0) {
@@ -16,7 +81,19 @@ window.savePocketNote = function (data) {
         notes.push(data);
     }
 
-    localStorage.setItem('pocketNotes', JSON.stringify(notes));
+    // Save to Firebase
+    try {
+        await DirectFirebaseService.save('pocketNotes', notes);
+        // Note: The subscription will update window.pocketNotesData automatically, 
+        // but for immediate UI responsiveness, we can update it here too.
+        // However, better to rely on ONE source of truth (subscription) or optimistic update.
+        // Let's do optimistic update:
+        window.pocketNotesData = notes;
+    } catch (error) {
+        console.error('Error saving pocket note:', error);
+        window.showError('දත්ත සුරක්ෂිත කිරීමට නොහැක. කරුණාකර නැවත උත්සාහ කරන්න.');
+        throw error;
+    }
 };
 
 window.openPocketNoteEntry = function (showInTab = false) {
@@ -1725,7 +1802,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 <input type="time" class="time-input default-time" data-field="officeDepartureMorning-v">
                             </div>
                             <div class="quick-buttons-row">
-                                ${createQuickTimeButtons('officeDepartureMorning-v', ['07:00','07:30','08:00','05:30', '06:00', '06:30' ])}
+                                ${createQuickTimeButtons('officeDepartureMorning-v', ['07:00', '07:30', '08:00', '05:30', '06:00', '06:30'])}
                             </div>
                         </div>
                         
@@ -1735,7 +1812,7 @@ window.openPocketNoteEntry = function (showInTab = false) {
                                 <input type="time" class="time-input default-time" data-field="fieldArrivalMorning-v">
                             </div>
                             <div class="quick-buttons-row">
-                                ${createQuickTimeButtons('fieldArrivalMorning-v', [ '07:30', '08:00', '08:30', '09:00','06:30', '07:00',])}
+                                ${createQuickTimeButtons('fieldArrivalMorning-v', ['07:30', '08:00', '08:30', '09:00', '06:30', '07:00',])}
                             </div>
                         </div>
                         
@@ -1951,7 +2028,7 @@ window.setPNBEntryDate = function (dateString) {
 };
 
 // Clear form function
-window.clearForm = function() {
+window.clearForm = function () {
     // Clear table layout dropdown buttons
     document.querySelectorAll('.service-location-morning, .service-location-afternoon').forEach(btn => {
         if (btn.dataset) {
@@ -1962,7 +2039,7 @@ window.clearForm = function() {
             btn.style.borderColor = '#ccc';
         }
     });
-    
+
     // Clear vertical layout dropdown buttons
     document.querySelectorAll('.service-location-morning-v, .service-location-afternoon-v').forEach(btn => {
         if (btn.dataset) {
@@ -1973,39 +2050,39 @@ window.clearForm = function() {
             btn.style.borderColor = '#ccc';
         }
     });
-    
+
     // Clear time inputs
     document.querySelectorAll('.time-input').forEach(input => {
         input.value = '';
         input.classList.remove('saved-time');
         input.classList.add('default-time');
     });
-    
+
     // Clear distance inputs
     document.querySelectorAll('.distance-morning, .distance-afternoon, .public-transport-morning, .public-transport-afternoon').forEach(input => {
         input.value = '';
         input.classList.remove('saved-time');
         input.classList.add('default-time');
     });
-    
+
     // Clear vertical layout distance inputs
     document.querySelectorAll('.distance-morning-v, .distance-afternoon-v, .public-transport-morning-v, .public-transport-afternoon-v').forEach(input => {
         input.value = '';
         input.classList.remove('saved-time');
         input.classList.add('default-time');
     });
-    
+
     // Clear textareas
     document.getElementById('morningTasks').value = '';
     document.getElementById('afternoonTasks').value = '';
-    
+
     // Clear chips
     document.getElementById('morningChips').innerHTML = '';
     document.getElementById('afternoonChips').innerHTML = '';
-    
+
     // Clear quick button active states
     document.querySelectorAll('.quick-time-btn').forEach(btn => btn.classList.remove('active'));
-    
+
     // Reset submit button
     const submitBtn = document.getElementById('pnbSubmitBtn');
     if (submitBtn) {
@@ -2077,12 +2154,12 @@ function initializeForm() {
         const dayType = this.value;
         const isWorkingOnHoliday = workOnHolidayCheckbox.checked;
         const isNonWorkingDay = dayType !== 'working';
-        
+
         // Clear times when selecting non-working day types without work checkbox
         if (isNonWorkingDay && !isWorkingOnHoliday) {
             clearTimeFields();
         }
-        
+
         checkDayTypeAndUpdateTable();
     });
 
@@ -2090,7 +2167,7 @@ function initializeForm() {
     workOnHolidayCheckbox.addEventListener('change', function () {
         const dayType = dayTypeSelect.value;
         const isNonWorkingDay = dayType !== 'working';
-        
+
         if (this.checked && isNonWorkingDay) {
             // Load times when checking work on holiday
             loadLastEntryTimes();
@@ -2098,7 +2175,7 @@ function initializeForm() {
             // Clear times when unchecking work on holiday
             clearTimeFields();
         }
-        
+
         checkDayTypeAndUpdateTable();
     });
 
@@ -2125,7 +2202,7 @@ function initializeForm() {
 
     // NEW: Initialize duty chips UI (renders chips and hooks add/remove)
     initializeDutyChipsUI();
-    
+
     // NEW: Initialize layout toggle
     initializeLayoutToggle();
 }
@@ -2233,23 +2310,24 @@ function initializeLayoutToggle() {
     const toggleCheckbox = document.getElementById('layoutToggle');
     const mainTable = document.getElementById('mainTable');
     const verticalLayout = document.getElementById('verticalLayout');
-    
+
     // Check if mobile
     const isMobile = window.innerWidth <= 768;
-    
+
     if (isMobile) {
-        // Mobile: Start with table layout (unchecked)
-        mainTable.classList.remove('hidden');
-        verticalLayout.classList.remove('active');
-        toggleCheckbox.checked = false;
+        // Mobile: Start with vertical layout (checked) - Default Layout 2
+        mainTable.classList.add('hidden');
+        verticalLayout.classList.add('active');
+        toggleCheckbox.checked = true;
+        syncDataFromTableToVertical();
     } else {
         // Desktop: Always show table layout
         mainTable.classList.remove('hidden');
         verticalLayout.classList.remove('active');
     }
-    
+
     // Toggle layout on checkbox change (mobile only)
-    toggleCheckbox.addEventListener('change', function() {
+    toggleCheckbox.addEventListener('change', function () {
         if (this.checked) {
             // Show vertical layout
             mainTable.classList.add('hidden');
@@ -2262,9 +2340,9 @@ function initializeLayoutToggle() {
             syncDataFromVerticalToTable();
         }
     });
-    
+
     // Handle window resize
-    window.addEventListener('resize', function() {
+    window.addEventListener('resize', function () {
         const nowMobile = window.innerWidth <= 768;
         if (!nowMobile) {
             // Switch to desktop mode - always table
@@ -2284,7 +2362,7 @@ function syncDataFromTableToVertical() {
     syncFieldValue('[data-field="officeArrivalMorning"]', '[data-field="officeArrivalMorning-v"]');
     syncFieldValue('.distance-morning', '.distance-morning-v');
     syncFieldValue('.public-transport-morning', '.public-transport-morning-v');
-    
+
     // Afternoon data
     syncDropdownValue('.service-location-afternoon', '.service-location-afternoon-v');
     syncFieldValue('[data-field="officeDepartureAfternoon"]', '[data-field="officeDepartureAfternoon-v"]');
@@ -2305,7 +2383,7 @@ function syncDataFromVerticalToTable() {
     syncFieldValue('[data-field="officeArrivalMorning-v"]', '[data-field="officeArrivalMorning"]');
     syncFieldValue('.distance-morning-v', '.distance-morning');
     syncFieldValue('.public-transport-morning-v', '.public-transport-morning');
-    
+
     // Afternoon data
     syncDropdownValue('.service-location-afternoon-v', '.service-location-afternoon');
     syncFieldValue('[data-field="officeDepartureAfternoon-v"]', '[data-field="officeDepartureAfternoon"]');
@@ -2320,19 +2398,19 @@ function syncDataFromVerticalToTable() {
 function syncDropdownValue(fromSelector, toSelector) {
     const fromBtn = document.querySelector(fromSelector);
     const toBtn = document.querySelector(toSelector);
-    
+
     if (fromBtn && toBtn && fromBtn.dataset && toBtn.dataset) {
         const value = fromBtn.dataset.value || '';
         toBtn.dataset.value = value;
-        
+
         // Update display text
         const fromText = fromBtn.querySelector('span:first-child');
         const toText = toBtn.querySelector('span:first-child');
-        
+
         if (fromText && toText) {
             toText.textContent = fromText.textContent;
         }
-        
+
         // Copy styling
         if (value) {
             toBtn.style.backgroundColor = 'rgb(104, 216, 216)';
@@ -2348,7 +2426,7 @@ function syncDropdownValue(fromSelector, toSelector) {
 function syncFieldValue(fromSelector, toSelector) {
     const fromField = document.querySelector(fromSelector);
     const toField = document.querySelector(toSelector);
-    
+
     if (fromField && toField) {
         toField.value = fromField.value;
         // Copy classes for styling (e.g., default-time, saved-time)
@@ -2571,33 +2649,33 @@ function loadExistingDataForDate(date) {
         // Service Location - Handle both single and multiple locations
         const morningLocations = existingNote.serviceLocation?.morning;
         const afternoonLocations = existingNote.serviceLocation?.afternoon;
-        
+
         // Morning service locations
         if (morningLocations) {
             const isArray = Array.isArray(morningLocations);
             const locationsArray = isArray ? morningLocations : [morningLocations];
-            
+
             if (locationsArray.length > 1) {
                 // Set toggle to show multiple (checked)
                 const morningToggle = document.getElementById('morningServiceToggle');
                 const morningDesktopToggles = document.querySelectorAll('.morning-toggle-sync');
                 const morningVToggles = document.querySelectorAll('.morning-v-toggle-sync');
-                
+
                 if (morningToggle) morningToggle.checked = true;
                 morningDesktopToggles.forEach(t => t.checked = true);
                 morningVToggles.forEach(t => t.checked = true);
-                
+
                 // Trigger rendering of multiple dropdowns
                 const morningContainer = document.getElementById('service-location-morning-container');
                 const morningVContainer = document.getElementById('service-location-morning-v-container');
-                
+
                 if (morningContainer) {
                     renderServiceLocation(morningContainer, 'service-location-morning', true);
                 }
                 if (morningVContainer) {
                     renderServiceLocation(morningVContainer, 'service-location-morning-v', true);
                 }
-                
+
                 // Set values for each location
                 locationsArray.forEach((location, index) => {
                     const btn = document.querySelector(`.service-location-morning-${index + 1}`);
@@ -2621,33 +2699,33 @@ function loadExistingDataForDate(date) {
                 }
             }
         }
-        
+
         // Afternoon service locations
         if (afternoonLocations) {
             const isArray = Array.isArray(afternoonLocations);
             const locationsArray = isArray ? afternoonLocations : [afternoonLocations];
-            
+
             if (locationsArray.length > 1) {
                 // Set toggle to show multiple (checked)
                 const afternoonToggle = document.getElementById('afternoonServiceToggle');
                 const afternoonDesktopToggles = document.querySelectorAll('.afternoon-toggle-sync');
                 const afternoonVToggles = document.querySelectorAll('.afternoon-v-toggle-sync');
-                
+
                 if (afternoonToggle) afternoonToggle.checked = true;
                 afternoonDesktopToggles.forEach(t => t.checked = true);
                 afternoonVToggles.forEach(t => t.checked = true);
-                
+
                 // Trigger rendering of multiple dropdowns
                 const afternoonContainer = document.getElementById('service-location-afternoon-container');
                 const afternoonVContainer = document.getElementById('service-location-afternoon-v-container');
-                
+
                 if (afternoonContainer) {
                     renderServiceLocation(afternoonContainer, 'service-location-afternoon', true);
                 }
                 if (afternoonVContainer) {
                     renderServiceLocation(afternoonVContainer, 'service-location-afternoon-v', true);
                 }
-                
+
                 // Set values for each location
                 locationsArray.forEach((location, index) => {
                     const btn = document.querySelector(`.service-location-afternoon-${index + 1}`);
@@ -2704,7 +2782,7 @@ function loadExistingDataForDate(date) {
 
         // Update last entry times
         updateLastEntryTimes(existingNote);
-        
+
         // Sync to vertical layout if it's active
         const verticalLayout = document.getElementById('verticalLayout');
         if (verticalLayout && verticalLayout.classList.contains('active')) {
@@ -2774,9 +2852,9 @@ function loadLastEntryTimes() {
     const dateParts = currentDateString.split('-');
     const currentDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     const dayOfWeek = currentDate.getDay();
-    
+
     const notes = window.getPocketNotes();
-    
+
     // Function to check if a date is a valid working day
     const isValidWorkingDay = (note) => {
         if (!note) return false;
@@ -2788,7 +2866,7 @@ function loadLastEntryTimes() {
         }
         return false;
     };
-    
+
     // Function to get date string for a date object
     const getDateString = (date) => {
         const y = date.getFullYear();
@@ -2796,27 +2874,27 @@ function loadLastEntryTimes() {
         const d = String(date.getDate()).padStart(2, '0');
         return `${y}-${m}-${d}`;
     };
-    
+
     // Function to find the last valid working day
     const findLastValidWorkingDay = (startDate, maxDaysBack = 14) => {
         let checkDate = new Date(startDate);
         checkDate.setDate(checkDate.getDate() - 1); // Start from yesterday
-        
+
         for (let i = 0; i < maxDaysBack; i++) {
             const dateStr = getDateString(checkDate);
             const note = notes.find(n => n.date === dateStr);
-            
+
             if (isValidWorkingDay(note)) {
                 return note;
             }
-            
+
             checkDate.setDate(checkDate.getDate() - 1);
         }
         return null;
     };
-    
+
     let sourceNote = null;
-    
+
     // Determine which day's data to load based on current day of week
     if (dayOfWeek === 1) {
         // Monday: Load Friday's data (skip weekend)
@@ -2824,7 +2902,7 @@ function loadLastEntryTimes() {
         friday.setDate(friday.getDate() - 3); // Go back 3 days to Friday
         const fridayStr = getDateString(friday);
         const fridayNote = notes.find(n => n.date === fridayStr);
-        
+
         if (isValidWorkingDay(fridayNote)) {
             sourceNote = fridayNote;
         } else {
@@ -2837,7 +2915,7 @@ function loadLastEntryTimes() {
         lastSaturday.setDate(lastSaturday.getDate() - 7); // Go back 7 days
         const lastSaturdayStr = getDateString(lastSaturday);
         const lastSaturdayNote = notes.find(n => n.date === lastSaturdayStr);
-        
+
         if (isValidWorkingDay(lastSaturdayNote)) {
             sourceNote = lastSaturdayNote;
         } else {
@@ -2848,7 +2926,7 @@ function loadLastEntryTimes() {
         // Other days (Tuesday-Friday, Sunday): Load previous day if it was a working day
         sourceNote = findLastValidWorkingDay(currentDate);
     }
-    
+
     // If we found a valid source note, load its times
     if (sourceNote) {
         // Set time fields with default styling
@@ -2862,7 +2940,7 @@ function loadLastEntryTimes() {
             'officeArrivalMorning': sourceNote.officeArrival?.morning,
             'officeArrivalAfternoon': sourceNote.officeArrival?.afternoon
         };
-        
+
         Object.keys(timeFields).forEach(field => {
             const value = timeFields[field];
             if (value) {
@@ -2933,8 +3011,8 @@ function checkDayTypeAndUpdateTable() {
     const day = parseInt(dateParts[2], 10);
 
     // Check if date is a government holiday
-    const holidayName = typeof isGovernmentHoliday === 'function' 
-        ? isGovernmentHoliday(year, month, day, 'si') 
+    const holidayName = typeof isGovernmentHoliday === 'function'
+        ? isGovernmentHoliday(year, month, day, 'si')
         : null;
     const isGovHoliday = holidayName !== null;
 
@@ -3150,9 +3228,17 @@ function setValueField(selector, value, markSaved) {
 }
 
 // PHI Key Map Helper Functions
+// PHI Key Map Helper Functions
 const PLACES_KEY = "phi_places_tree_final";
 
 function loadKeyPlaces() {
+    // UPDATED: Sync with Firebase via global accessor from phiKeyMap.js
+    if (window.getKeyMapPlaces && typeof window.getKeyMapPlaces === 'function') {
+        const places = window.getKeyMapPlaces();
+        if (places && places.length > 0) return places;
+    }
+
+    // Fallback to local storage (e.g. offline or not yet sycned)
     try {
         const data = localStorage.getItem(PLACES_KEY);
         if (!data) return [];
@@ -3163,16 +3249,27 @@ function loadKeyPlaces() {
     }
 }
 
+// Listen for updates to places from Firebase
+window.addEventListener('keyMapPlacesUpdated', () => {
+    console.log('PNB: Places updated from cloud, refreshing dropdowns...');
+    // Re-render dropdowns if the form is active
+    if (document.getElementById('pocketNoteForm')) {
+        // We simply re-initialize the toggles which triggers re-render of dropdowns
+        // This might reset current selection if it conflicts, but ensures fresh data
+        initializeServiceLocationDropdowns();
+    }
+});
+
 function getPlaceNameById(id) {
     const places = loadKeyPlaces();
     if (!id) return '';
-    
+
     // Handle sub-item format "mainId:subName"
     if (id.includes(':')) {
         const [mainId, subName] = id.split(':');
         return subName;
     }
-    
+
     // Find main item
     const place = places.find(p => p.id === id);
     return place ? place.main : '';
@@ -3181,15 +3278,15 @@ function getPlaceNameById(id) {
 // Custom Dropdown Builder for PHI Places
 function buildPlaceDropdown(className, preservedValue = '') {
     const places = loadKeyPlaces();
-    
+
     // Create wrapper
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'position:relative;width:100%;';
-    
+
     // Create button
     const btnId = `btn-${className}-${Date.now()}`;
     const menuId = `menu-${className}-${Date.now()}`;
-    
+
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.id = btnId;
@@ -3199,23 +3296,23 @@ function buildPlaceDropdown(className, preservedValue = '') {
         background:#757373;cursor:pointer;min-height:24px;font-size:11px;text-align:left;
         user-select:none;display:flex;align-items:center;justify-content:space-between;
         font-family: 'Noto Sans Sinhala', 'Noto Sans', Arial, sans-serif;`;
-    
+
     if (preservedValue) {
         btn.style.backgroundColor = 'rgb(104, 216, 216)';
         btn.style.borderColor = '#000000ff';
     }
-    
+
     const textSpan = document.createElement('span');
     textSpan.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
     textSpan.textContent = preservedValue ? getPlaceNameById(preservedValue) : 'තෝරන්න';
-    
+
     const arrow = document.createElement('span');
     arrow.style.cssText = 'margin-left:4px;color:#666;font-size:10px;transition:transform 0.2s;';
     arrow.textContent = '▼';
-    
+
     btn.appendChild(textSpan);
     btn.appendChild(arrow);
-    
+
     // Create dropdown menu
     const menu = document.createElement('div');
     menu.id = menuId;
@@ -3225,46 +3322,46 @@ function buildPlaceDropdown(className, preservedValue = '') {
         border:1px solid #d0d6db;border-radius:4px;box-shadow:0 4px 8px rgba(0,0,0,0.15);
         max-height:300px;overflow-y:auto;z-index:9999;display:none;margin-bottom:2px;
         font-family: 'Noto Sans Sinhala', 'Noto Sans', Arial, sans-serif;font-size:12px;`;
-    
+
     // Populate dropdown items
     places.forEach(item => {
         const mainText = item.main || item.id;
         const hasSub = item.sub && Array.isArray(item.sub) && item.sub.length > 0;
-        
+
         const mainDiv = document.createElement('div');
         mainDiv.className = 'dropdown-main-item';
         mainDiv.style.cssText = `padding:10px 12px;cursor:pointer;border-bottom:1px solid #e0e0e0;
             font-weight:600;color:#004085;display:flex;justify-content:space-between;align-items:center;
             transition:all 0.2s;background:#ffffff;`;
-        
+
         const mainTextSpan = document.createElement('span');
         mainTextSpan.textContent = mainText;
         mainDiv.appendChild(mainTextSpan);
-        
+
         if (hasSub) {
             const expandIcon = document.createElement('span');
             expandIcon.className = 'expand-icon';
             expandIcon.style.cssText = 'color:#353635;font-size:10px;transition:transform 0.2s;';
             expandIcon.textContent = '▶';
             mainDiv.appendChild(expandIcon);
-            
+
             // Create sub-items container
             const subContainer = document.createElement('div');
             subContainer.className = 'sub-items-container';
             subContainer.style.cssText = 'display:none;background:#353635;border-left:4px solid #004085;';
-            
+
             item.sub.forEach(subItem => {
                 const subName = typeof subItem === 'object' ? subItem.name : subItem;
                 const subCode = typeof subItem === 'object' ? subItem.code : '';
                 const subText = subCode ? `${subName} (${subCode})` : subName;
                 const subValue = `${item.id}:${subName}`;
-                
+
                 const subDiv = document.createElement('div');
                 subDiv.className = 'dropdown-sub-item';
                 subDiv.style.cssText = `padding:8px 10px 8px 25px;cursor:pointer;border-bottom:1px solid #a9c5d8;
                     transition:background 0.2s;color:#ffffff;font-weight:normal;`;
                 subDiv.textContent = subText;
-                
+
                 subDiv.addEventListener('mouseenter', () => subDiv.style.background = '#2d3ed6');
                 subDiv.addEventListener('mouseleave', () => subDiv.style.background = 'transparent');
                 subDiv.addEventListener('click', (e) => {
@@ -3273,28 +3370,28 @@ function buildPlaceDropdown(className, preservedValue = '') {
                     textSpan.textContent = subName;
                     menu.style.display = 'none';
                     arrow.style.transform = 'rotate(0deg)';
-                    
+
                     btn.style.backgroundColor = 'rgb(104, 216, 216)';
                     btn.style.borderColor = '#000000ff';
-                    
+
                     if (menu.parentElement === document.body) {
                         wrapper.appendChild(menu);
                     }
-                    
+
                     const event = new Event('change', { bubbles: true });
                     btn.dispatchEvent(event);
                 });
-                
+
                 subContainer.appendChild(subDiv);
             });
-            
+
             // Main item click handler (toggle sub-items)
             mainDiv.addEventListener('mouseenter', () => mainDiv.style.background = '#cce5ff');
             mainDiv.addEventListener('mouseleave', () => mainDiv.style.background = '#ffffff');
             mainDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isExpanded = subContainer.style.display === 'block';
-                
+
                 // Collapse all other sub-containers
                 menu.querySelectorAll('.sub-items-container').forEach(container => {
                     container.style.display = 'none';
@@ -3304,7 +3401,7 @@ function buildPlaceDropdown(className, preservedValue = '') {
                         if (icon) icon.style.transform = 'rotate(0deg)';
                     }
                 });
-                
+
                 if (!isExpanded) {
                     subContainer.style.display = 'block';
                     expandIcon.style.transform = 'rotate(90deg)';
@@ -3315,7 +3412,7 @@ function buildPlaceDropdown(className, preservedValue = '') {
                     mainDiv.style.background = '#00c3ff';
                 }
             });
-            
+
             menu.appendChild(mainDiv);
             menu.appendChild(subContainer);
         } else {
@@ -3328,32 +3425,32 @@ function buildPlaceDropdown(className, preservedValue = '') {
                 textSpan.textContent = mainText;
                 menu.style.display = 'none';
                 arrow.style.transform = 'rotate(0deg)';
-                
+
                 btn.style.backgroundColor = 'rgb(104, 216, 216)';
                 btn.style.borderColor = '#000000ff';
-                
+
                 if (menu.parentElement === document.body) {
                     wrapper.appendChild(menu);
                 }
-                
+
                 const event = new Event('change', { bubbles: true });
                 btn.dispatchEvent(event);
             });
             menu.appendChild(mainDiv);
         }
     });
-    
+
     // Position menu function
     const positionMenu = () => {
         if (menu.style.display !== 'block') return;
-        
+
         const rect = btn.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
         const viewportWidth = window.innerWidth;
-        
+
         // Mobile layout - centered modal
         const isMobile = viewportWidth <= 768;
-        
+
         if (isMobile) {
             menu.style.position = 'fixed';
             menu.style.width = '90%';
@@ -3368,16 +3465,16 @@ function buildPlaceDropdown(className, preservedValue = '') {
             menu.style.boxShadow = '0 0 0 1000px rgba(0,0,0,0.5)';
             return;
         }
-        
+
         // Desktop positioning
         menu.style.transform = 'none';
         menu.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-        
+
         const spaceBelow = viewportHeight - rect.bottom;
         const spaceAbove = rect.top;
         const minSpaceNeeded = 250;
         const maxMenuHeight = 300;
-        
+
         menu.style.position = 'fixed';
         menu.style.width = Math.max(rect.width, 220) + 'px';
         menu.style.maxHeight = maxMenuHeight + 'px';
@@ -3385,9 +3482,9 @@ function buildPlaceDropdown(className, preservedValue = '') {
         menu.style.left = rect.left + 'px';
         menu.style.zIndex = '10000';
         menu.style.margin = '0';
-        
+
         const openUpward = spaceAbove > spaceBelow || spaceBelow < minSpaceNeeded;
-        
+
         if (openUpward) {
             menu.style.bottom = (viewportHeight - rect.top + 2) + 'px';
             menu.style.top = 'auto';
@@ -3397,7 +3494,7 @@ function buildPlaceDropdown(className, preservedValue = '') {
             menu.style.bottom = 'auto';
             menu.style.maxHeight = Math.min(maxMenuHeight, spaceBelow) + 'px';
         }
-        
+
         // Adjust if goes offscreen horizontally
         setTimeout(() => {
             const menuRect = menu.getBoundingClientRect();
@@ -3410,19 +3507,19 @@ function buildPlaceDropdown(className, preservedValue = '') {
             }
         }, 0);
     };
-    
+
     // Scroll handler to reposition
     const scrollHandler = () => {
         if (menu.style.display === 'block') {
             positionMenu();
         }
     };
-    
+
     // Button click handler
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const isOpen = menu.style.display === 'block';
-        
+
         // Close all other dropdowns
         document.querySelectorAll('.ms-dropdown-menu').forEach(m => {
             if (m !== menu) {
@@ -3448,29 +3545,29 @@ function buildPlaceDropdown(className, preservedValue = '') {
                 }
             }
         });
-        
+
         if (!isOpen) {
             // Move to body to avoid overflow clipping
             document.body.appendChild(menu);
             menu.style.display = 'block';
             arrow.style.transform = 'rotate(180deg)';
-            
+
             // Green background when open
             btn.style.backgroundColor = '#90ee90';
             btn.style.borderColor = '#006400';
-            
+
             // Force reflow
             menu.offsetHeight;
-            
+
             positionMenu();
-            
+
             // Add scroll/resize listeners
             window.addEventListener('scroll', scrollHandler, true);
             window.addEventListener('resize', scrollHandler);
         } else {
             menu.style.display = 'none';
             arrow.style.transform = 'rotate(0deg)';
-            
+
             // Restore button color
             if (btn.dataset.value) {
                 btn.style.backgroundColor = 'rgb(104, 216, 216)';
@@ -3479,24 +3576,24 @@ function buildPlaceDropdown(className, preservedValue = '') {
                 btn.style.backgroundColor = '#e0e0e0';
                 btn.style.borderColor = '#ccc';
             }
-            
+
             // Return to wrapper
             if (menu.parentElement === document.body) {
                 wrapper.appendChild(menu);
             }
-            
+
             // Remove listeners
             window.removeEventListener('scroll', scrollHandler, true);
             window.removeEventListener('resize', scrollHandler);
         }
     });
-    
+
     // Close on outside click
     const outsideClickHandler = (e) => {
         if (!wrapper.contains(e.target) && !menu.contains(e.target) && menu.parentElement === document.body) {
             menu.style.display = 'none';
             arrow.style.transform = 'rotate(0deg)';
-            
+
             // Restore button color
             if (btn.dataset.value) {
                 btn.style.backgroundColor = 'rgb(104, 216, 216)';
@@ -3505,47 +3602,47 @@ function buildPlaceDropdown(className, preservedValue = '') {
                 btn.style.backgroundColor = '#e0e0e0';
                 btn.style.borderColor = '#ccc';
             }
-            
+
             if (menu.parentElement === document.body) {
                 wrapper.appendChild(menu);
             }
-            
+
             window.removeEventListener('scroll', scrollHandler, true);
             window.removeEventListener('resize', scrollHandler);
         }
     };
-    
+
     document.addEventListener('click', outsideClickHandler);
-    
+
     wrapper.appendChild(btn);
     wrapper.appendChild(menu);
-    
+
     return wrapper;
 }
 
 // Render service location based on toggle state (1 or 3 locations)
 function renderServiceLocation(container, baseClass, isMultiple) {
     container.innerHTML = '';
-    
+
     if (isMultiple) {
         // Show 3 service locations
         const multiDiv = document.createElement('div');
         multiDiv.className = 'service-location-multi active';
-        
+
         for (let i = 1; i <= 3; i++) {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'service-location-item';
-            
+
             const label = document.createElement('label');
             label.textContent = i;
-            
+
             const dropdown = buildPlaceDropdown(`${baseClass}-${i}`);
-            
+
             itemDiv.appendChild(label);
             itemDiv.appendChild(dropdown);
             multiDiv.appendChild(itemDiv);
         }
-        
+
         container.appendChild(multiDiv);
     } else {
         // Show single service location
@@ -3559,47 +3656,47 @@ function initializeServiceLocationToggles() {
     // Mobile toggles (inside mobile-toggle-row)
     const morningMobileToggle = document.getElementById('morningServiceToggle');
     const afternoonMobileToggle = document.getElementById('afternoonServiceToggle');
-    
+
     // Desktop toggles (inside desktop-toggle)
     const morningDesktopToggles = document.querySelectorAll('.morning-toggle-sync');
     const afternoonDesktopToggles = document.querySelectorAll('.afternoon-toggle-sync');
-    
+
     // Vertical layout toggles
     const morningVToggles = document.querySelectorAll('.morning-v-toggle-sync');
     const afternoonVToggles = document.querySelectorAll('.afternoon-v-toggle-sync');
-    
+
     // Containers
     const morningContainer = document.getElementById('service-location-morning-container');
     const afternoonContainer = document.getElementById('service-location-afternoon-container');
     const morningVContainer = document.getElementById('service-location-morning-v-container');
     const afternoonVContainer = document.getElementById('service-location-afternoon-v-container');
-    
+
     // Show/hide mobile vs desktop toggles based on screen size
     function updateToggleVisibility() {
         const isMobile = window.innerWidth <= 768;
-        
+
         // Mobile toggle rows (show in mobile only)
         document.querySelectorAll('.mobile-toggle-row').forEach(row => {
             row.style.display = isMobile ? 'flex' : 'none';
         });
-        
+
         // Desktop toggles (show in desktop only)
         document.querySelectorAll('.desktop-toggle').forEach(toggle => {
             toggle.style.display = isMobile ? 'none' : 'flex';
         });
     }
-    
+
     // Initial visibility setup
     updateToggleVisibility();
     window.addEventListener('resize', updateToggleVisibility);
-    
+
     // Morning toggle handler (syncs all morning toggles)
     function handleMorningToggle(isChecked) {
         // Sync all morning toggles
         if (morningMobileToggle) morningMobileToggle.checked = isChecked;
         morningDesktopToggles.forEach(t => t.checked = isChecked);
         morningVToggles.forEach(t => t.checked = isChecked);
-        
+
         // Update containers
         if (morningContainer) {
             renderServiceLocation(morningContainer, 'service-location-morning', isChecked);
@@ -3608,14 +3705,14 @@ function initializeServiceLocationToggles() {
             renderServiceLocation(morningVContainer, 'service-location-morning-v', isChecked);
         }
     }
-    
+
     // Afternoon toggle handler (syncs all afternoon toggles)
     function handleAfternoonToggle(isChecked) {
         // Sync all afternoon toggles
         if (afternoonMobileToggle) afternoonMobileToggle.checked = isChecked;
         afternoonDesktopToggles.forEach(t => t.checked = isChecked);
         afternoonVToggles.forEach(t => t.checked = isChecked);
-        
+
         // Update containers
         if (afternoonContainer) {
             renderServiceLocation(afternoonContainer, 'service-location-afternoon', isChecked);
@@ -3624,7 +3721,7 @@ function initializeServiceLocationToggles() {
             renderServiceLocation(afternoonVContainer, 'service-location-afternoon-v', isChecked);
         }
     }
-    
+
     // Attach event listeners to all morning toggles
     if (morningMobileToggle) {
         morningMobileToggle.addEventListener('change', (e) => handleMorningToggle(e.target.checked));
@@ -3635,7 +3732,7 @@ function initializeServiceLocationToggles() {
     morningVToggles.forEach(toggle => {
         toggle.addEventListener('change', (e) => handleMorningToggle(e.target.checked));
     });
-    
+
     // Attach event listeners to all afternoon toggles
     if (afternoonMobileToggle) {
         afternoonMobileToggle.addEventListener('change', (e) => handleAfternoonToggle(e.target.checked));
@@ -3646,7 +3743,7 @@ function initializeServiceLocationToggles() {
     afternoonVToggles.forEach(toggle => {
         toggle.addEventListener('change', (e) => handleAfternoonToggle(e.target.checked));
     });
-    
+
     // Initialize with single dropdowns (unchecked state)
     handleMorningToggle(false);
     handleAfternoonToggle(false);
@@ -3661,7 +3758,7 @@ function initializeServiceLocationDropdowns() {
 // Save pocket note entry (reads form, saves to localStorage)
 function savePocketNoteEntry() {
     const date = document.getElementById('pnbDate').value;
-    
+
     // Check which layout is active and sync before saving
     const verticalLayout = document.getElementById('verticalLayout');
     if (verticalLayout.classList.contains('active')) {
@@ -3687,7 +3784,7 @@ function savePocketNoteEntry() {
     // Helper to get service location values (single or multiple)
     const getServiceLocationValues = (period) => {
         const baseClass = period === 'morning' ? 'service-location-morning' : 'service-location-afternoon';
-        
+
         // Check if multiple locations exist
         const multipleLocations = [];
         for (let i = 1; i <= 3; i++) {
@@ -3696,11 +3793,11 @@ function savePocketNoteEntry() {
                 multipleLocations.push(dropdown.dataset.value);
             }
         }
-        
+
         if (multipleLocations.length > 0) {
             return multipleLocations;
         }
-        
+
         // Otherwise get single location
         const singleDropdown = document.querySelector(`.${baseClass}`);
         const singleValue = singleDropdown?.dataset?.value || '';

@@ -3,7 +3,8 @@ window.renderPNBCarousel = function (containerId, initialDate = null) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const notes = getPocketNotes();
+    // Use global accessor from pocketNoteEntry.js
+    const notes = window.getPocketNotes ? window.getPocketNotes() : [];
 
     // If no notes AND no initial date, show empty state
     if (notes.length === 0 && !initialDate) {
@@ -1215,7 +1216,7 @@ function printNote(note) {
 
 
 // Make getPocketNotes available globally for other modules
-window.getPocketNotes = getPocketNotes;
+// (Removed redundant assignment)
 
 // Global function for calendar navigation
 window.changeCalendarMonth = function (year, month) {

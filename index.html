@@ -241,7 +241,7 @@
   <script src="js/reports/governmentHolidays.js"></script>
 
   <!-- Add these after your existing script tags -->
-  <script src="js/books/pocketNoteEntry.js"></script>
+  <script type="module" src="js/books/pocketNoteEntry.js"></script>
   <script src="js/books/pocketNoteCarousel.js"></script>
 
   <script src="js/books/keysTab.js"></script>
@@ -267,6 +267,10 @@
     import { checkAuthStatus, logoutUser } from './js/auth/authService.js';
     import { performMigration } from './js/migrationHelper.js';
     import { initializeStorageWrapper, loadAllFromFirestore } from './js/storageWrapper.js';
+    import { DirectFirebaseService } from './js/services/directFirebaseService.js';
+
+    // Expose DirectFirebaseService for legacy/non-module scripts
+    window.DirectFirebaseService = DirectFirebaseService;
 
     // Initialize storage wrapper FIRST
     initializeStorageWrapper();
@@ -277,6 +281,9 @@
         // Redirect if not logged in
         window.location.replace('login.html');
       } else {
+        // Expose role globally for UI logic
+        window.currentUserRole = role;
+
         // Load existing data from Firestore
         try {
           await loadAllFromFirestore();

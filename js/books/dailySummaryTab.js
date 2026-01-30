@@ -823,10 +823,18 @@
     }
 
     // Helper function to get Pocket Note data for specific date
+    // UPDATED: Now uses global window.getPocketNotes() which is synced with Firebase
     function getPocketNoteDataForDate(dateString) {
         try {
-            const pocketNotes = JSON.parse(localStorage.getItem('pocketNotes') || '[]');
-            return pocketNotes.find(note => note.date === dateString);
+            // Use the global accessor if available (from pocketNoteEntry.js)
+            if (typeof window.getPocketNotes === 'function') {
+                const pocketNotes = window.getPocketNotes();
+                return pocketNotes.find(note => note.date === dateString);
+            } else {
+                // Fallback to localStorage if module not loaded (legacy)
+                const pocketNotes = JSON.parse(localStorage.getItem('pocketNotes') || '[]');
+                return pocketNotes.find(note => note.date === dateString);
+            }
         } catch (error) {
             console.error('Error loading pocket note data:', error);
             return null;
@@ -853,6 +861,48 @@
         }
     }
 
+    // --- Firebase Sync Logic ---
+    function initFirebaseSync() {
+        if (window.DirectFirebaseService) {
+            console.log('[DailySummary] Initializing Firebase Subscription...');
+            window.DirectFirebaseService.subscribe('phi_monthly_activities', (data) => {
+                if (data) {
+                    console.log('[DailySummary] Received update from Firebase');
+                    monthlyData = data;
+                    // Re-render current view
+                    const year = parseInt(document.getElementById('yearSelect')?.value || new Date().getFullYear());
+                    const month = parseInt(document.getElementById('monthSelect')?.value || (new Date().getMonth() + 1));
+
+                    const container = document.getElementById('activitiesTableContainer');
+                    if (container) {
+                        container.innerHTML = renderActivitiesTable(year, month);
+                        initTableScrollSync();
+                    }
+                } else {
+                    // No data in cloud, check if we need to migrate local data
+                    const localM = localStorage.getItem('phi_monthly_activities');
+                    if (localM) {
+                        try {
+                            const parsed = JSON.parse(localM);
+                            if (Object.keys(parsed).length > 0) {
+                                console.log('[DailySummary] Migrating local data to Firebase...');
+                                monthlyData = parsed;
+                                saveMonthlyData(); // Save to cloud
+                            }
+                        } catch (e) { console.error(e); }
+                    }
+                }
+            });
+        }
+    }
+
+    // Initialize Sync
+    if (window.DirectFirebaseService) {
+        initFirebaseSync();
+    } else {
+        setTimeout(initFirebaseSync, 1000); // retry if service not ready
+    }
+
     // Keep save/clear helpers (monthlyData still persisted) - no inputs to update in the table anymore
     window.loadMonthlyData = function () {
         const year = parseInt(document.getElementById('yearSelect').value);
@@ -861,15 +911,35 @@
         setTimeout(initTableScrollSync, 50);
     };
 
-    window.saveMonthlyData = function () {
-        localStorage.setItem('phi_monthly_activities', JSON.stringify(monthlyData));
-        showSuccess('Monthly data saved successfully!');
+    window.saveMonthlyData = async function () {
+        if (window.DirectFirebaseService) {
+            try {
+                await window.DirectFirebaseService.save('phi_monthly_activities', monthlyData);
+                showSuccess('Monthly data saved to Cloud successfully!');
+            } catch (err) {
+                console.error('Error saving monthly data:', err);
+                showError('Failed to save to Cloud');
+            }
+        } else {
+            // Fallback
+            localStorage.setItem('phi_monthly_activities', JSON.stringify(monthlyData));
+            showSuccess('Monthly data saved locally (Offline mode)!');
+        }
     };
 
     window.clearMonthlyData = async function () {
         if (!await showConfirm('Are you sure you want to clear all monthly data?')) return;
+
         monthlyData = {};
-        localStorage.removeItem('phi_monthly_activities');
+        if (window.DirectFirebaseService) {
+            try {
+                await window.DirectFirebaseService.save('phi_monthly_activities', {});
+                showSuccess('All data cleared from Cloud.');
+            } catch (e) { showError('Failed to clear cloud data'); }
+        } else {
+            localStorage.removeItem('phi_monthly_activities');
+        }
+
         document.getElementById('activitiesTableContainer').innerHTML = renderActivitiesTable(new Date().getFullYear(), new Date().getMonth() + 1);
     };
 
@@ -903,6 +973,18 @@
         top.onscroll = function () { container.scrollLeft = top.scrollLeft; };
         container.onscroll = function () { top.scrollLeft = container.scrollLeft; };
     }
+
+    // Listen for PNB updates
+    window.addEventListener('pocketNotesUpdated', () => {
+        const container = document.getElementById('activitiesTableContainer');
+        if (container) {
+            console.log('[DailySummary] PNB updated, refreshing table...');
+            const year = parseInt(document.getElementById('yearSelect')?.value || new Date().getFullYear());
+            const month = parseInt(document.getElementById('monthSelect')?.value || (new Date().getMonth() + 1));
+            container.innerHTML = renderActivitiesTable(year, month);
+            initTableScrollSync();
+        }
+    });
 
     // expose some helpers for debugging/testing
     window._dailySummaryDebug = {

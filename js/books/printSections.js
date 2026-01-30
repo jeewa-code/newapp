@@ -11,7 +11,7 @@
 //   // optional: register extra sections or override defaults
 //   PrintSections.print({ year:2025, month:11, orientation:'landscape', title:'PHI Monthly Report' });
 
-(function(){
+(function () {
   "use strict";
   if (window.PrintSections) return;
 
@@ -27,42 +27,50 @@
   const sections = {}; // { id: { title, render } }
 
   /* ---------- Sanitizers & helpers ---------- */
-  function escHtml(s){
+  function escHtml(s) {
     if (s === null || s === undefined) return '';
     return String(s)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#39;');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
-  function safeHtml(s){
+  function safeHtml(s) {
     // allow basic html but escape script tags
     if (s === null || s === undefined) return '';
     return String(s).replace(/<\s*script/gi, '&lt;script');
   }
 
-  function readMonthlyData(){
+  function readMonthlyData() {
+    // Prefer global synced data from dailySummaryTab.js
+    if (window._dailySummaryDebug && window._dailySummaryDebug.monthlyData) {
+      return window._dailySummaryDebug.monthlyData;
+    }
     try {
       return JSON.parse(localStorage.getItem('phi_monthly_activities') || '{}');
-    } catch(e){ return {}; }
+    } catch (e) { return {}; }
   }
-  function readPocketNotes(){
+  function readPocketNotes() {
+    // Prefer global synced PNB data
+    if (typeof window.getPocketNotes === 'function') {
+      return window.getPocketNotes();
+    }
     try { return JSON.parse(localStorage.getItem('pocketNotes') || '[]'); }
-    catch(e){ return []; }
+    catch (e) { return []; }
   }
 
   /* ---------- Registration API ---------- */
-  function register(id, opts){
+  function register(id, opts) {
     if (!id || typeof id !== 'string') throw new Error('section id required');
     if (!opts || typeof opts.render !== 'function') throw new Error('opts.render (function) required');
     sections[id] = { title: opts.title || id, render: opts.render };
   }
-  function unregister(id){ delete sections[id]; }
-  function getOrderedSectionIds(){ return Object.keys(sections); }
+  function unregister(id) { delete sections[id]; }
+  function getOrderedSectionIds() { return Object.keys(sections); }
 
   /* ---------- Print CSS & Header ---------- */
-  function buildStyles(cfg){
+  function buildStyles(cfg) {
     const orientation = cfg.orientation === 'portrait' ? 'portrait' : 'landscape';
     return `
       <style>
@@ -89,12 +97,12 @@
     `;
   }
 
-  function buildHeaderHtml(cfg, ctx){
+  function buildHeaderHtml(cfg, ctx) {
     const now = new Date();
     const printedOn = now.toLocaleString();
     const meta = [
       cfg.title ? escHtml(cfg.title) : '',
-      `Month: ${ctx.month.toString().padStart(2,'0')}/${ctx.year}`,
+      `Month: ${ctx.month.toString().padStart(2, '0')}/${ctx.year}`,
       `Printed: ${escHtml(printedOn)}`
     ].filter(Boolean).join(' · ');
     return `
@@ -131,16 +139,16 @@
     title: 'Attendance / Summary Totals',
     render: (ctx) => {
       const monthly = readMonthlyData();
-      const monthKey = `${ctx.year}-${String(ctx.month).padStart(2,'0')}`;
+      const monthKey = `${ctx.year}-${String(ctx.month).padStart(2, '0')}`;
       const monthData = monthly[monthKey] || {};
       // Heuristic: look for keys that match activity totals (ending with Total or numeric)
       // We'll build a small table with available totals (fallback if empty)
       const rows = [];
       for (const key in monthData) {
-        if (!Object.prototype.hasOwnProperty.call(monthData,key)) continue;
+        if (!Object.prototype.hasOwnProperty.call(monthData, key)) continue;
         // show only scalar numeric/string values that look like totals (avoid per-day keys)
         if (/_Total$/.test(key) || /_summary$/.test(key) || key.includes('total') || key.includes('Total')) {
-          rows.push({ k:key, v: monthData[key] });
+          rows.push({ k: key, v: monthData[key] });
         }
       }
       // if none found, show simple count of stored keys
@@ -171,7 +179,7 @@
         // Just show last 3 pocket notes summaries (date + short text)
         const items = pnb.slice(-3).reverse().map(n => {
           const d = escHtml(n.date || '');
-          const txt = escHtml((n.notes || n.summary || n.morningTasks || '').toString().substring(0,400));
+          const txt = escHtml((n.notes || n.summary || n.morningTasks || '').toString().substring(0, 400));
           return `<div style="margin-bottom:6px;"><strong>${d}</strong><div style="white-space:pre-wrap;">${txt}</div></div>`;
         }).join('');
         return items;
@@ -207,15 +215,15 @@
           return `<div style="padding:8px;color:#666;">No photos found in localStorage key 'print_photos'. Add data-URL strings or image URLs in that key.</div>`;
         }
         // render images grid (limit to avoid huge prints)
-        const limited = arr.slice(0,20);
+        const limited = arr.slice(0, 20);
         let html = `<div class="photos-grid" style="padding:8px;">`;
         limited.forEach((src, i) => {
           const safeSrc = escHtml(src);
-          html += `<div><img src="${safeSrc}" alt="photo-${i+1}" /></div>`;
+          html += `<div><img src="${safeSrc}" alt="photo-${i + 1}" /></div>`;
         });
         html += `</div>`;
         return html;
-      } catch(e){
+      } catch (e) {
         return `<div style="padding:8px;color:#c00;">Error reading photos: ${escHtml(String(e.message || e))}</div>`;
       }
     }
@@ -223,7 +231,7 @@
 
   /* ---------- Main generation / open / print ---------- */
 
-  function buildSectionsHtml(cfg, ctx){
+  function buildSectionsHtml(cfg, ctx) {
     const ids = getOrderedSectionIds();
     let content = '';
     for (const id of ids) {
@@ -241,7 +249,7 @@
             </div>
           </section>
         `;
-      } catch(err){
+      } catch (err) {
         content += `
           <section class="section">
             <div class="section-title">${escHtml(sec.title)}</div>
@@ -256,9 +264,9 @@
     return content;
   }
 
-  async function generatePrintHtml(opts){
+  async function generatePrintHtml(opts) {
     const cfg = Object.assign({}, DEFAULTS, opts || {});
-    const ctx = { year: cfg.year || (new Date()).getFullYear(), month: cfg.month || (new Date()).getMonth()+1 };
+    const ctx = { year: cfg.year || (new Date()).getFullYear(), month: cfg.month || (new Date()).getMonth() + 1 };
     let html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">';
     html += buildStyles(cfg);
     html += '</head><body>';
@@ -279,8 +287,8 @@
     return html;
   }
 
-    // REPLACE existing openPrintWindow + print with this improved version
-  async function openPrintWindow(opts){
+  // REPLACE existing openPrintWindow + print with this improved version
+  async function openPrintWindow(opts) {
     const html = await generatePrintHtml(opts);
     // try normal popup first
     try {
@@ -290,7 +298,7 @@
         w.document.write(html);
         w.document.close();
         if (opts && opts.autoPrint) {
-          setTimeout(()=>{ try{ w.print(); } catch(e){} }, 500);
+          setTimeout(() => { try { w.print(); } catch (e) { } }, 500);
         }
         return w;
       }
@@ -333,7 +341,7 @@
                 iframe.contentWindow.print();
                 // cleanup after a short delay to let print dialog open
                 setTimeout(() => {
-                  try { iframe.remove(); } catch(e){}
+                  try { iframe.remove(); } catch (e) { }
                 }, 1000);
                 resolve(iframe.contentWindow);
               } catch (printErr) {
@@ -343,12 +351,12 @@
                   const url = URL.createObjectURL(blob);
                   window.location.href = url; // navigates current tab — user can then print manually
                   resolve(null);
-                } catch(navigateErr) {
+                } catch (navigateErr) {
                   reject(printErr);
                 }
               }
             }, 250);
-          } catch(e) {
+          } catch (e) {
             reject(e);
           }
         };
@@ -362,19 +370,19 @@
             } else {
               setTimeout(() => waitUntilReady(attempts + 1), 100);
             }
-          } catch(e) {
+          } catch (e) {
             // If accessing readyState fails (rare), try printing anyway after delay
             setTimeout(tryPrint, 300);
           }
         };
         waitUntilReady();
-      } catch(e) {
+      } catch (e) {
         reject(e);
       }
     });
   }
 
-  async function print(opts){
+  async function print(opts) {
     const cfg = Object.assign({}, DEFAULTS, opts || {});
     cfg.autoPrint = true;
     return openPrintWindow(cfg);
@@ -394,7 +402,7 @@
 
   // Expose convenience: allow overriding order by array
   // Example: PrintSections.setOrder(['monthly_activities','attendance_summary','supervisor_remarks',...])
-  window.PrintSections.setOrder = function(arr){
+  window.PrintSections.setOrder = function (arr) {
     if (!Array.isArray(arr)) return;
     const newSections = {};
     arr.forEach(id => {
