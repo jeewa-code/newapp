@@ -444,7 +444,20 @@
                     title: "2. Public complains categorization<br>මහජන පැමිණිලි වර්ගීකරණය | பொது புகார்கள் வகைப்படுத்தல்",
                     headers: [{ text: "No", width: "30px" }, { text: "Description" }, { text: "Count", width: "120px" }],
                     rows: [
-                        { id: "1", text: "Pig farms<br>ඌරු ගොවිපලවල් ගණන | பன்றி பண்ணைகள்" }
+                        { id: "1", text: "Pig farms<br>ඌරු ගොවිපලවල් ගණන | பன்றி பண்ணைகள்" },
+                        { id: "2", text: "Poultry farms<br>කුකුළු ගොවිපලවල් ගණන | கோழி பண்ணைகள்" },
+                        { id: "3", text: "Cattle farms<br>ගව ගොවිපලවල් ගණන | கால்நடை பண்ணைகள்" },
+                        { id: "4", text: "Goat farms<br>එළු ගොවිපලවල් ගණන | ஆடு பண்ணைகள்" },
+                        { id: "5", text: "Other animal farms<br>වෙනත් සත්ව ගොවිපලවල් ගණන | பிற விலங்கு பண்ணைகள்" },
+                        { id: "6", text: "Prawn farms<br>ඉස්සන් ගොවිපලවල් ගණන | இறால் பண்ணைகள்" },
+                        { id: "7", text: "Toilets<br>වැසිකිළි ගණන | கழிப்பறைகள்" },
+                        { id: "8", text: "Wells<br>ළිං ගණන | கிணறு" },
+                        { id: "9", text: "Waste water<br>අප ජලය සහිත ස්ථාන ගණන | கழிவு நீர்" },
+                        { id: "10", text: "Vector breeding sites<br>රෝග වාහකයන් බෝවන ස්ථාන ගණන | நோய் காவி பெருகும் இடங்கள்" },
+                        { id: "11", text: "Health Institutions<br>සෞඛ්‍ය ආයතන ගණන | சுகாதார நிறுவனங்கள்" },
+                        { id: "12", text: "Veterinary institutions<br>පශු වෛද්‍ය ආයතන ගණන | கால்நடை நிறுவனங்கள்" },
+                        { id: "13", text: "Air pollution<br>වායු දූෂණය | காற்று மாசுபாடு" },
+                        { id: "14", text: "Other complains on public nuisance<br>මහජන කරදර පිළිබඳ වෙනත් පැමිණිලි ගණන | பொது தொல்லை தொடர்பான பிற புகார்கள்" }
                     ]
                 }
             ]

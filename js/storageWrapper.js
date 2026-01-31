@@ -30,6 +30,7 @@ const COLLECTION_MAP = {
     'occupationalSafety_v1': 'occupationalSafety',
     'schoolImmunization1_v1': 'schoolImmunization1',
     'schoolImmunization2_v1': 'schoolImmunization2',
+    'schoolImmunization_students': 'schoolImmunizationStudents',
     'trade_industries_v1': 'tradeIndustries',
     'trade_food_types_v1': 'tradeFoodTypes',
     'trade_other_types_v1': 'tradeOtherTypes',

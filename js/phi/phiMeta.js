@@ -45,6 +45,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
     subscriptions.schools = DirectFirebaseService.subscribe(SCHOOLS_KEY, (data) => {
       schools = data || [];
       console.log('[phiMeta] Schools updated:', schools.length);
+      window.dispatchEvent(new CustomEvent('phiMetaSchoolsUpdated', { detail: schools }));
       if (currentContainer) refreshUI();
     });
 
@@ -77,6 +78,9 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/fi
     gns = [];
     phms = [];
   }
+
+  // Global Accessors
+  window.getPhiMetaSchools = () => schools || [];
 
   // Auth state listener
   onAuthStateChanged(auth, (user) => {

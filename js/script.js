@@ -97,6 +97,17 @@
           </div>
         </div>
       `;
+    } else if (section === "Dashboard") {
+      content.innerHTML = '<div style="padding:20px;">Loading Dashboard module...</div>';
+      if (typeof window.renderDashboard === 'function') {
+        window.renderDashboard("contentArea");
+      } else {
+        setTimeout(() => {
+          if (typeof window.renderDashboard === 'function') window.renderDashboard("contentArea");
+          else content.innerHTML = '<p>Error: Dashboard module not loaded.</p>';
+        }, 500);
+      }
+
     } else if (section === "phiArea") {
       openPhiAreaMap();
 
