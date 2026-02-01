@@ -138,16 +138,58 @@ function renderStructure(title, content) {
             .si-row-left { background-color: #ffebee !important; color: #b71c1c; }
             .si-status-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; }
             .status-left { background: #ffcdd2; color: #c62828; border: 1px solid #ef9a9a; }
-            .si-modal { display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; }
-            .si-modal-content { background:white; padding:20px; border-radius:8px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.2); }
-            .si-filter-group { display: flex; flex-direction: column; margin-right:10px; }
+            .si-modal { display:none; position:fixed; z-index:10000; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); }
+            .si-modal-content { position:fixed; left:50%; transform:translateX(-50%); background:white; padding:20px; border-radius:8px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.2); color: black; }
+            .si-filter-group { display: flex; flex-direction: column; margin-right:10px; margin-bottom: 10px; }
             .si-filter-group label { font-size: 11px; font-weight: bold; margin-bottom: 2px; }
             .si-summary-table th, .si-summary-table td { padding: 8px; border: 1px solid #ddd; text-align: center; }
             .si-summary-table th { background: #006064; color: white; }
             .si-remarks-editable { min-width: 200px; padding: 6px 8px; font-size: 11px; white-space: pre-wrap; line-height: 1.6; cursor: text; border-radius: 4px; }
             .si-remarks-editable:hover { background: rgba(0,0,0,0.02); }
             .si-remarks-editable:focus { background: white; outline: 1px solid #2196f3; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        `;
+
+            /* Mobile Responsive Styles */
+            @media (max-width: 600px) {
+                #si_studentForm { grid-template-columns: 1fr !important; gap: 10px !important; }
+                .tabs { display: flex; flex-direction: column; gap: 5px; }
+                .tab-btn { width: 100%; text-align: center; margin-bottom: 2px; }
+                .si-filter-group { width: 100%; margin-right: 0; }
+                .si-filter-group select { width: 100% !important; }
+                
+                /* Stat Cards with ID */
+                #si_stats_container {
+                    justify-content: center !important;
+                    margin-top: 10px;
+                }
+                .si-stat-group {
+                     width: 100%;
+                     display: flex;
+                     gap: 10px;
+                     margin-bottom: 5px;
+                     justify-content: center;
+                }
+                .si-stat-group > div {
+                    flex: 1;
+                    min-width: 0; /* allows shrinking */
+                }
+                
+                /* Transfer Modal */
+                .si-modal-content { width: 95% !important; padding: 15px; }
+                /* Bulk Update */
+                #si_tab_view div[style*="Bulk Update"] ~ div {
+                     flex-direction: column; align-items: stretch;
+                }
+                #si_tab_view div[style*="Bulk Update"] ~ div > div {
+                    width: 100%;
+                }
+                #si_tab_view input, #si_tab_view select, #si_bulkBatch { width: 100% !important; box-sizing: border-box; }
+                #si_applyBulkBtn { width: 100%; margin-top: 10px; }
+                
+                /* Previous Vac History Grid */
+                div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+                    grid-template-columns: 1fr !important; 
+                }
+            }`;
     document.head.appendChild(style);
   }
 
@@ -161,12 +203,17 @@ function renderStructure(title, content) {
       <div id="si_transferModal" class="si-modal">
          <div class="si-modal-content">
              <h3>Transfer Student</h3>
-             <p style="font-size:13px; color:#666; margin-bottom:15px;">Move student to another school.</p>
+             <div id="si_transfer_current_info" style="background:#f5f5f5; padding:10px; border-radius:5px; margin-bottom:15px; font-size:12px; line-height:1.6; border:1px solid #ddd;"></div>
+             
              <label style="display:block; margin-bottom:5px;">To School:</label>
              <select id="si_transfer_school" style="width:100%; padding:8px; margin-bottom:12px;"></select>
-             <label style="display:block; margin-bottom:5px;">Transfer Year:</label>
-             <select id="si_transfer_year" style="width:100%; padding:8px; margin-bottom:15px;">
-                 ${buildYearOptions(currentSystemYear)}
+             
+             <label style="display:block; margin-bottom:5px;">Transfer Year: <strong id="si_transfer_year_display"></strong></label>
+             <input type="hidden" id="si_transfer_year">
+
+             <label style="display:block; margin-bottom:5px; margin-top:10px;">To Class (Select from DB):</label>
+             <select id="si_transfer_class" style="width:100%; padding:8px; margin-bottom:15px;">
+                 <option value="">-- Select Class --</option>
              </select>
              <div style="text-align:right;">
                  <button id="si_btn_cancelTransfer" style="padding:8px 15px; margin-right:8px;">Cancel</button>
@@ -212,8 +259,8 @@ function renderStructure(title, content) {
           <div>
             <label>Sex | ස්ත්‍රී/පුරුෂ පක්ෂය:</label>
             <select name="sex" id="si_input_sex" required style="width:100%; padding:8px;">
+              <option value="Female" selected>Female</option>
               <option value="Male">Male</option>
-              <option value="Female">Female</option>
             </select>
           </div>
           <div>
@@ -234,7 +281,7 @@ function renderStructure(title, content) {
               <strong style="display:block; margin-bottom:10px; color:#555;">Previous Vaccination History (For Transfers)</strong>
               <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
                   <!-- HPV 1 -->
-                  <div style="background:#f9f9f9; padding:8px; border-radius:4px;">
+                  <div id="si_wrap_hpv1" style="background:#f9f9f9; padding:8px; border-radius:4px;">
                       <label style="font-size:12px; font-weight:bold;">HPV-1</label>
                       <input type="date" name="hpv1_date" id="si_input_hpv1_date" style="width:100%; padding:5px; margin-bottom:5px; font-size:12px;">
                       <div style="display:flex; align-items:center;">
@@ -243,7 +290,7 @@ function renderStructure(title, content) {
                       </div>
                   </div>
                   <!-- HPV 2 -->
-                  <div style="background:#f9f9f9; padding:8px; border-radius:4px;">
+                  <div id="si_wrap_hpv2" style="background:#f9f9f9; padding:8px; border-radius:4px;">
                       <label style="font-size:12px; font-weight:bold;">HPV-2</label>
                       <input type="date" name="hpv2_date" id="si_input_hpv2_date" style="width:100%; padding:5px; margin-bottom:5px; font-size:12px;">
                       <div style="display:flex; align-items:center;">
@@ -289,30 +336,61 @@ function renderStructure(title, content) {
                       ${buildGradeOptions()}
                    </select>
                </div>
+               <div class="si-filter-group" id="si_filterGroup_class" style="display:none;">
+                   <label>Class:</label>
+                   <select id="si_filterClass" style="padding:5px; min-width:80px;">
+                      <option value="">All</option>
+                   </select>
+               </div>
+               <div class="si-filter-group">
+                   <label>Sex:</label>
+                   <select id="si_filterSex" style="padding:5px; min-width:80px;">
+                      <option value="">All</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                   </select>
+               </div>
                <div style="flex:1;"></div>
-               <div style="display:flex; gap:10px;">
-                   <div style="text-align:center; padding:5px 10px; background:white; border:1px solid #ccc; border-radius:5px;">
-                      <div style="font-size:14px; font-weight:bold; color:#e91e63;" id="si_val_hpv1">0</div>
-                      <div style="font-size:9px; text-transform:uppercase;">HPV-1</div>
+               <div id="si_stats_container" style="display:flex; gap:10px; flex-wrap:wrap;">
+                   <!-- HPV 1 Group -->
+                   <div class="si-stat-group">
+                       <div style="text-align:center; padding:5px 10px; background:white; border:1px solid #ccc; border-radius:5px;">
+                          <div style="font-size:14px; font-weight:bold; color:#e91e63;" id="si_val_hpv1">0</div>
+                          <div style="font-size:9px; text-transform:uppercase;">HPV-1</div>
+                       </div>
+                       <div style="text-align:center; padding:5px 10px; background:white; border:1px solid #ccc; border-radius:5px;">
+                          <div style="font-size:14px; font-weight:bold; color:#d32f2f;" id="si_val_hpv1_pending">0</div>
+                          <div style="font-size:9px; text-transform:uppercase;">Pending</div>
+                       </div>
                    </div>
-                   <div style="text-align:center; padding:5px 10px; background:white; border:1px solid #ccc; border-radius:5px;">
-                      <div style="font-size:14px; font-weight:bold; color:#e91e63;" id="si_val_hpv2">0</div>
-                      <div style="font-size:9px; text-transform:uppercase;">HPV-2</div>
+                   <!-- HPV 2 Group -->
+                   <div class="si-stat-group">
+                       <div style="text-align:center; padding:5px 10px; background:white; border:1px solid #ccc; border-radius:5px;">
+                          <div style="font-size:14px; font-weight:bold; color:#e91e63;" id="si_val_hpv2">0</div>
+                          <div style="font-size:9px; text-transform:uppercase;">HPV-2</div>
+                       </div>
+                       <div style="text-align:center; padding:5px 10px; background:white; border:1px solid #ccc; border-radius:5px;">
+                          <div style="font-size:14px; font-weight:bold; color:#d32f2f;" id="si_val_hpv2_pending">0</div>
+                          <div style="font-size:9px; text-transform:uppercase;">Pending</div>
+                       </div>
                    </div>
-                   <div style="text-align:center; padding:5px 10px; background:white; border:1px solid #ccc; border-radius:5px;">
-                      <div style="font-size:14px; font-weight:bold; color:#2196f3;" id="si_val_atd">0</div>
-                      <div style="font-size:9px; text-transform:uppercase;">aTd</div>
-                   </div>
-                   <div style="text-align:center; padding:5px 10px; background:white; border:1px solid #ccc; border-radius:5px;">
-                      <div style="font-size:14px; font-weight:bold; color:teal;" id="si_val_onRoll">0</div>
-                      <div style="font-size:9px; text-transform:uppercase;">Total</div>
+                   <!-- aTd Group -->
+                   <div class="si-stat-group">
+                       <div style="text-align:center; padding:5px 10px; background:white; border:1px solid #ccc; border-radius:5px;">
+                          <div style="font-size:14px; font-weight:bold; color:#2196f3;" id="si_val_atd">0</div>
+                          <div style="font-size:9px; text-transform:uppercase;">aTd</div>
+                       </div>
+                       <div style="text-align:center; padding:5px 10px; background:white; border:1px solid #ccc; border-radius:5px;">
+                          <div style="font-size:14px; font-weight:bold; color:#d32f2f;" id="si_val_atd_pending">0</div>
+                          <div style="font-size:9px; text-transform:uppercase;">Pending</div>
+                       </div>
                    </div>
                </div>
             </div>
         </div>
 
-        <div style="margin-bottom:10px; background:rgba(0,0,0,0.02); padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.05);">
-             <strong style="font-size:13px; color:#333; display:block; margin-bottom:8px;">Bulk Update & Batch Info:</strong>
+        <div style="margin-bottom:10px; background:rgba(0,0,0,0.02); padding:15px; border-radius:8px; border:2px solid #aaa; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+             <strong style="font-size:13px; color:#333; display:block; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Bulk Update & Batch Info</strong>
              <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:end;">
                 <div>
                    <label style="font-size:11px; display:block;">Vaccine Type</label>
@@ -455,14 +533,37 @@ function bindEvents() {
     document.getElementById("si_div_leftYear").style.display = statusSelect.value === 'Left' ? 'block' : 'none';
   };
 
+  // Sex Change Listener: Hide HPV for Male
+  const sexSelect = document.getElementById("si_input_sex");
+  if (sexSelect) {
+    sexSelect.addEventListener('change', () => {
+      const isMale = sexSelect.value === "Male";
+      const hpv1Div = document.getElementById("si_wrap_hpv1");
+      const hpv2Div = document.getElementById("si_wrap_hpv2");
+
+      if (hpv1Div) hpv1Div.style.display = isMale ? "none" : "block";
+      if (hpv2Div) hpv2Div.style.display = isMale ? "none" : "block";
+
+      if (isMale) {
+        // Clear values immediately
+        document.getElementById("si_input_hpv1_date").value = "";
+        document.getElementById("si_chk_hpv1_comp").checked = false;
+        document.getElementById("si_input_hpv2_date").value = "";
+        document.getElementById("si_chk_hpv2_comp").checked = false;
+      }
+    });
+  }
+
   document.getElementById("si_input_gradeNo").onchange = function () {
     const g = parseInt(this.value) || 0;
     if (g > 0) document.getElementById("si_input_age").value = g + 5;
   };
 
-  document.getElementById("si_filterSchool").onchange = renderRegisterTable;
-  document.getElementById("si_filterYear").onchange = renderRegisterTable;
-  document.getElementById("si_filterGrade").onchange = renderRegisterTable;
+  document.getElementById("si_filterSchool").onchange = () => { refreshClassSelect(); renderRegisterTable(); };
+  document.getElementById("si_filterYear").onchange = () => { refreshClassSelect(); renderRegisterTable(); };
+  document.getElementById("si_filterGrade").onchange = () => { refreshClassSelect(); renderRegisterTable(); };
+  document.getElementById("si_filterClass").onchange = renderRegisterTable;
+  document.getElementById("si_filterSex").onchange = renderRegisterTable;
 
   // Summary Filters
   document.getElementById("si_sum_school").onchange = renderSummary;
@@ -538,7 +639,7 @@ function bindEvents() {
       const dateInp = document.getElementById(`si_input_${t}_date`);
       const chk = document.getElementById(`si_chk_${t}_comp`);
 
-      if (chk.checked) return "Completed";
+      // 1. Prioritize Date Logic
       if (dateInp.value) {
         // CRITICAL FIX: If the date matches what is ALREADY in the database, 
         // do NOT convert it to "Completed". Allow it to remain a valid Date.
@@ -554,6 +655,10 @@ function bindEvents() {
         }
         return "Completed";
       }
+
+      // 2. Fallback to Checkbox
+      if (chk.checked) return "Completed";
+
       return "";
     };
 
@@ -613,13 +718,9 @@ function bindEvents() {
     return "";
   }
 
-  // Listeners for Checkbox vs Date mutual exclusion
+  // Listeners for Checkbox vs Date mutual exclusion -> REMOVED to allow both (Date priority)
   ['hpv1', 'hpv2', 'atd'].forEach(t => {
-    const dateInp = document.getElementById(`si_input_${t}_date`);
-    const chk = document.getElementById(`si_chk_${t}_comp`);
-
-    dateInp.addEventListener('change', () => { if (dateInp.value) chk.checked = false; });
-    chk.addEventListener('change', () => { if (chk.checked) dateInp.value = ''; });
+    // No listeners needed now
   });
 
   document.getElementById("si_clearFormBtn").onclick = () => {
@@ -732,6 +833,50 @@ function refreshSchoolSelects() {
   if (filter) filter.innerHTML = `<option value="">All Schools</option>` + buildSchoolOptions(false);
   if (trans) trans.innerHTML = buildSchoolOptions(true);
   if (sumSchool) sumSchool.innerHTML = `<option value="">All Schools</option>` + buildSchoolOptions(false);
+  refreshClassSelect();
+}
+
+function refreshClassSelect() {
+  const fSchool = document.getElementById("si_filterSchool").value;
+  const fYear = parseInt(document.getElementById("si_filterYear").value) || new Date().getFullYear();
+  const fGrade = parseInt(document.getElementById("si_filterGrade").value);
+  const classSelect = document.getElementById("si_filterClass");
+
+  if (!classSelect) return;
+
+  const currentVal = classSelect.value;
+  let options = '<option value="">All</option>';
+
+  if (fSchool && fGrade) {
+    // Find all unique classes for this School + Grade (projected)
+    const classes = new Set();
+    studentData.forEach(s => {
+      if (s.schoolName !== fSchool) return;
+      const projGrade = s.gradeNo + (fYear - s.year);
+      if (projGrade === fGrade && s.gradeDiv) {
+        classes.add(s.gradeDiv);
+      }
+    });
+
+    // Only show if we found classes
+    if (classes.size > 0) {
+      Array.from(classes).sort().forEach(c => {
+        options += `<option value="${c}">${c}</option>`;
+      });
+      classSelect.innerHTML = options;
+      classSelect.value = currentVal;
+
+      // Show container
+      const group = document.getElementById("si_filterGroup_class");
+      if (group) group.style.display = "flex";
+      return;
+    }
+  }
+
+  // Fallback: Check if we should hide entirely
+  const group = document.getElementById("si_filterGroup_class");
+  if (group) group.style.display = "none";
+  classSelect.innerHTML = '<option value="">All</option>';
 }
 
 // --- Summary Logic ---
@@ -821,6 +966,11 @@ function renderRegisterTable() {
   let tHpv1 = 0;
   let tHpv2 = 0;
   let tAtd = 0;
+  let pHpv1 = 0; // Pending
+  let pHpv2 = 0;
+  let pAtd = 0;
+
+  const fClass = document.getElementById("si_filterClass").value;
 
   const filtered = studentData.filter(s => {
     if (fSchool && s.schoolName !== fSchool) return false;
@@ -829,6 +979,11 @@ function renderRegisterTable() {
     const projGrade = s.gradeNo + (fYear - s.year);
     s.projectedAge = projGrade + 5;
     if (fGrade && projGrade !== parseInt(fGrade)) return false;
+    if (fClass && s.gradeDiv !== fClass) return false;
+
+    // Sex Filter
+    const fSex = document.getElementById("si_filterSex").value;
+    if (fSex && s.sex !== fSex) return false;
 
     s.isLeft = (s.status === 'Left' && s.leftYear && fYear >= s.leftYear);
     const isActive = !s.isLeft;
@@ -838,26 +993,27 @@ function renderRegisterTable() {
     // Calculate Targets for View Context
     // HPV-1 Target (Gr 6, Catchup 7)
     if (s.sex === 'Female' && (projGrade === 6 || projGrade === 7)) {
+      // Logic: Include if (Active AND Not Imported) OR (Left AND Done Here)
       let include = false;
-      if (isActive) {
-        // Include unless Completed via Transfer
-        if (s.hpv1 !== 'Completed') include = true;
-      } else {
-        // Left: Include (if present during this year)
-        // Logic: isLeft true means they left THIS year or later. So they were present.
-        // If they left BEFORE this year, they are excluded by filter above?
-        // "fYear >= s.leftYear" checks if Left happened in past/present.
-        // Wait, "isLeft" definition: (s.status === 'Left' && s.leftYear && fYear >= s.leftYear)
-        // This means "Is currently Left Status in reference to fYear".
-        // If leftYear (2025) > fYear (2024), they are ACTIVE in 2024.
-        // If leftYear (2023) <= fYear (2024), they are LEFT in 2024.
-        // So isActive handles the "Were they here?" logic mainly.
-        // But specific request: If Left, HPV1 Target STAYS (Include). HPV2 REMOVE (Exclude).
-        include = true; // For Left students
+
+      if (s.hpv1 !== 'Completed') {
+        if (isActive || s.hpv1) {
+          include = true;
+        }
       }
 
+
       // Catchup Rule: If Gr 7, Only include if not done? 
-      if (projGrade === 7 && s.hpv1) include = false; // Simple catchup rule (if done, not target)
+      // If Gr 7 and we have a date, it might be historical?
+      // User request "Catchup" details are vague, but standard stats usually count catchup doses done THIS year.
+      // For Register View "Target", we usually exclude already done catchups to show "What is left".
+      // But user says "S1... on roll 01". That implies inclusion of successes.
+      // So valid date -> Include.
+
+      // Override for catchup: If s.hpv1 is present (Date) and grade 7, keeping it True is fine (Successful catchup).
+      // If s.hpv1 is 'Completed' (Transfer), we excluded it above.
+      // So no extra rule needed here unless we want to hide "old" catchups.
+      // Let's stick to the Core Logic which handles the user's S1/S2 case.
 
       if (include) tHpv1++;
     }
@@ -865,35 +1021,55 @@ function renderRegisterTable() {
     // HPV-2 Target (Gr 6, Catchup 7)
     if (s.sex === 'Female' && (projGrade === 6 || projGrade === 7)) {
       let includeHpv2 = false;
-      if (isActive) {
-        if (s.hpv2 !== 'Completed') includeHpv2 = true;
+
+      if (s.hpv2 !== 'Completed') {
+        if (isActive || s.hpv2) {
+          includeHpv2 = true;
+        }
       }
 
       // Catchup Rule for Gr 7
-      if (projGrade === 7) {
-        // Include if NOT done (s.hpv2 is falsy). 
-        // If they have a date or 'Completed', exclude.
-        if (s.hpv2) includeHpv2 = false;
-      }
+      // If it works for HPV1, it works for HPV2.
+      // The previous logic "if projGrade === 7 && s.hpv2 include = false" was to HIDE completed catchups?
+      // If we want to show successes, we should include them.
+      // Given "S1... on roll 01", we WANT to include successes.
 
       if (includeHpv2) tHpv2++;
     }
 
     // aTd Target (Gr 7)
     if (projGrade === 7) {
-      if (isActive) {
-        if (s.atd !== 'Completed') tAtd++;
+      // Same logic: Active or (Left & Done)
+      if (s.atd !== 'Completed') {
+        if (isActive || s.atd) {
+          tAtd++;
+        }
       }
-      // If Left, Exclude (do nothing)
+    }
+
+    // Pending Counts
+    // HPV-1 Pending: Female, Gr 6 or 7, Not done, Active
+    if (s.sex === 'Female' && (projGrade === 6 || projGrade === 7)) {
+      if (!s.hpv1 && isActive) pHpv1++;
+    }
+    // HPV-2 Pending: Female, Gr 6 or 7, Not done, Active
+    if (s.sex === 'Female' && (projGrade === 6 || projGrade === 7)) {
+      if (!s.hpv2 && isActive) pHpv2++;
+    }
+    // aTd Pending: Gr 7, Not done, Active
+    if (projGrade === 7) {
+      if (!s.atd && isActive) pAtd++;
     }
 
     return true;
   });
 
-  document.getElementById("si_val_onRoll").textContent = activeCount;
   document.getElementById("si_val_hpv1").textContent = tHpv1;
+  document.getElementById("si_val_hpv1_pending").textContent = pHpv1;
   document.getElementById("si_val_hpv2").textContent = tHpv2;
+  document.getElementById("si_val_hpv2_pending").textContent = pHpv2;
   document.getElementById("si_val_atd").textContent = tAtd;
+  document.getElementById("si_val_atd_pending").textContent = pAtd;
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:10px; color:#999;">No records found for this year filter.</td></tr>`;
@@ -926,7 +1102,7 @@ function renderRegisterTable() {
             </td>
             <td style="border:1px solid #ccc; padding:5px; text-align:center;">
                 <button class="edit-btn" data-id="${s.id}" style="color:blue;border:none;background:none;cursor:pointer;"><i class="fas fa-edit"></i></button>
-                <button class="trans-btn" data-id="${s.id}" style="color:orange;border:none;background:none;cursor:pointer;"><i class="fas fa-exchange-alt"></i></button>
+                ${!s.isLeft ? `<button class="trans-btn" data-id="${s.id}" style="color:orange;border:none;background:none;cursor:pointer;"><i class="fas fa-exchange-alt"></i></button>` : ''}
                 <button class="del-btn" data-id="${s.id}" style="color:red;border:none;background:none;cursor:pointer;"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
@@ -940,7 +1116,7 @@ function renderRegisterTable() {
     el.onblur = (e) => updateStudentField(el.dataset.id, el.dataset.field, el.innerText);
   });
   tbody.querySelectorAll(".edit-btn").forEach(b => b.onclick = () => loadForEdit(b.dataset.id));
-  tbody.querySelectorAll(".trans-btn").forEach(b => b.onclick = () => promptTransfer(b.dataset.id));
+  tbody.querySelectorAll(".trans-btn").forEach(b => b.onclick = (e) => promptTransfer(b.dataset.id, e));
   tbody.querySelectorAll(".del-btn").forEach(b => b.onclick = () => {
     if (confirm("Are you sure?")) deleteStudentFromFirebase(b.dataset.id);
   });
@@ -958,6 +1134,10 @@ function loadForEdit(id) {
   form.gradeDiv.value = s.gradeDiv;
   form.name.value = s.name;
   form.sex.value = s.sex;
+  // Trigger sex change to hide/show HPV
+  // Trigger sex change to hide/show HPV
+  form.sex.dispatchEvent(new Event('change'));
+
   form.status.value = s.status || "Active";
   form.status.onchange();
   form.leftYear.value = s.leftYear || "";
@@ -970,8 +1150,28 @@ function loadForEdit(id) {
     const chk = document.getElementById(`si_chk_${t}_comp`);
 
     if (val === 'Completed') {
-      chk.checked = true;
-      dateInp.value = '';
+      // Logic: If completed, try to extract date from remarks
+      // Format 1 (New): "HPV-1: YYYY-MM-DD (Transfer)"
+      // Format 2 (Old): "HPV-1 Date: YYYY-MM-DD (Transfer)"
+      const label = t.toUpperCase().replace('ATD', 'aTd').replace('HPV', 'HPV-'); // HPV1->HPV-1
+
+      let regex = new RegExp(`${label}: (\\d{4}-\\d{2}-\\d{2}) \\(Transfer\\)`);
+      let match = (s.remarks || "").match(regex);
+
+      if (!match) {
+        regex = new RegExp(`${label} Date: (\\d{4}-\\d{2}-\\d{2}) \\(Transfer\\)`);
+        match = (s.remarks || "").match(regex);
+      }
+
+      if (match && match[1]) {
+        // Found a date! Show it.
+        dateInp.value = match[1];
+        chk.checked = false; // Uncheck because we are showing the date (Date takes priority in logic)
+      } else {
+        // Pure completed
+        chk.checked = true;
+        dateInp.value = '';
+      }
     } else if (val) {
       chk.checked = false;
       dateInp.value = val;
@@ -1008,16 +1208,104 @@ function renderVaccineCell(s, field) {
 }
 
 let transferId = null;
-function promptTransfer(id) {
+
+function promptTransfer(id, event) {
   transferId = id;
-  document.getElementById("si_transferModal").style.display = "flex";
-  // Set default year to current year
-  document.getElementById("si_transfer_year").value = new Date().getFullYear();
+  const s = studentData.find(x => x.id === transferId);
+  if (!s) return;
+
+  const currentYear = new Date().getFullYear();
+  const currentGrade = s.gradeNo + (currentYear - s.year);
+
+  // Display info
+  const info = document.getElementById("si_transfer_current_info");
+  if (info) {
+    // Only show class if it exists
+    const classInfo = s.gradeDiv ? `<br>Class: ${s.gradeDiv}` : '';
+    info.innerHTML = `
+        <strong>Current Info (${currentYear}):</strong><br>
+        School: ${escapeHtml(s.schoolName)}<br>
+        Grade: ${currentGrade}${classInfo}
+      `;
+  }
+
+  // Set default year logic
+  document.getElementById("si_transfer_year").value = currentYear;
+  document.getElementById("si_transfer_year_display").textContent = currentYear;
+
+  const schoolSelect = document.getElementById("si_transfer_school");
+  schoolSelect.value = "";
+  schoolSelect.onchange = () => populateTransferClasses(schoolSelect.value, currentGrade);
+
+  // Reset class
+  document.getElementById("si_transfer_class").innerHTML = '<option value="">-- Select Class --</option>';
+
+  const modal = document.getElementById("si_transferModal");
+  if (modal.parentElement !== document.body) {
+    document.body.appendChild(modal);
+  }
+  modal.style.display = "block"; // Use block to allow custom positioning
+
+  // Position relative to row
+  const content = modal.querySelector('.si-modal-content');
+  if (event) {
+    const btn = event.target.closest('button') || event.target;
+    const rect = btn.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    // Reset previous styles
+    content.style.top = 'auto';
+    content.style.bottom = 'auto';
+    content.style.transform = 'translate(-50%, 0)'; // Keep horizontal center, remove vertical
+
+    // Check if we are in the bottom half
+    if (rect.top > viewportHeight / 2) {
+      // Show above the button
+      content.style.bottom = (viewportHeight - rect.top + 10) + 'px';
+    } else {
+      // Show below the button
+      content.style.top = (rect.bottom + 10) + 'px';
+    }
+  } else {
+    // Fallback center
+    content.style.top = '50%';
+    content.style.transform = 'translate(-50%, -50%)';
+  }
 }
+
+function populateTransferClasses(schoolName, targetGrade) {
+  const classSelect = document.getElementById("si_transfer_class");
+  if (!classSelect) return;
+
+  // Find unique classes in destination school for the target grade (in current year context)
+  // Note: The new record will be created with year=CurrentYear, gradeNo=targetGrade.
+  // So we are looking for existing students in that school who are CURRENTLY in that grade.
+  const currentYear = new Date().getFullYear();
+  const classes = new Set();
+
+  studentData.forEach(s => {
+    if (s.schoolName !== schoolName) return;
+    // Calculate their current grade
+    const g = s.gradeNo + (currentYear - s.year);
+    if (g === targetGrade && s.gradeDiv) {
+      classes.add(s.gradeDiv);
+    }
+  });
+
+  let html = '<option value="">-- Select Class --</option>';
+  Array.from(classes).sort().forEach(c => {
+    html += `<option value="${c}">${c}</option>`;
+  });
+  classSelect.innerHTML = html;
+}
+
 async function executeTransfer() {
   if (!transferId) return;
   const school = document.getElementById("si_transfer_school").value;
+  // Year is fixed to current
   const year = parseInt(document.getElementById("si_transfer_year").value);
+  const newClass = document.getElementById("si_transfer_class").value;
+
   if (!school) return alert("Select School");
 
   const s = studentData.find(x => x.id === transferId);
@@ -1046,10 +1334,19 @@ async function executeTransfer() {
     return "Completed";
   };
 
+  // Logic: New record starts FRESH in the current year.
+  // Reg Year = Current Year
+  // Reg Grade = The grade they are currently in.
+  // Because "Grade" is defined as "Grade at Registration Year".
+  const currentGrade = s.gradeNo + (year - s.year);
+
   const newRec = {
     id: Date.now().toString(),
-    schoolName: school, year: year, gradeNo: s.gradeNo + (year - s.year),
-    gradeDiv: s.gradeDiv, name: s.name, age: s.age, sex: s.sex,
+    schoolName: school,
+    year: year, // New registration year is NOW
+    gradeNo: currentGrade, // Registration grade is their CURRENT grade
+    gradeDiv: newClass || "", // User selected class or blank
+    name: s.name, age: s.age, sex: s.sex,
     status: "Active", leftYear: null,
     hpv1: processVacTransfer(s.hpv1, 'hpv1'),
     hpv2: processVacTransfer(s.hpv2, 'hpv2'),

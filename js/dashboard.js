@@ -18,12 +18,36 @@ import { getAllData } from './services/dataService.js';
 
         // Render basic structure with Year Selector
         container.innerHTML = `
-            <div class="dashboard-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+            <style>
+                .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+                .dash-filter-box { display:flex; align-items:center; gap:10px; background:#fff; padding:10px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+                .dash-main-card { border: 2px solid #ddd; border-radius: 15px; padding: 20px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+                .chart-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 15px; }
+                
+                canvas { max-width: 100% !important; }
+                
+                @media (max-width: 600px) {
+                    .dash-header { flex-direction: column; text-align: center; }
+                    .dash-filter-box { width: 100%; justify-content: center; box-sizing: border-box; }
+                    .dash-main-card { padding: 10px; border-width: 1px; }
+                    .chart-grid { grid-template-columns: 1fr; }
+                    .chart-card { margin-bottom: 10px; }
+                    h2 { font-size: 1.2rem; }
+                    h3 { font-size: 1rem; }
+                }
+
+                @media (max-width: 350px) {
+                    .dash-main-card { padding: 5px; }
+                    .chart-card { padding: 5px; }
+                    h4 { font-size: 12px; }
+                }
+            </style>
+            <div class="dash-header">
                 <div>
                     <h2>Immunization Dashboard</h2>
                     <p style="color: #666;">Overview of immunization progress (school register).</p>
                 </div>
-                <div style="display:flex; align-items:center; gap:10px; background:#fff; padding:10px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                <div class="dash-filter-box">
                     <label style="font-weight:bold; color:#333;">Filter Year:</label>
                     <select id="dash_year_select" style="padding:5px 10px; border-radius:4px; border:1px solid #ccc; font-size:16px; min-width:100px;">
                         <!-- Options populated below -->
@@ -37,13 +61,13 @@ import { getAllData } from './services/dataService.js';
             </div>
 
             <div id="dashboard-content" style="display: none;">
-                <div style="border: 2px solid #ddd; border-radius: 15px; padding: 20px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <div class="dash-main-card">
                     <h2 style="text-align: center; margin-bottom: 30px; font-weight: bold; color: #333; text-transform: uppercase; border-bottom: 2px solid #eee; padding-bottom: 10px;">Immunization Data</h2>
 
                     <!-- aTd Section -->
                     <div class="chart-section" style="margin-bottom: 30px;">
                         <h3 style="text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; color:#555;">aTd</h3>
-                        <div class="cards" style="grid-template-columns: 1fr 2fr; gap: 15px;">
+                        <div class="cards chart-grid">
                             <div class="card chart-card" style="background: linear-gradient(145deg, #1a1a1a, #222); padding: 10px;">
                                 <h4 id="lbl_atd_prev" style="margin: 0 0 5px 0; color: #fff; font-size: 14px;">Prev Year</h4>
                                 <div style="height: 180px; position: relative;">
@@ -62,7 +86,7 @@ import { getAllData } from './services/dataService.js';
                     <!-- HPV 1 Section -->
                     <div class="chart-section" style="margin-bottom: 30px;">
                         <h3 style="text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; color:#555;">HPV 1</h3>
-                        <div class="cards" style="grid-template-columns: 1fr 2fr; gap: 15px;">
+                        <div class="cards chart-grid">
                             <div class="card chart-card" style="background: linear-gradient(145deg, #1a1a1a, #222); padding: 10px;">
                                 <h4 id="lbl_hpv1_prev" style="margin: 0 0 5px 0; color: #fff; font-size: 14px;">Prev Year</h4>
                                 <div style="height: 180px; position: relative;">
@@ -81,7 +105,7 @@ import { getAllData } from './services/dataService.js';
                     <!-- HPV 2 Section -->
                     <div class="chart-section" style="margin-bottom: 10px;">
                         <h3 style="text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; color:#555;">HPV 2</h3>
-                        <div class="cards" style="grid-template-columns: 1fr 2fr; gap: 15px;">
+                        <div class="cards chart-grid">
                             <div class="card chart-card" style="background: linear-gradient(145deg, #1a1a1a, #222); padding: 10px;">
                                 <h4 id="lbl_hpv2_prev" style="margin: 0 0 5px 0; color: #fff; font-size: 14px;">Prev Year</h4>
                                 <div style="height: 180px; position: relative;">
@@ -114,9 +138,15 @@ import { getAllData } from './services/dataService.js';
             // Fetch data once
             const studentData = await getAllData('schoolImmunizationStudents');
 
+            const loadingEl = document.getElementById('dashboard-loading');
+            const contentEl = document.getElementById('dashboard-content');
+
+            // If user navigated away, these might be missing
+            if (!loadingEl || !contentEl) return;
+
             // Remove loading
-            document.getElementById('dashboard-loading').style.display = 'none';
-            document.getElementById('dashboard-content').style.display = 'block';
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
 
             // Check if Chart.js is loaded
             if (typeof Chart === 'undefined') {
@@ -186,58 +216,30 @@ import { getAllData } from './services/dataService.js';
                 // Calculate projected grade
                 const projGrade = s.gradeNo + (year - s.year);
 
-                // Standard Target Check (Grade)
-                // Note: For catch-up (Grade 7 HPV), we handle separately below?
-                // The prompt specifically asks about the standard flow first.
-                // Let's stick to standard grade check first.
+                // Standard Target Check (Grade) & Catchup (HPV Gr 7)
                 if (projGrade !== targetGrade && !(type.startsWith('hpv') && projGrade === 7)) return false;
+
+                // Determine 'Done Here' vs 'Done Elsewhere'
+                const val = s[type];
+                const isDoneHere = val && val !== 'Completed';
+                const isImported = val === 'Completed';
 
                 // Status Handling
                 if (s.status === 'Active') {
-                    // Scenario: Transferred In.
-                    // Request: If arrived with vaccine (Completed), do NOT add to Target.
-
-                    if (type === 'hpv1' && s.hpv1 === 'Completed') return false;
-                    if (type === 'hpv2' && s.hpv2 === 'Completed') return false;
-
-                    // Otherwise -> Include
-                    // But for HPV Catchup (Gr 7)?
-                    if (type.startsWith('hpv') && projGrade === 7) {
-                        // Catchup logic: If they need it.
-                        // If they have it 'Completed' (Transfer), they don't need it -> Exclude
-                        const val = s[type];
-                        if (val === 'Completed') return false; // Don't target if already done historically
-                        if (!val) return true; // Missing -> Target
-                        // If date exists?
-                        const dYear = new Date(val).getFullYear();
-                        if (dYear === year) return true; // Done this year -> Target
-                        return false;
-                    }
-
+                    // Include if NOT Imported (Done elsewhere).
+                    // If Imported, they are not our target for THIS vaccine (already done).
+                    if (isImported) return false;
                     return true;
                 }
-
-                if (s.status === 'Left') {
-                    // Scenario: Transferred Out
-                    // Request: "HPV-1 on roll (target) unchange, remove from HPV-2 only"
-
+                else if (s.status === 'Left') {
                     // Check if they left THIS year or later (were present during year)
                     const leftYear = s.leftYear || 9999;
-                    if (leftYear < year) return false; // Left long ago
+                    if (leftYear < year) return false; // Left in previous years -> Not relevant
 
-                    if (type === 'hpv1') {
-                        // Keep in HPV1 Target
-                        return true;
-                    }
-                    if (type === 'hpv2') {
-                        // Remove from HPV2 Target
-                        return false;
-                    }
-                    if (type === 'atd') {
-                        // Request: "aTd target වලින් අදාළ වර්ෂයට target එකෙන් ඉවත් කල යුතුයි"
-                        // Remove from aTd Target
-                        return false;
-                    }
+                    // ONLY Include if they were vaccinated HERE before leaving.
+                    // If they left without vaccine, they are effectively removed from our target.
+                    if (isDoneHere) return true;
+                    return false;
                 }
 
                 return false;

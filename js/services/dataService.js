@@ -81,7 +81,22 @@ export const getData = async (collectionName, docId) => {
  */
 export const getAllData = async (collectionName) => {
     try {
-        const userId = getCurrentUserId();
+        let user = auth.currentUser;
+        if (!user) {
+            // Wait for auth to initialize
+            user = await new Promise((resolve) => {
+                const unsubscribe = auth.onAuthStateChanged((u) => {
+                    unsubscribe();
+                    resolve(u);
+                });
+            });
+        }
+
+        if (!user) {
+            throw new Error("No user logged in");
+        }
+
+        const userId = user.uid; // Use resolved user
         const collectionRef = collection(db, `users/${userId}/${collectionName}`);
         const querySnapshot = await getDocs(collectionRef);
 
